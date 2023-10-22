@@ -1,16 +1,14 @@
-struct BPMNModel {
-    name: String
-}
-
-impl BPMNModel {
-    fn wurst(&self) -> i32 {
-        24
-    }
-}
+use std::env;
+use std::fs;
 
 fn main() {
-    let model = BPMNModel {
-        name: String::from("some user")
-    };
-    println!("Hello, {} {}", model.wurst(), model.name);
+    let args: Vec<String> = env::args().collect();
+    let file_path = &args[1];
+
+    println!("In file {}", file_path);
+
+    let contents = fs::read_to_string(file_path)
+        .expect("Should have been able to read the file");
+
+    println!("With text:\n{contents}");
 }
