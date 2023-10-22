@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "rusty_boyz"
+name = "bpmnanalyzer"
 version = "0.1.0"

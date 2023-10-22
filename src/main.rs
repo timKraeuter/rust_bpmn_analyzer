@@ -1,6 +1,6 @@
 use std::env;
 use std::process;
-use rusty_boyz::Config;
+use bpmnanalyzer::Config;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -11,7 +11,7 @@ fn main() {
 
     println!("In file {}", config.file_path);
 
-    if let Err(e) = rusty_boyz::run(config) {
+    if let Err(e) = bpmnanalyzer::run(config) {
         println!("Application error: {e}");
         process::exit(1);
     }
