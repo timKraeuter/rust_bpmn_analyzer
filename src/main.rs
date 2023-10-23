@@ -9,8 +9,6 @@ fn main() {
         process::exit(1);
     });
 
-    println!("In file {}", config.file_path);
-
     if let Err(e) = bpmnanalyzer::run(config) {
         println!("Application error: {e}");
         process::exit(1);
