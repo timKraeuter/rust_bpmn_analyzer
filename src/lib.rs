@@ -18,6 +18,8 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    // TODO: Read directly from file.
+    // TODO: Use serde to map to structs.
     let contents = fs::read_to_string(config.file_path)?;
     let mut reader = Reader::from_str(&contents);
 
