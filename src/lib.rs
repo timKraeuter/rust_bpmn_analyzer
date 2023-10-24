@@ -1,5 +1,8 @@
 use std::error::Error;
 use std::fs;
+use quick_xml::events::Event;
+use quick_xml::reader::Reader;
+
 pub struct Config {
     pub file_path: String,
 }
@@ -16,7 +19,38 @@ impl Config {
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(config.file_path)?;
-    println!("{}", contents);
+    let mut reader = Reader::from_str(&contents);
+
+    reader.trim_text(true);
+
+    let mut sequence_flow_amount = 0;
+    let mut task_amount = 0;
+    let mut start_amount = 0;
+    loop {
+        match reader.read_event() {
+            Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
+            // exits the loop when reaching end of file
+            Ok(Event::Eof) => break,
+
+            Ok(Event::Start(e)) => {
+                match e.name().as_ref() {
+                    b"startEvent" => start_amount = start_amount + 1,
+                    b"serviceTask" => task_amount = task_amount + 1,
+                    _ => (),
+                }
+            }
+
+            Ok(Event::Empty(e)) => {
+                match e.name().as_ref() {
+                    b"sequenceFlow" => sequence_flow_amount = sequence_flow_amount + 1,
+                    _ => (),
+                }
+            }
+            // There are several other `Event`s we do not consider here
+            _ => (),
+        }
+    }
+    println!("Start event {}, Tasks {}, Sequence flows {}", start_amount, task_amount, sequence_flow_amount);
 
     Ok(())
 }
@@ -47,6 +81,7 @@ Pick three.";
 
         assert_eq!(vec!["safe, fast, productive."], search(query, contents));
     }
+
     #[test]
     fn no_results() {
         let query = "abc";
