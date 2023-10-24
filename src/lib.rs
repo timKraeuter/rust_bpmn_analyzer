@@ -1,3 +1,5 @@
+mod bpmn;
+
 use std::error::Error;
 use std::fs;
 use quick_xml::events::Event;
