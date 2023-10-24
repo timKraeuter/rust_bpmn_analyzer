@@ -2,7 +2,6 @@ use std::error::Error;
 use std::fs;
 pub struct Config {
     pub file_path: String,
-    pub query: String,
 }
 
 impl Config {
@@ -11,17 +10,13 @@ impl Config {
             return Err("not enough arguments");
         }
         let file_path = args[1].clone();
-        let query = args[2].clone();
-        Ok(Config { file_path, query })
+        Ok(Config { file_path })
     }
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     let contents = fs::read_to_string(config.file_path)?;
-
-    for line in search(&config.query, &contents) {
-        println!("{line}");
-    }
+    println!("{}", contents);
 
     Ok(())
 }
