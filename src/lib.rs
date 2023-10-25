@@ -25,13 +25,12 @@ impl Config {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // TODO: Read directly from file.
     // TODO: Use serde to map to structs.
-    let path = Path::new(&config.file_path);
-    let contents = fs::read_to_string(path)?;
+    let (contents, file_name) = read_file_and_get_name(&config.file_path);
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
 
     let mut collaboration = BPMNCollaboration {
-        name: get_file_name(path),
+        name: file_name,
         participants: Vec::new(),
     };
 
@@ -60,13 +59,22 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             _ => (),
         }
     }
-    println!("{:?}", collaboration);
+    // println!("{:?}", collaboration);
 
     Ok(())
 }
 
-fn get_file_name(path: &Path) -> String {
-    // Wtf is the next line.
+fn read_file_and_get_name(path: &String) -> (String, String) {
+    let file_content = match fs::read_to_string(path) {
+        Ok(content) => { content }
+        Err(err) => { panic!("Error reading the file {:?}. {}", path, err) }
+    };
+    (file_content, get_file_name(path))
+}
+
+fn get_file_name(path: &String) -> String {
+    let path = Path::new(path);
+    // Wtf is the next line. Careful file might not exist!
     path.file_name().unwrap().to_str().unwrap().parse().unwrap()
 }
 
