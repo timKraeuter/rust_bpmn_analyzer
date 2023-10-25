@@ -1,18 +1,22 @@
+#[derive(Debug)]
 pub struct BPMNCollaboration {
-    name: String,
-    participants: Vec<BPMNProcess>
+    pub name: String,
+    pub participants: Vec<BPMNProcess>
 }
 
+#[derive(Debug)]
 pub struct BPMNProcess {
-    name: String,
-    sequence_flows: Vec<SequenceFlow>,
-    flow_nodes: Vec<FlowNode>
+    pub id: String,
+    pub sequence_flows: Vec<SequenceFlow>,
+    pub flow_nodes: Vec<FlowNode>
 }
 
+#[derive(Debug)]
 pub struct SequenceFlow {
-    name: String
+    pub id: String
 }
 
+#[derive(Debug)]
 pub struct FlowNode {
-    name: String
+    pub id: String
 }

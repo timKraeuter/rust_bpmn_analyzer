@@ -2,8 +2,10 @@ mod bpmn;
 
 use std::error::Error;
 use std::fs;
-use quick_xml::events::Event;
+use std::str;
+use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
+use crate::bpmn::{BPMNCollaboration, BPMNProcess};
 
 pub struct Config {
     pub file_path: String,
@@ -24,12 +26,14 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // TODO: Use serde to map to structs.
     let contents = fs::read_to_string(config.file_path)?;
     let mut reader = Reader::from_str(&contents);
-
     reader.trim_text(true);
 
-    let mut sequence_flow_amount = 0;
-    let mut task_amount = 0;
-    let mut start_amount = 0;
+    let participants = Vec::new();
+    let mut collaboration = BPMNCollaboration {
+        name: String::from("123"),
+        participants,
+    };
+
     loop {
         match reader.read_event() {
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
@@ -38,15 +42,32 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
             Ok(Event::Start(e)) => {
                 match e.name().as_ref() {
-                    b"startEvent" => start_amount = start_amount + 1,
-                    b"serviceTask" => task_amount = task_amount + 1,
+                    b"process" => {
+                        let id = get_attribute_value_or_panic(e, &String::from("id"));
+                        collaboration.participants.push(BPMNProcess {
+                            id,
+                            sequence_flows: Vec::new(),
+                            flow_nodes: Vec::new(),
+                        });
+                    }
+                    // b"startEvent" => println!("a"),
+                    // b"serviceTask" => println!("a"),
+                    _ => (),
+                }
+            }
+
+            Ok(Event::End(e)) => {
+                match e.name().as_ref() {
+                    // b"process" => {                 }
+                    // b"startEvent" => println!("start event end"),
+                    // b"serviceTask" => println!("service task end"),
                     _ => (),
                 }
             }
 
             Ok(Event::Empty(e)) => {
                 match e.name().as_ref() {
-                    b"sequenceFlow" => sequence_flow_amount = sequence_flow_amount + 1,
+                    // b"sequenceFlow" => println!("a"),
                     _ => (),
                 }
             }
@@ -54,9 +75,26 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             _ => (),
         }
     }
-    println!("Start event {}, Tasks {}, Sequence flows {}", start_amount, task_amount, sequence_flow_amount);
+    println!("{:?}", collaboration);
 
     Ok(())
+}
+
+pub fn get_attribute_value_or_panic(e: BytesStart, key: &str) -> String {
+    match e.try_get_attribute(key) {
+        Ok(x) => {
+            match x {
+                None => { panic!("Attribute value for key \"{}\" not found.", key) }
+                Some(x) => {
+                    match String::from_utf8(x.value.into_owned()) {
+                        Ok(value) => { value }
+                        Err(_) => { panic!("UTF8 Error") }
+                    }
+                }
+            }
+        }
+        Err(_) => { panic!("Could not get attribute!") }
+    }
 }
 
 pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
