@@ -42,12 +42,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             Ok(Event::Start(e)) => {
                 match e.name().as_ref() {
                     b"process" => {
-                        let id = get_attribute_value_or_panic(e, &String::from("id"));
-                        collaboration.participants.push(BPMNProcess {
-                            id,
-                            sequence_flows: Vec::new(),
-                            flow_nodes: Vec::new(),
-                        });
+                        add_participant(&mut collaboration, e);
                     }
                     // b"startEvent" => println!("a"),
                     // b"serviceTask" => println!("a"),
@@ -66,7 +61,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
             Ok(Event::Empty(e)) => {
                 match e.name().as_ref() {
-                    b"sequenceFlow" => add_sf_to_participant(&mut collaboration.participants, e),
+                    b"sequenceFlow" => add_sf_to_last_participant(&mut collaboration, e),
                     _ => (),
                 }
             }
@@ -78,11 +73,21 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
-fn add_sf_to_participant(participants: &mut Vec<BPMNProcess>, sf_bytes: BytesStart) {
+
+fn add_participant(collaboration: &mut BPMNCollaboration, e: BytesStart) {
+    let id = get_attribute_value_or_panic(e, &String::from("id"));
+    collaboration.participants.push(BPMNProcess {
+        id,
+        sequence_flows: Vec::new(),
+        flow_nodes: Vec::new(),
+    });
+}
+
+fn add_sf_to_last_participant(collaboration: &mut BPMNCollaboration, sf_bytes: BytesStart) {
     let id = get_attribute_value_or_panic(sf_bytes, &String::from("id"));
     let sf = SequenceFlow { id };
 
-    let option = participants.last_mut();
+    let option = collaboration.participants.last_mut();
     match option {
         None => {}
         Some(process) => {
