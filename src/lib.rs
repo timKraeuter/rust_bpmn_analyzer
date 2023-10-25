@@ -2,6 +2,7 @@ mod bpmn;
 
 use std::error::Error;
 use std::fs;
+use std::path::Path;
 use std::str;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
@@ -24,54 +25,49 @@ impl Config {
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     // TODO: Read directly from file.
     // TODO: Use serde to map to structs.
-    let contents = fs::read_to_string(config.file_path)?;
+    let path = Path::new(&config.file_path);
+    let contents = fs::read_to_string(path)?;
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
 
     let mut collaboration = BPMNCollaboration {
-        name: String::from("123"),
+        name: get_file_name(path),
         participants: Vec::new(),
     };
 
     loop {
         match reader.read_event() {
-            Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
-            // exits the loop when reaching end of file
-            Ok(Event::Eof) => break,
-
             Ok(Event::Start(e)) => {
                 match e.name().as_ref() {
                     b"process" => {
                         add_participant(&mut collaboration, e);
                     }
-                    // b"startEvent" => println!("a"),
-                    // b"serviceTask" => println!("a"),
+                    b"startEvent" => println!("start event"),
+                    b"serviceTask" => println!("service task"),
+                    b"parallelGateway" => println!("parallel gateway"),
+                    b"exclusiveGateway" => println!("exclusive gateway"),
                     _ => (),
                 }
             }
-
-            Ok(Event::End(e)) => {
-                match e.name().as_ref() {
-                    // b"process" => ,
-                    // b"startEvent" => println!("start event end"),
-                    // b"serviceTask" => println!("service task end"),
-                    _ => (),
-                }
-            }
-
             Ok(Event::Empty(e)) => {
                 match e.name().as_ref() {
                     b"sequenceFlow" => add_sf_to_last_participant(&mut collaboration, e),
                     _ => (),
                 }
             }
-            // There are several other `Event`s we do not consider here
+            Ok(Event::Eof) => break,
+            Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (),
         }
     }
     println!("{:?}", collaboration);
 
     Ok(())
+}
+
+fn get_file_name(path: &Path) -> String {
+    // Wtf is the next line.
+    path.file_name().unwrap().to_str().unwrap().parse().unwrap()
 }
 
 fn add_participant(collaboration: &mut BPMNCollaboration, e: BytesStart) {
@@ -89,7 +85,7 @@ fn add_sf_to_last_participant(collaboration: &mut BPMNCollaboration, sf_bytes: B
 
     let option = collaboration.participants.last_mut();
     match option {
-        None => {}
+        None => { panic!("Sequence flow found but no BPMN process! Malformed XML?") }
         Some(process) => {
             process.add_sf(sf);
         }
