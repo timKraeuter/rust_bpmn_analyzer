@@ -22,7 +22,7 @@ impl Config {
     }
 }
 
-pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
+pub fn run(config: Config) -> Result<BPMNCollaboration, Box<dyn Error>> {
     // TODO: Read directly from file (less peak memory usage).
     // TODO: Use serde to map to structs.
     let (contents, file_name) = read_file_and_get_name(&config.file_path);
@@ -59,9 +59,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             _ => (),
         }
     }
-    println!("{:?}", collaboration);
-
-    Ok(())
+    Ok(collaboration)
 }
 
 fn read_file_and_get_name(path: &String) -> (String, String) {
@@ -93,9 +91,9 @@ fn add_flow_node_to_last_participant(collaboration: &mut BPMNCollaboration, flow
     match option {
         None => { panic!("Sequence flow found but no BPMN process! Malformed XML?") }
         Some(process) => {
-            process.add_flow_node(FlowNode{
+            process.add_flow_node(FlowNode {
                 id,
-                flow_node_type
+                flow_node_type,
             });
         }
     }
@@ -131,41 +129,14 @@ pub fn get_attribute_value_or_panic(e: BytesStart, key: &str) -> String {
     }
 }
 
-pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
-    let mut results = Vec::new();
-    for line in contents.lines() {
-        // do something with line
-        if line.contains(query) {
-            // do something with line
-            results.push(line);
-        }
-    }
-    results
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn one_result() {
-        let query = "duct";
-        let contents = "\
-Rust:
-safe, fast, productive.
-Pick three.";
-
-        assert_eq!(vec!["safe, fast, productive."], search(query, contents));
-    }
-
-    #[test]
-    fn no_results() {
-        let query = "abc";
-        let contents = "\
-Rust:
-safe, fast, productive.
-Pick three.";
-        let expected: Vec<&str> = Vec::new();
-        assert_eq!(expected, search(query, contents));
+    fn read_003() {
+        let result = run(Config { file_path: String::from("003.bpmn") }).unwrap();
+        let collaboration = BPMNCollaboration { name: String::from("003.bpmn"), participants: Vec::new() };
+        assert_eq!(collaboration, result);
     }
 }

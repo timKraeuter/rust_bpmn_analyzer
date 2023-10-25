@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
     pub name: String,
     pub participants: Vec<BPMNProcess>
@@ -10,7 +10,7 @@ impl BPMNCollaboration {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BPMNProcess {
     pub id: String,
     pub sequence_flows: Vec<SequenceFlow>,
@@ -26,16 +26,16 @@ impl BPMNProcess {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
     pub id: String
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct  FlowNode {
     pub id: String,
     pub flow_node_type: FlowNodeType
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum FlowNodeType {
     StartEvent,
     Task,
