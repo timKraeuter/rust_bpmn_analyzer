@@ -6,7 +6,7 @@ use std::path::Path;
 use std::str;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
-use crate::bpmn::{BPMNCollaboration, BPMNProcess, SequenceFlow};
+use crate::bpmn::{BPMNCollaboration, BPMNProcess, FlowNode, FlowNodeType, SequenceFlow};
 
 pub struct Config {
     pub file_path: String,
@@ -23,7 +23,7 @@ impl Config {
 }
 
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
-    // TODO: Read directly from file.
+    // TODO: Read directly from file (less peak memory usage).
     // TODO: Use serde to map to structs.
     let (contents, file_name) = read_file_and_get_name(&config.file_path);
     let mut reader = Reader::from_str(&contents);
@@ -41,10 +41,10 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
                     b"process" => {
                         add_participant(&mut collaboration, e);
                     }
-                    b"startEvent" => println!("start event"),
-                    b"serviceTask" => println!("service task"),
-                    b"parallelGateway" => println!("parallel gateway"),
-                    b"exclusiveGateway" => println!("exclusive gateway"),
+                    b"startEvent" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::StartEvent),
+                    b"serviceTask" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::Task),
+                    b"parallelGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ParallelGateway),
+                    b"exclusiveGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
                     _ => (),
                 }
             }
@@ -59,7 +59,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
             _ => (),
         }
     }
-    // println!("{:?}", collaboration);
+    println!("{:?}", collaboration);
 
     Ok(())
 }
@@ -78,13 +78,27 @@ fn get_file_name(path: &String) -> String {
     path.file_name().unwrap().to_str().unwrap().parse().unwrap()
 }
 
-fn add_participant(collaboration: &mut BPMNCollaboration, e: BytesStart) {
-    let id = get_attribute_value_or_panic(e, &String::from("id"));
+fn add_participant(collaboration: &mut BPMNCollaboration, p_bytes: BytesStart) {
+    let id = get_attribute_value_or_panic(p_bytes, &String::from("id"));
     collaboration.add_participant(BPMNProcess {
         id,
         sequence_flows: Vec::new(),
         flow_nodes: Vec::new(),
     });
+}
+
+fn add_flow_node_to_last_participant(collaboration: &mut BPMNCollaboration, flow_node_bytes: BytesStart, flow_node_type: FlowNodeType) {
+    let id = get_attribute_value_or_panic(flow_node_bytes, &String::from("id"));
+    let option = collaboration.participants.last_mut();
+    match option {
+        None => { panic!("Sequence flow found but no BPMN process! Malformed XML?") }
+        Some(process) => {
+            process.add_flow_node(FlowNode{
+                id,
+                flow_node_type
+            });
+        }
+    }
 }
 
 fn add_sf_to_last_participant(collaboration: &mut BPMNCollaboration, sf_bytes: BytesStart) {
