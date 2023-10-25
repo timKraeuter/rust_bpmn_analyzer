@@ -76,7 +76,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
 fn add_participant(collaboration: &mut BPMNCollaboration, e: BytesStart) {
     let id = get_attribute_value_or_panic(e, &String::from("id"));
-    collaboration.participants.push(BPMNProcess {
+    collaboration.add_participant(BPMNProcess {
         id,
         sequence_flows: Vec::new(),
         flow_nodes: Vec::new(),

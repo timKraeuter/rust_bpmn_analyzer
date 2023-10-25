@@ -4,6 +4,12 @@ pub struct BPMNCollaboration {
     pub participants: Vec<BPMNProcess>
 }
 
+impl BPMNCollaboration {
+    pub fn add_participant(&mut self, participant: BPMNProcess) {
+        self.participants.push(participant);
+    }
+}
+
 #[derive(Debug)]
 pub struct BPMNProcess {
     pub id: String,
@@ -13,7 +19,6 @@ pub struct BPMNProcess {
 
 impl BPMNProcess {
     pub fn add_sf(&mut self, sf: SequenceFlow) {
-        // ^^^ Here
         self.sequence_flows.push(sf);
     }
 }
