@@ -5,7 +5,7 @@ use std::fs;
 use std::str;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
-use crate::bpmn::{BPMNCollaboration, BPMNProcess};
+use crate::bpmn::{BPMNCollaboration, BPMNProcess, SequenceFlow};
 
 pub struct Config {
     pub file_path: String,
@@ -33,6 +33,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         name: String::from("123"),
         participants,
     };
+    let mut sfs: Vec<SequenceFlow> = Vec::new();
 
     loop {
         match reader.read_event() {
@@ -67,7 +68,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
 
             Ok(Event::Empty(e)) => {
                 match e.name().as_ref() {
-                    // b"sequenceFlow" => println!("a"),
+                    b"sequenceFlow" => add_sf(&mut sfs, e),
                     _ => (),
                 }
             }
@@ -76,8 +77,14 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
         }
     }
     println!("{:?}", collaboration);
+    println!("{:?}", sfs);
 
     Ok(())
+}
+
+fn add_sf(sfs: &mut Vec<SequenceFlow>, e: BytesStart) {
+    let id = get_attribute_value_or_panic(e, &String::from("id"));
+    sfs.push(SequenceFlow { id })
 }
 
 pub fn get_attribute_value_or_panic(e: BytesStart, key: &str) -> String {
