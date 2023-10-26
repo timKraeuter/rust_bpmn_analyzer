@@ -169,7 +169,7 @@ mod tests {
             id: String::from("pg"),
             flow_node_type: FlowNodeType::ParallelGateway
         });
-        expected.participants.push(process);
+        expected.add_participant(process);
 
         // When
         let result = run(Config { file_path: String::from("resources/task-and-gateways.bpmn") }).unwrap();
