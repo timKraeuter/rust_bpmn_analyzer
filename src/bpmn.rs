@@ -1,7 +1,7 @@
 #[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
     pub name: String,
-    pub participants: Vec<BPMNProcess>
+    pub participants: Vec<BPMNProcess>,
 }
 
 impl BPMNCollaboration {
@@ -14,7 +14,7 @@ impl BPMNCollaboration {
 pub struct BPMNProcess {
     pub id: String,
     pub sequence_flows: Vec<SequenceFlow>,
-    pub flow_nodes: Vec<FlowNode>
+    pub flow_nodes: Vec<FlowNode>,
 }
 
 impl BPMNProcess {
@@ -28,17 +28,27 @@ impl BPMNProcess {
 
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
-    pub id: String
-}
-#[derive(Debug, PartialEq)]
-pub struct  FlowNode {
     pub id: String,
-    pub flow_node_type: FlowNodeType
 }
+
+#[derive(Debug, PartialEq)]
+pub struct FlowNode {
+    pub id: String,
+    pub flow_node_type: FlowNodeType,
+    pub incoming_flows: Vec<SequenceFlow>,
+    pub outgoing_flows: Vec<SequenceFlow>,
+}
+
+impl FlowNode {
+    pub(crate) fn new(id: String, flow_node_type: FlowNodeType) -> FlowNode {
+        FlowNode { id, flow_node_type, incoming_flows: Vec::new(), outgoing_flows: Vec::new() }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum FlowNodeType {
     StartEvent,
     Task,
     ExclusiveGateway,
-    ParallelGateway
+    ParallelGateway,
 }

@@ -91,10 +91,7 @@ fn add_flow_node_to_last_participant(collaboration: &mut BPMNCollaboration, flow
     match option {
         None => { panic!("Sequence flow found but no BPMN process! Malformed XML?") }
         Some(process) => {
-            process.add_flow_node(FlowNode {
-                id,
-                flow_node_type,
-            });
+            process.add_flow_node(FlowNode::new(id, flow_node_type));
         }
     }
 }
@@ -153,22 +150,10 @@ mod tests {
         process.add_sf(SequenceFlow {
             id: String::from("sf_4")
         });
-        process.add_flow_node(FlowNode {
-            id: String::from("start"),
-            flow_node_type: FlowNodeType::StartEvent
-        });
-        process.add_flow_node(FlowNode {
-            id: String::from("task"),
-            flow_node_type: FlowNodeType::Task
-        });
-        process.add_flow_node(FlowNode {
-            id: String::from("exg"),
-            flow_node_type: FlowNodeType::ExclusiveGateway
-        });
-        process.add_flow_node(FlowNode {
-            id: String::from("pg"),
-            flow_node_type: FlowNodeType::ParallelGateway
-        });
+        process.add_flow_node(FlowNode::new(String::from("start"), FlowNodeType::StartEvent));
+        process.add_flow_node(FlowNode::new(String::from("task"), FlowNodeType::Task));
+        process.add_flow_node(FlowNode::new(String::from("exg"), FlowNodeType::ExclusiveGateway));
+        process.add_flow_node(FlowNode::new(String::from("pg"), FlowNodeType::ParallelGateway));
         expected.add_participant(process);
 
         // When
