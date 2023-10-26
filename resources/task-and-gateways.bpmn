@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <definitions xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="definitions_c3351e85-298e-4966-b7a9-35b9e5ea6c2d" targetNamespace="http://www.omg.org/spec/BPMN/20100524/MODEL" exporter="Camunda Modeler" exporterVersion="5.16.0" camunda:diagramRelationId="bbae2a80-0600-4f84-9458-77e1a7109e1a">
   <process id="process_id" isExecutable="false">
+    <sequenceFlow id="sf_3" sourceRef="exg" targetRef="pg" />
+    <sequenceFlow id="sf_4" sourceRef="pg" targetRef="end" />
     <startEvent id="start">
       <outgoing>sf_1</outgoing>
     </startEvent>
@@ -21,8 +23,6 @@
     <endEvent id="end">
       <incoming>sf_4</incoming>
     </endEvent>
-    <sequenceFlow id="sf_3" sourceRef="exg" targetRef="pg" />
-    <sequenceFlow id="sf_4" sourceRef="pg" targetRef="end" />
   </process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_70313b3b-e835-411c-bc0d-83d760865280">
     <bpmndi:BPMNPlane id="BPMNPlane_56630787-2eba-489f-98c8-0130ce0e0bd8" bpmnElement="process_id">

@@ -34,6 +34,8 @@ pub fn run(config: Config) -> Result<BPMNCollaboration, Box<dyn Error>> {
         participants: Vec::new(),
     };
 
+    let mut sfs = Vec::new();
+
     loop {
         match reader.read_event() {
             Ok(Event::Start(e)) => {
@@ -46,12 +48,13 @@ pub fn run(config: Config) -> Result<BPMNCollaboration, Box<dyn Error>> {
                     b"parallelGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ParallelGateway),
                     b"exclusiveGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
                     b"endEvent" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::EndEvent),
+                    b"sequenceFlow" => sfs.push(e),
                     _ => (),
                 }
             }
             Ok(Event::Empty(e)) => {
                 match e.name().as_ref() {
-                    b"sequenceFlow" => add_sf_to_last_participant(&mut collaboration, e),
+                    b"sequenceFlow" => sfs.push(e),
                     _ => (),
                 }
             }
@@ -59,6 +62,10 @@ pub fn run(config: Config) -> Result<BPMNCollaboration, Box<dyn Error>> {
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (),
         }
+    }
+    // Read sfs at the end.
+    for sf in sfs.iter() {
+        add_sf_to_last_participant(&mut collaboration, sf);
     }
     Ok(collaboration)
 }
@@ -96,10 +103,10 @@ fn add_flow_node_to_last_participant(collaboration: &mut BPMNCollaboration, flow
     }
 }
 
-fn add_sf_to_last_participant(collaboration: &mut BPMNCollaboration, sf_bytes: BytesStart) {
-    let id = get_attribute_value_or_panic(&sf_bytes, &String::from("id"));
-    let source_ref = get_attribute_value_or_panic(&sf_bytes, &String::from("sourceRef"));
-    let target_ref = get_attribute_value_or_panic(&sf_bytes, &String::from("targetRef"));
+fn add_sf_to_last_participant(collaboration: &mut BPMNCollaboration, sf_bytes: &BytesStart) {
+    let id = get_attribute_value_or_panic(sf_bytes, &String::from("id"));
+    let source_ref = get_attribute_value_or_panic(sf_bytes, &String::from("sourceRef"));
+    let target_ref = get_attribute_value_or_panic(sf_bytes, &String::from("targetRef"));
     let sf = SequenceFlow { id };
 
     let option = collaboration.participants.last_mut();
