@@ -45,6 +45,7 @@ pub fn run(config: Config) -> Result<BPMNCollaboration, Box<dyn Error>> {
                     b"serviceTask" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::Task),
                     b"parallelGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ParallelGateway),
                     b"exclusiveGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
+                    b"endEvent" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::EndEvent),
                     _ => (),
                 }
             }
@@ -77,16 +78,15 @@ fn get_file_name(path: &String) -> String {
 }
 
 fn add_participant(collaboration: &mut BPMNCollaboration, p_bytes: BytesStart) {
-    let id = get_attribute_value_or_panic(p_bytes, &String::from("id"));
+    let id = get_attribute_value_or_panic(&p_bytes, &String::from("id"));
     collaboration.add_participant(BPMNProcess {
         id,
-        sequence_flows: Vec::new(),
         flow_nodes: Vec::new(),
     });
 }
 
 fn add_flow_node_to_last_participant(collaboration: &mut BPMNCollaboration, flow_node_bytes: BytesStart, flow_node_type: FlowNodeType) {
-    let id = get_attribute_value_or_panic(flow_node_bytes, &String::from("id"));
+    let id = get_attribute_value_or_panic(&flow_node_bytes, &String::from("id"));
     let option = collaboration.participants.last_mut();
     match option {
         None => { panic!("Sequence flow found but no BPMN process! Malformed XML?") }
@@ -97,19 +97,21 @@ fn add_flow_node_to_last_participant(collaboration: &mut BPMNCollaboration, flow
 }
 
 fn add_sf_to_last_participant(collaboration: &mut BPMNCollaboration, sf_bytes: BytesStart) {
-    let id = get_attribute_value_or_panic(sf_bytes, &String::from("id"));
+    let id = get_attribute_value_or_panic(&sf_bytes, &String::from("id"));
+    let source_ref = get_attribute_value_or_panic(&sf_bytes, &String::from("sourceRef"));
+    let target_ref = get_attribute_value_or_panic(&sf_bytes, &String::from("targetRef"));
     let sf = SequenceFlow { id };
 
     let option = collaboration.participants.last_mut();
     match option {
         None => { panic!("Sequence flow found but no BPMN process! Malformed XML?") }
         Some(process) => {
-            process.add_sf(sf);
+            process.add_sf(sf, source_ref, target_ref);
         }
     }
 }
 
-pub fn get_attribute_value_or_panic(e: BytesStart, key: &str) -> String {
+pub fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
     match e.try_get_attribute(key) {
         Ok(x) => {
             match x {
@@ -135,25 +137,37 @@ mod tests {
         let mut expected = BPMNCollaboration { name: String::from("task-and-gateways.bpmn"), participants: Vec::new() };
         let mut process = BPMNProcess {
             id: String::from("process_id"),
-            sequence_flows: Vec::new(),
             flow_nodes: Vec::new(),
         };
-        process.add_sf(SequenceFlow {
-            id: String::from("sf_1")
-        });
-        process.add_sf(SequenceFlow {
-            id: String::from("sf_2")
-        });
-        process.add_sf(SequenceFlow {
-            id: String::from("sf_3")
-        });
-        process.add_sf(SequenceFlow {
-            id: String::from("sf_4")
-        });
         process.add_flow_node(FlowNode::new(String::from("start"), FlowNodeType::StartEvent));
         process.add_flow_node(FlowNode::new(String::from("task"), FlowNodeType::Task));
         process.add_flow_node(FlowNode::new(String::from("exg"), FlowNodeType::ExclusiveGateway));
         process.add_flow_node(FlowNode::new(String::from("pg"), FlowNodeType::ParallelGateway));
+        process.add_flow_node(FlowNode::new(String::from("end"), FlowNodeType::EndEvent));
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_1")
+        },
+                       String::from("start"),
+                       String::from("task"),
+        );
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_2")
+        },
+                       String::from("task"),
+                       String::from("exg"),
+        );
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_3")
+        },
+                       String::from("exg"),
+                       String::from("pg"),
+        );
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_4")
+        },
+                       String::from("pg"),
+                       String::from("end"),
+        );
         expected.add_participant(process);
 
         // When
