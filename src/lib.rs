@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn read_003() {
-        let result = run(Config { file_path: String::from("003.bpmn") }).unwrap();
+        let result = run(Config { file_path: String::from("resources/003.bpmn") }).unwrap();
         let collaboration = BPMNCollaboration { name: String::from("003.bpmn"), participants: Vec::new() };
         assert_eq!(collaboration, result);
     }
