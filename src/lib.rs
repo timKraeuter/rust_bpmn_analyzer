@@ -134,9 +134,46 @@ mod tests {
     use super::*;
 
     #[test]
-    fn read_003() {
-        let result = run(Config { file_path: String::from("resources/003.bpmn") }).unwrap();
-        let collaboration = BPMNCollaboration { name: String::from("003.bpmn"), participants: Vec::new() };
-        assert_eq!(collaboration, result);
+    fn read_task_and_gateways() {
+        let mut expected = BPMNCollaboration { name: String::from("task-and-gateways.bpmn"), participants: Vec::new() };
+        let mut process = BPMNProcess {
+            id: String::from("process_id"),
+            sequence_flows: Vec::new(),
+            flow_nodes: Vec::new(),
+        };
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_1")
+        });
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_2")
+        });
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_3")
+        });
+        process.add_sf(SequenceFlow {
+            id: String::from("sf_4")
+        });
+        process.add_flow_node(FlowNode {
+            id: String::from("start"),
+            flow_node_type: FlowNodeType::StartEvent
+        });
+        process.add_flow_node(FlowNode {
+            id: String::from("task"),
+            flow_node_type: FlowNodeType::Task
+        });
+        process.add_flow_node(FlowNode {
+            id: String::from("exg"),
+            flow_node_type: FlowNodeType::ExclusiveGateway
+        });
+        process.add_flow_node(FlowNode {
+            id: String::from("pg"),
+            flow_node_type: FlowNodeType::ParallelGateway
+        });
+        expected.participants.push(process);
+
+        // When
+        let result = run(Config { file_path: String::from("resources/task-and-gateways.bpmn") }).unwrap();
+
+        assert_eq!(expected, result);
     }
 }
