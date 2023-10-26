@@ -19,7 +19,7 @@ pub struct BPMNProcess {
 impl BPMNProcess {
     pub fn add_sf(&mut self, sf: SequenceFlow, source_ref: String, target_ref: String) {
         let mut source_flow_node: Vec<&mut FlowNode> = self.flow_nodes.iter_mut().filter(|f| f.id == source_ref).collect();
-        // TODO: Clone for now but maybe refactor using lifelines?
+        // TODO: Clone for now but maybe refactor using lifetimes?
         let sf_id = sf.id.clone();
 
         match source_flow_node.last_mut() {
