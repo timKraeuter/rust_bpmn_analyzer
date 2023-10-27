@@ -1,4 +1,5 @@
 mod reader;
+mod state_space;
 
 pub use reader::read_bpmn_file;
 
