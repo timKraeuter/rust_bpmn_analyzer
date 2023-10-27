@@ -1,3 +1,7 @@
+mod reader;
+
+pub use reader::read_bpmn_file;
+
 #[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
     pub name: String,
