@@ -2,6 +2,8 @@ mod reader;
 mod state_space;
 
 pub use reader::read_bpmn_file;
+pub use state_space::StateSpace;
+use crate::bpmn::state_space::{ProcessSnapshot, State, Token};
 
 #[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
@@ -12,6 +14,18 @@ pub struct BPMNCollaboration {
 impl BPMNCollaboration {
     pub fn add_participant(&mut self, participant: BPMNProcess) {
         self.participants.push(participant);
+    }
+
+    pub fn explore_state_space(&self) -> StateSpace {
+        StateSpace {
+            states: vec![State {
+                states: vec![ProcessSnapshot {
+                    tokens: vec![Token {
+                        position: String::from("123")
+                    }]
+                }]
+            }]
+        }
     }
 }
 

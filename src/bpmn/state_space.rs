@@ -1,16 +1,17 @@
+#[derive(Debug)]
 pub struct StateSpace {
-    states: Vec<State>
+    pub states: Vec<State>
 }
-
+#[derive(Debug)]
 pub struct State {
-    states: Vec<ProcessSnapshot>
+    pub states: Vec<ProcessSnapshot>
 }
-
+#[derive(Debug)]
 pub struct ProcessSnapshot {
-    tokens: Vec<Token>
+    pub tokens: Vec<Token>
 }
-
+#[derive(Debug)]
 pub struct Token {
     // Element id of the element the token is located at.
-    position: String
+    pub position: String
 }
