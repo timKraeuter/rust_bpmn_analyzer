@@ -18,13 +18,7 @@ impl BPMNCollaboration {
 
     pub fn explore_state_space(&self, start_state: State) -> StateSpace {
         StateSpace {
-            states: vec![State {
-                snapshots: vec![ProcessSnapshot {
-                    tokens: vec![Token {
-                        position: String::from("123")
-                    }]
-                }]
-            }]
+            states: vec![start_state]
         }
     }
 
