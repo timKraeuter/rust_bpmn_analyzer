@@ -4,7 +4,7 @@ pub struct StateSpace {
 }
 #[derive(Debug)]
 pub struct State {
-    pub states: Vec<ProcessSnapshot>
+    pub snapshots: Vec<ProcessSnapshot>
 }
 #[derive(Debug)]
 pub struct ProcessSnapshot {

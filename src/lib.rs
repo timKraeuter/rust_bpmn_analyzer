@@ -23,7 +23,9 @@ pub fn run(config: Config) -> Result<StateSpace, Box<dyn Error>> {
 
     println!("{:?}", collaboration);
 
-    let state_space = collaboration.explore_state_space();
+    let start = collaboration.create_start_state();
+    println!("{:?}", start);
+    let state_space = collaboration.explore_state_space(start);
     println!("{:?}", state_space);
 
     Ok(state_space)

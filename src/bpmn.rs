@@ -16,16 +16,39 @@ impl BPMNCollaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space(&self) -> StateSpace {
+    pub fn explore_state_space(&self, start_state: State) -> StateSpace {
         StateSpace {
             states: vec![State {
-                states: vec![ProcessSnapshot {
+                snapshots: vec![ProcessSnapshot {
                     tokens: vec![Token {
                         position: String::from("123")
                     }]
                 }]
             }]
         }
+    }
+
+    pub fn create_start_state(&self) -> State {
+        let mut start = State {
+            snapshots: Vec::new()
+        };
+        for process in &self.participants {
+            let mut snapshot = ProcessSnapshot {
+                tokens: Vec::new()
+            };
+            for flow_node in &process.flow_nodes {
+                match flow_node.flow_node_type {
+                    // Cloning the string here could be done differently.
+                    FlowNodeType::StartEvent => { snapshot.tokens.push(Token { position: flow_node.id.clone() }) }
+                    FlowNodeType::Task => {}
+                    FlowNodeType::ExclusiveGateway => {}
+                    FlowNodeType::ParallelGateway => {}
+                    FlowNodeType::EndEvent => {}
+                }
+            }
+            start.snapshots.push(snapshot);
+        }
+        start
     }
 }
 
