@@ -1,6 +1,7 @@
 #[derive(Debug)]
 pub struct StateSpace {
     pub states: Vec<State>
+    // Transitions are currently missing here. They could be handled in each individual state.
 }
 #[derive(Debug)]
 pub struct State {
