@@ -17,8 +17,24 @@ impl BPMNCollaboration {
     }
 
     pub fn explore_state_space(&self, start_state: State) -> StateSpace {
+        let mut explored_states = Vec::new();
+        let mut unexplored_states = vec![start_state];
+        while !unexplored_states.is_empty() {
+            match unexplored_states.pop() {
+                None => {}
+                Some(state) => {
+                    // Explore the state
+                    explore_state(&state, &mut unexplored_states);
+
+                    // Explored states are saved.
+                    explored_states.push(state);
+                }
+            };
+            // TODO: Remove later
+            if explored_states.len() == 5 { break; }
+        }
         StateSpace {
-            states: vec![start_state]
+            states: explored_states
         }
     }
 
@@ -44,6 +60,16 @@ impl BPMNCollaboration {
         }
         start
     }
+}
+
+fn explore_state(state: &State, unexplored_states: &mut Vec<State>) {
+
+    // Add all new states to the unexplored states.
+    let new_state = State {
+        // Cloning snapshots also not optimal.
+        snapshots: state.snapshots.to_vec()
+    };
+    unexplored_states.push(new_state);
 }
 
 #[derive(Debug, PartialEq)]

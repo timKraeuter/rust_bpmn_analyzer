@@ -10,7 +10,16 @@ pub struct State {
 pub struct ProcessSnapshot {
     pub tokens: Vec<Token>
 }
-#[derive(Debug)]
+
+
+impl Clone for ProcessSnapshot {
+    fn clone(&self) -> Self {
+        ProcessSnapshot {
+            tokens: self.tokens.to_vec()
+        }
+    }
+}
+#[derive(Debug, Clone)]
 pub struct Token {
     // Element id of the element the token is located at.
     pub position: String
