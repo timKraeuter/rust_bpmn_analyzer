@@ -9,6 +9,7 @@ pub struct State {
 }
 #[derive(Debug)]
 pub struct ProcessSnapshot {
+    pub id: String,
     pub tokens: Vec<Token>
 }
 
@@ -16,6 +17,7 @@ pub struct ProcessSnapshot {
 impl Clone for ProcessSnapshot {
     fn clone(&self) -> Self {
         ProcessSnapshot {
+            id: self.id.clone(),
             tokens: self.tokens.to_vec()
         }
     }

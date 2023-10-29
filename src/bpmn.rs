@@ -24,7 +24,7 @@ impl BPMNCollaboration {
                 None => {}
                 Some(state) => {
                     // Explore the state
-                    explore_state(&state, &mut unexplored_states);
+                    explore_state(self, &state, &mut unexplored_states);
 
                     // Explored states are saved.
                     explored_states.push(state);
@@ -44,7 +44,9 @@ impl BPMNCollaboration {
         };
         for process in &self.participants {
             let mut snapshot = ProcessSnapshot {
-                tokens: Vec::new()
+                // Cloning the string here could be done differently.
+                id: process.id.clone(),
+                tokens: Vec::new(),
             };
             for flow_node in &process.flow_nodes {
                 match flow_node.flow_node_type {
@@ -62,14 +64,35 @@ impl BPMNCollaboration {
     }
 }
 
-fn explore_state(state: &State, unexplored_states: &mut Vec<State>) {
+fn explore_state(collab: &BPMNCollaboration, state: &State, unexplored_states: &mut Vec<State>) {
+    for snapshot in &state.snapshots {
+        // Find participant for snapshot
+        let option = collab.participants.iter().find(|process_snapshot| { process_snapshot.id == snapshot.id });
+        match option {
+            None => { panic!("No process found for snapshot with id \"{}\"", snapshot.id) }
+            Some(matching_process) => {
+                for token in &snapshot.tokens {
+                    // Find flow node(s) the token is sitting in front.
+                    matching_process.flow_nodes.iter()
+                        .flat_map(|x| { &x.incoming_flows })
+                        .find(|inc_flow| { inc_flow.id == token.position });
+                    // Result should be one max.
+
+                    // Check if that flow node can be executed
+
+                    // Add create new state and add to the unexplored states.
+                }
+            }
+        }
+    }
+
 
     // Add all new states to the unexplored states.
-    let new_state = State {
-        // Cloning snapshots also not optimal.
-        snapshots: state.snapshots.to_vec()
-    };
-    unexplored_states.push(new_state);
+    // let new_state = State {
+    //     // Cloning snapshots also not optimal.
+    //     snapshots: state.snapshots.to_vec()
+    // };
+    // unexplored_states.push(new_state);
 }
 
 #[derive(Debug, PartialEq)]
