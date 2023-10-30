@@ -1,9 +1,10 @@
-mod reader;
-mod state_space;
-
 pub use reader::read_bpmn_file;
 pub use state_space::StateSpace;
+
 use crate::bpmn::state_space::{ProcessSnapshot, State, Token};
+
+mod reader;
+mod state_space;
 
 #[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
@@ -51,7 +52,11 @@ impl BPMNCollaboration {
             for flow_node in &process.flow_nodes {
                 match flow_node.flow_node_type {
                     // Cloning the string here could be done differently.
-                    FlowNodeType::StartEvent => { snapshot.tokens.push(Token { position: flow_node.id.clone() }) }
+                    FlowNodeType::StartEvent => {
+                        for out_sf in flow_node.outgoing_flows.iter() {
+                            snapshot.tokens.push(Token { position: out_sf.id.clone() })
+                        }
+                    }
                     FlowNodeType::Task => {}
                     FlowNodeType::ExclusiveGateway => {}
                     FlowNodeType::ParallelGateway => {}
@@ -71,16 +76,14 @@ fn explore_state(collab: &BPMNCollaboration, state: &State, unexplored_states: &
         match option {
             None => { panic!("No process found for snapshot with id \"{}\"", snapshot.id) }
             Some(matching_process) => {
-                for token in &snapshot.tokens {
-                    // Find flow node(s) the token is sitting in front.
-                    matching_process.flow_nodes.iter()
-                        .flat_map(|x| { &x.incoming_flows })
-                        .find(|inc_flow| { inc_flow.id == token.position });
-                    // Result should be one max.
-
-                    // Check if that flow node can be executed
-
-                    // Add create new state and add to the unexplored states.
+                for flow_node in matching_process.flow_nodes.iter() {
+                    let optional_state = flow_node.try_execute(matching_process, snapshot, state);
+                    match optional_state {
+                        None => {}
+                        Some(new_state) => {
+                            unexplored_states.push(new_state);
+                        }
+                    }
                 }
             }
         }
@@ -146,6 +149,43 @@ impl FlowNode {
     }
     pub fn new(id: String, flow_node_type: FlowNodeType) -> FlowNode {
         FlowNode { id, flow_node_type, incoming_flows: Vec::new(), outgoing_flows: Vec::new() }
+    }
+    pub fn try_execute(&self, process: &BPMNProcess, snapshot: &ProcessSnapshot, current_state: &State) -> Option<State> {
+        // Should return a Vec actually --> exlusive gateway has multiple new states.
+
+        match self.flow_node_type {
+            FlowNodeType::StartEvent => { None }
+            FlowNodeType::Task => { self.try_execute_task(process, snapshot, current_state) }
+            FlowNodeType::ExclusiveGateway => { None }
+            FlowNodeType::ParallelGateway => { None }
+            FlowNodeType::EndEvent => { None }
+        }
+    }
+    fn try_execute_task(&self, process: &BPMNProcess, snapshot: &ProcessSnapshot, current_state: &State) -> Option<State> {
+        for inc_flow in self.incoming_flows.iter() {
+            // TODO: Actually this is parallel gateway semantics not task
+            if !snapshot.tokens.iter().any(|token| { token.position == inc_flow.id }) {
+                return None;
+            }
+        }
+        // Clone all snapshots and tokens
+        let mut new_state = State {
+            // Keep other snapshots
+            snapshots: current_state.snapshots.iter().filter(|x| { x.id != snapshot.id }).cloned().collect()
+        };
+        let mut new_snapshot = ProcessSnapshot {
+            id: snapshot.id.clone(),
+            // Remove incoming tokens
+            tokens: snapshot.tokens.iter().filter(|t| { !self.incoming_flows.iter().any(|inc_sf| { inc_sf.id == t.position }) }).cloned().collect(),
+        };
+        // Add outgoing tokens
+        for out_flow in self.outgoing_flows.iter() {
+            new_snapshot.tokens.push(Token {
+                position: out_flow.id.clone()
+            })
+        }
+        new_state.snapshots.push(new_snapshot);
+        Some(new_state)
     }
 }
 
