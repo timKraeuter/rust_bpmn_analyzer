@@ -31,8 +31,6 @@ impl BPMNCollaboration {
                     explored_states.push(state);
                 }
             };
-            // TODO: Remove later
-            if explored_states.len() == 5 { break; }
         }
         StateSpace {
             states: explored_states
@@ -146,8 +144,6 @@ impl FlowNode {
         FlowNode { id, flow_node_type, incoming_flows: Vec::new(), outgoing_flows: Vec::new() }
     }
     pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        // Should return a Vec actually --> exlusive gateway has multiple new states.
-
         match self.flow_node_type {
             FlowNodeType::StartEvent => { vec![] }
             FlowNodeType::Task => { self.try_execute_task(snapshot, current_state) }
