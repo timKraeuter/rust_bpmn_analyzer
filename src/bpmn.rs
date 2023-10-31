@@ -153,7 +153,7 @@ impl FlowNode {
             FlowNodeType::Task => { self.try_execute_task(snapshot, current_state) }
             FlowNodeType::ExclusiveGateway => { self.try_execute_exg(snapshot, current_state) }
             FlowNodeType::ParallelGateway => { self.try_execute_pg(snapshot, current_state) }
-            FlowNodeType::EndEvent => { vec![] }
+            FlowNodeType::EndEvent => { self.try_execute_end_event(snapshot, current_state) }
         }
     }
     fn try_execute_pg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
@@ -241,6 +241,25 @@ impl FlowNode {
             // Remove incoming token
             tokens: snapshot.tokens.iter().filter(|t| { t.position != token.position }).cloned().collect(),
         }
+    }
+    fn try_execute_end_event(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
+        let mut new_states: Vec<State> = vec![];
+        for inc_flow in self.incoming_flows.iter() {
+            let token_at_flow = snapshot.tokens.iter().find(|token| { token.position == inc_flow.id });
+            match token_at_flow {
+                None => {}
+                Some(token_at_flow) => {
+                    // Consume incoming token
+                    let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
+                    let new_snapshot = Self::create_new_snapshot_without_token(snapshot, token_at_flow);
+                    // Add outgoing token
+                    new_state.snapshots.push(new_snapshot);
+
+                    new_states.push(new_state);
+                }
+            }
+        }
+        new_states
     }
 }
 
