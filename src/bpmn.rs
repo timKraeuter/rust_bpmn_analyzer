@@ -1,4 +1,5 @@
 use std::collections::hash_map::DefaultHasher;
+use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 pub use reader::read_bpmn_file;
 pub use state_space::StateSpace;
@@ -20,7 +21,9 @@ impl BPMNCollaboration {
     }
 
     pub fn explore_state_space(&self, start_state: State) -> StateSpace {
-        let mut state_hashes = vec![calculate_hash(&start_state)];
+        // Should be a hashmap
+        let mut state_hashes = HashMap::new();
+        state_hashes.insert(calculate_hash(&start_state), true);
 
         let mut explored_states = vec![];
         let mut unexplored_states = vec![start_state];
@@ -31,19 +34,17 @@ impl BPMNCollaboration {
                     // Explore the state
                     let potentially_unexplored_states = explore_state(self, &current_state);
                     // Check if we know the state already
-                    potentially_unexplored_states.into_iter()
-                        .filter(|state| {
-                            let hash = calculate_hash(state);
-                            let is_new_state = !state_hashes.iter().any(|state_hash| { *state_hash == hash });
-                            // A bit weird to add hashes during filter but it works for now.
-                            if is_new_state {
-                                state_hashes.push(hash);
+                    for state in potentially_unexplored_states {
+                        let hash = calculate_hash(&state);
+                        match state_hashes.get(&hash) {
+                            None => {
+                                // State is new.
+                                state_hashes.insert(hash, true);
+                                unexplored_states.push(state)
                             }
-                            is_new_state
-                        })
-                        .for_each(|state| {
-                            unexplored_states.push(state)
-                        });
+                            Some(_) => {}
+                        }
+                    }
 
                     // Explored states are saved.
                     explored_states.push(current_state);
