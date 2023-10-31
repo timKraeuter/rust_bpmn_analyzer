@@ -151,7 +151,7 @@ impl FlowNode {
         match self.flow_node_type {
             FlowNodeType::StartEvent => { vec![] }
             FlowNodeType::Task => { self.try_execute_task(snapshot, current_state) }
-            FlowNodeType::ExclusiveGateway => { vec![] }
+            FlowNodeType::ExclusiveGateway => { self.try_execute_exg(snapshot, current_state) }
             FlowNodeType::ParallelGateway => { self.try_execute_pg(snapshot, current_state) }
             FlowNodeType::EndEvent => { vec![] }
         }
@@ -198,11 +198,7 @@ impl FlowNode {
                 Some(token_at_flow) => {
                     // Add new state
                     let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
-                    let mut new_snapshot = ProcessSnapshot {
-                        id: snapshot.id.clone(),
-                        // Remove incoming tokens
-                        tokens: snapshot.tokens.iter().filter(|t| { t.position != token_at_flow.position }).cloned().collect(),
-                    };
+                    let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, token_at_flow);
                     // Add outgoing tokens
                     self.add_outgoing_tokens(&mut new_snapshot);
                     new_state.snapshots.push(new_snapshot);
@@ -212,6 +208,39 @@ impl FlowNode {
             }
         }
         new_states
+    }
+    fn try_execute_exg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
+        let mut new_states: Vec<State> = vec![];
+        for inc_flow in self.incoming_flows.iter() {
+            let token_at_flow = snapshot.tokens.iter().find(|token| { token.position == inc_flow.id });
+            match token_at_flow {
+                None => {}
+                Some(token_at_flow) => {
+                    // Add one token for each outgoing flow
+                    for out_flow in self.outgoing_flows.iter() {
+                        // Add new state
+                        let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
+                        let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, token_at_flow);
+                        // Add outgoing token
+                        new_snapshot.tokens.push(Token {
+                            position: out_flow.id.clone()
+                        });
+                        new_state.snapshots.push(new_snapshot);
+
+                        new_states.push(new_state);
+                    }
+                }
+            }
+        }
+        new_states
+    }
+
+    fn create_new_snapshot_without_token(snapshot: &ProcessSnapshot, token: &Token) -> ProcessSnapshot {
+        ProcessSnapshot {
+            id: snapshot.id.clone(),
+            // Remove incoming token
+            tokens: snapshot.tokens.iter().filter(|t| { t.position != token.position }).cloned().collect(),
+        }
     }
 }
 
