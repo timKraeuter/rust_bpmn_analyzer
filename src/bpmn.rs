@@ -46,9 +46,8 @@ impl BPMNCollaboration {
                     explored_states.push(current_state);
                 }
             };
-            println!("{} states to be explored", unexplored_states.len())
+            // println!("{} states to be explored", unexplored_states.len())
         }
-        println!("{:?}", state_hashes);
         StateSpace {
             states: explored_states
         }
