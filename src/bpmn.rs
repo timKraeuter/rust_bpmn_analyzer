@@ -1,3 +1,5 @@
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 pub use reader::read_bpmn_file;
 pub use state_space::StateSpace;
 
@@ -18,20 +20,35 @@ impl BPMNCollaboration {
     }
 
     pub fn explore_state_space(&self, start_state: State) -> StateSpace {
-        let mut explored_states = Vec::new();
+        let mut state_hashes = vec![];
+
+        let mut explored_states = vec![];
         let mut unexplored_states = vec![start_state];
         while !unexplored_states.is_empty() {
             match unexplored_states.pop() {
                 None => {}
-                Some(state) => {
+                Some(current_state) => {
+                    state_hashes.push(calculate_hash(&current_state));
+
                     // Explore the state
-                    explore_state(self, &state, &mut unexplored_states);
+                    let potentially_unexplored_states = explore_state(self, &current_state);
+                    // Check if we know the state already
+                    potentially_unexplored_states.into_iter()
+                        .filter(|state| {
+                            let hash = calculate_hash(state);
+                            !state_hashes.iter().any(|state_hash| { *state_hash == hash })
+                        })
+                        .for_each(|state| {
+                            unexplored_states.push(state)
+                        });
 
                     // Explored states are saved.
-                    explored_states.push(state);
+                    explored_states.push(current_state);
                 }
             };
+            println!("{} states to be explored", unexplored_states.len())
         }
+        println!("{:?}", state_hashes);
         StateSpace {
             states: explored_states
         }
@@ -67,7 +84,14 @@ impl BPMNCollaboration {
     }
 }
 
-fn explore_state(collab: &BPMNCollaboration, state: &State, unexplored_states: &mut Vec<State>) {
+fn calculate_hash<T: Hash>(t: &T) -> u64 {
+    let mut s = DefaultHasher::new();
+    t.hash(&mut s);
+    s.finish()
+}
+
+fn explore_state(collab: &BPMNCollaboration, state: &State) -> Vec<State> {
+    let mut unexplored_states: Vec<State> = vec![];
     for snapshot in &state.snapshots {
         // Find participant for snapshot
         let option = collab.participants.iter().find(|process_snapshot| { process_snapshot.id == snapshot.id });
@@ -76,19 +100,13 @@ fn explore_state(collab: &BPMNCollaboration, state: &State, unexplored_states: &
             Some(matching_process) => {
                 for flow_node in matching_process.flow_nodes.iter() {
                     let mut new_states = flow_node.try_execute(snapshot, state);
+                    // Would want to check if the state has been explored here not later to not take up unnecessary memory.
                     unexplored_states.append(&mut new_states);
                 }
             }
         }
     }
-
-
-    // Add all new states to the unexplored states.
-    // let new_state = State {
-    //     // Cloning snapshots also not optimal.
-    //     snapshots: state.snapshots.to_vec()
-    // };
-    // unexplored_states.push(new_state);
+    unexplored_states
 }
 
 #[derive(Debug, PartialEq)]

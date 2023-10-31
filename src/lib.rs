@@ -24,6 +24,7 @@ pub fn run(config: Config) -> Result<StateSpace, Box<dyn Error>> {
     let start = collaboration.create_start_state();
     let state_space = collaboration.explore_state_space(start);
 
+    println!("Number of states: {}", state_space.states.len());
     println!("{:?}", state_space);
 
     Ok(state_space)
