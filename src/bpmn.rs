@@ -20,7 +20,7 @@ impl BPMNCollaboration {
     }
 
     pub fn explore_state_space(&self, start_state: State) -> StateSpace {
-        let mut state_hashes = vec![];
+        let mut state_hashes = vec![calculate_hash(&start_state)];
 
         let mut explored_states = vec![];
         let mut unexplored_states = vec![start_state];
@@ -28,8 +28,6 @@ impl BPMNCollaboration {
             match unexplored_states.pop() {
                 None => {}
                 Some(current_state) => {
-                    state_hashes.push(calculate_hash(&current_state));
-
                     // Explore the state
                     let potentially_unexplored_states = explore_state(self, &current_state);
                     // Check if we know the state already
