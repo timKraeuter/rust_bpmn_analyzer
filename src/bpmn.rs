@@ -77,13 +77,8 @@ fn explore_state(collab: &BPMNCollaboration, state: &State, unexplored_states: &
             None => { panic!("No process found for snapshot with id \"{}\"", snapshot.id) }
             Some(matching_process) => {
                 for flow_node in matching_process.flow_nodes.iter() {
-                    let optional_state = flow_node.try_execute(matching_process, snapshot, state);
-                    match optional_state {
-                        None => {}
-                        Some(new_state) => {
-                            unexplored_states.push(new_state);
-                        }
-                    }
+                    let mut new_states = flow_node.try_execute(snapshot, state);
+                    unexplored_states.append(&mut new_states);
                 }
             }
         }
@@ -150,42 +145,73 @@ impl FlowNode {
     pub fn new(id: String, flow_node_type: FlowNodeType) -> FlowNode {
         FlowNode { id, flow_node_type, incoming_flows: Vec::new(), outgoing_flows: Vec::new() }
     }
-    pub fn try_execute(&self, process: &BPMNProcess, snapshot: &ProcessSnapshot, current_state: &State) -> Option<State> {
+    pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         // Should return a Vec actually --> exlusive gateway has multiple new states.
 
         match self.flow_node_type {
-            FlowNodeType::StartEvent => { None }
-            FlowNodeType::Task => { self.try_execute_task(process, snapshot, current_state) }
-            FlowNodeType::ExclusiveGateway => { None }
-            FlowNodeType::ParallelGateway => { None }
-            FlowNodeType::EndEvent => { None }
+            FlowNodeType::StartEvent => { vec![] }
+            FlowNodeType::Task => { self.try_execute_task(snapshot, current_state) }
+            FlowNodeType::ExclusiveGateway => { vec![] }
+            FlowNodeType::ParallelGateway => { self.try_execute_pg(snapshot, current_state) }
+            FlowNodeType::EndEvent => { vec![] }
         }
     }
-    fn try_execute_task(&self, process: &BPMNProcess, snapshot: &ProcessSnapshot, current_state: &State) -> Option<State> {
+    fn try_execute_pg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         for inc_flow in self.incoming_flows.iter() {
-            // TODO: Actually this is parallel gateway semantics not task
             if !snapshot.tokens.iter().any(|token| { token.position == inc_flow.id }) {
-                return None;
+                return vec![];
             }
         }
         // Clone all snapshots and tokens
-        let mut new_state = State {
-            // Keep other snapshots
-            snapshots: current_state.snapshots.iter().filter(|x| { x.id != snapshot.id }).cloned().collect()
-        };
+        let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
         let mut new_snapshot = ProcessSnapshot {
             id: snapshot.id.clone(),
             // Remove incoming tokens
             tokens: snapshot.tokens.iter().filter(|t| { !self.incoming_flows.iter().any(|inc_sf| { inc_sf.id == t.position }) }).cloned().collect(),
         };
         // Add outgoing tokens
+        self.add_outgoing_tokens(&mut new_snapshot);
+        new_state.snapshots.push(new_snapshot);
+        vec![new_state]
+    }
+
+    fn create_new_state_without_snapshot(snapshot: &ProcessSnapshot, current_state: &State) -> State {
+        State {
+            // Do not copy snapshot but the rest.
+            snapshots: current_state.snapshots.iter().filter(|x| { x.id != snapshot.id }).cloned().collect()
+        }
+    }
+
+    fn add_outgoing_tokens(&self, new_snapshot: &mut ProcessSnapshot) {
         for out_flow in self.outgoing_flows.iter() {
             new_snapshot.tokens.push(Token {
                 position: out_flow.id.clone()
             })
         }
-        new_state.snapshots.push(new_snapshot);
-        Some(new_state)
+    }
+    fn try_execute_task(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
+        let mut new_states: Vec<State> = vec![];
+        for inc_flow in self.incoming_flows.iter() {
+            let token_at_flow = snapshot.tokens.iter().find(|token| { token.position == inc_flow.id });
+            match token_at_flow {
+                None => {}
+                Some(token_at_flow) => {
+                    // Add new state
+                    let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
+                    let mut new_snapshot = ProcessSnapshot {
+                        id: snapshot.id.clone(),
+                        // Remove incoming tokens
+                        tokens: snapshot.tokens.iter().filter(|t| { t.position != token_at_flow.position }).cloned().collect(),
+                    };
+                    // Add outgoing tokens
+                    self.add_outgoing_tokens(&mut new_snapshot);
+                    new_state.snapshots.push(new_snapshot);
+
+                    new_states.push(new_state);
+                }
+            }
+        }
+        new_states
     }
 }
 
