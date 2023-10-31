@@ -34,12 +34,12 @@ impl BPMNCollaboration {
                     potentially_unexplored_states.into_iter()
                         .filter(|state| {
                             let hash = calculate_hash(state);
-                            let new_state = !state_hashes.iter().any(|state_hash| { *state_hash == hash });
+                            let is_new_state = !state_hashes.iter().any(|state_hash| { *state_hash == hash });
                             // A bit weird to add hashes during filter but it works for now.
-                            if new_state {
+                            if is_new_state {
                                 state_hashes.push(hash);
                             }
-                            new_state
+                            is_new_state
                         })
                         .for_each(|state| {
                             unexplored_states.push(state)
