@@ -36,7 +36,12 @@ impl BPMNCollaboration {
                     potentially_unexplored_states.into_iter()
                         .filter(|state| {
                             let hash = calculate_hash(state);
-                            !state_hashes.iter().any(|state_hash| { *state_hash == hash })
+                            let new_state = !state_hashes.iter().any(|state_hash| { *state_hash == hash });
+                            // A bit weird to add hashes during filter but it works for now.
+                            if new_state {
+                                state_hashes.push(hash);
+                            }
+                            new_state
                         })
                         .for_each(|state| {
                             unexplored_states.push(state)
@@ -169,6 +174,7 @@ impl FlowNode {
             FlowNodeType::EndEvent => { self.try_execute_end_event(snapshot, current_state) }
         }
     }
+
     fn try_execute_pg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         for inc_flow in self.incoming_flows.iter() {
             if !snapshot.tokens.iter().any(|token| { token.position == inc_flow.id }) {
