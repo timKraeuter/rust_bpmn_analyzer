@@ -15,10 +15,10 @@ args = parser.parse_args()
 with open(args.file) as f:
     results = json.load(f)["results"]
 
-all_means = [b["mean"] for b in results]
+all_means = [b["mean"] * 1000 for b in results]
 blocks = list(range(1, 301))
 
-plt.plot(blocks, all_means, label="average runtime data")
+plt.plot(blocks, all_means, label="average runtime")
 
 # Linear regression
 slope, intercept, r, p, std_err = stats.linregress(blocks, all_means)
@@ -33,6 +33,8 @@ plt.plot(blocks, mymodel, label="linear regression")
 
 # plt.title("HOT scalability")
 plt.xlabel("Blocks per BPMN model")
-plt.ylabel("Average runtime in s")
+plt.ylabel("Average runtime in ms")
 plt.legend()
+plt.savefig('scalability.pdf')
 plt.show()
+
