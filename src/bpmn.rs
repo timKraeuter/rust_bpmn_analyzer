@@ -292,40 +292,21 @@ pub enum FlowNodeType {
 
 #[cfg(test)]
 mod tests {
+    use crate::Config;
     use super::*;
 
     #[test]
     fn create_start_state() {
-        let collaboration = BPMNCollaboration {
-            name: String::from("test"),
-            participants: vec![BPMNProcess {
-                id: String::from("processID"),
-                flow_nodes: vec![
-                    FlowNode {
-                        id: String::from("start"),
-                        flow_node_type: FlowNodeType::StartEvent,
-                        incoming_flows: vec![],
-                        outgoing_flows: vec![SequenceFlow {
-                            id: String::from("sf1")
-                        }, SequenceFlow {
-                            id: String::from("sf2")
-                        }],
-                    }
-                ],
-            }],
-        };
+        let collaboration = read_bpmn_file(&Config {
+            file_path: String::from("test/resources/start.bpmn")
+        });
 
         let start_state = collaboration.create_start_state();
 
         assert_eq!(start_state, State {
-            snapshots: vec![ProcessSnapshot {
-                id: String::from("processID"),
-                tokens: vec![Token {
-                    position: String::from("sf1")
-                }, Token {
-                    position: String::from("sf2")
-                }],
-            }]
+            snapshots: vec![ProcessSnapshot::new(
+                String::from("process"),
+                vec![String::from("Flow_1"), String::from("Flow_2")])]
         });
     }
 }

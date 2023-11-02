@@ -11,6 +11,18 @@ pub struct State {
 pub struct ProcessSnapshot {
     pub id: String,
     pub tokens: Vec<Token>
+
+}
+
+impl ProcessSnapshot {
+    pub(crate) fn new(id: String, token_positions: Vec<String>) -> ProcessSnapshot {
+        ProcessSnapshot {
+            id,
+            tokens: token_positions.into_iter().map(|token_position| {Token {
+                position: token_position
+            }}).collect()
+        }
+    }
 }
 
 #[derive(Debug, Clone, Hash, PartialEq)]

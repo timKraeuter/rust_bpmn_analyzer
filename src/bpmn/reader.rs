@@ -29,6 +29,7 @@ pub fn read_bpmn_file(config: &Config) -> BPMNCollaboration {
                     }
                     b"startEvent" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::StartEvent),
                     b"serviceTask" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::Task),
+                    b"task" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::Task),
                     b"parallelGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ParallelGateway),
                     b"exclusiveGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
                     b"endEvent" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::EndEvent),
