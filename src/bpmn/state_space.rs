@@ -7,6 +7,14 @@ pub struct StateSpace {
 pub struct State {
     pub snapshots: Vec<ProcessSnapshot>
 }
+
+impl State {
+    pub(crate) fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
+        State {
+            snapshots: vec![ProcessSnapshot::new(snapshot_id, token_positions)]
+        }
+    }
+}
 #[derive(Debug, Clone, Hash, PartialEq)]
 pub struct ProcessSnapshot {
     pub id: String,

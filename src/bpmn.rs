@@ -309,4 +309,41 @@ mod tests {
                 vec![String::from("Flow_1"), String::from("Flow_2")])]
         });
     }
+
+    #[test]
+    fn try_execute_task() {
+        let collaboration = read_bpmn_file(&Config {
+            file_path: String::from("test/resources/task.bpmn")
+        });
+        // Helper function
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Activity_A"));
+        let start_state = collaboration.create_start_state();
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&start_state),
+            &start_state);
+
+
+        println!("{:?}", next_states);
+        assert_eq!(next_states, vec![
+            State::new(String::from("process"), vec![String::from("Flow_2"), String::from("Flow_3"), String::from("Flow_4")]),
+            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_3"), String::from("Flow_4")]),
+        ])
+    }
+
+    fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {
+        let process = collaboration.participants.get(0).unwrap();
+        process
+    }
+
+    fn get_first_snapshot(start_state: &State) -> &ProcessSnapshot {
+        let snapshot = start_state.snapshots.get(0).unwrap();
+        snapshot
+    }
+
+    fn get_flow_node_with_id(process: &BPMNProcess, id: String) -> &FlowNode {
+        process.flow_nodes.iter().find(|flow_node| { flow_node.id == id }).unwrap()
+    }
 }
