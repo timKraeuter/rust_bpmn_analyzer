@@ -1,4 +1,3 @@
-use crate::Config;
 use super::*;
 
 use std::fs;
@@ -6,10 +5,10 @@ use std::path::Path;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
 
-pub fn read_bpmn_file(config: &Config) -> BPMNCollaboration {
+pub fn read_bpmn_file(file_path: &String) -> BPMNCollaboration {
     // TODO: Read directly from file (less peak memory usage).
     // TODO: Use serde to map to structs.
-    let (contents, file_name) = read_file_and_get_name(&config.file_path);
+    let (contents, file_name) = read_file_and_get_name(file_path);
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
 
@@ -163,10 +162,7 @@ mod tests {
         expected.add_participant(process);
 
         // When
-        let result = read_bpmn_file(&Config {
-            file_path: String::from("resources/task-and-gateways.bpmn"),
-            properties: vec![],
-        });
+        let result = read_bpmn_file(&String::from("resources/task-and-gateways.bpmn"));
 
         assert_eq!(expected, result);
     }

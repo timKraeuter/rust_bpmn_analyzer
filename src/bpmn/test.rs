@@ -2,12 +2,10 @@
 mod tests {
     use crate::bpmn::{BPMNCollaboration, BPMNProcess, FlowNode, read_bpmn_file};
     use crate::bpmn::state_space::{ProcessSnapshot, State};
-    use crate::Config;
 
     #[test]
     fn create_start_state() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/start.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/start.bpmn"));
 
         let start_state = collaboration.create_start_state();
 
@@ -20,8 +18,7 @@ mod tests {
 
     #[test]
     fn try_execute_task() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/task.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/task.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -40,8 +37,7 @@ mod tests {
 
     #[test]
     fn try_execute_exg_choice() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/exg.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -60,8 +56,7 @@ mod tests {
 
     #[test]
     fn try_execute_exg_merge() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/exg.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -83,8 +78,7 @@ mod tests {
 
     #[test]
     fn try_execute_pg_split() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/pg.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -102,8 +96,7 @@ mod tests {
 
     #[test]
     fn try_execute_pg_sync() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/pg.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -124,8 +117,7 @@ mod tests {
 
     #[test]
     fn try_execute_end_event() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/end.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/end.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
@@ -147,8 +139,7 @@ mod tests {
 
     #[test]
     fn unsafe_property() {
-        let collaboration = read_bpmn_file(&Config::new(
-            String::from("test/resources/unsafe.bpmn")));
+        let collaboration = read_bpmn_file(&String::from("test/resources/unsafe.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
