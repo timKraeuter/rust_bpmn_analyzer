@@ -10,6 +10,12 @@ mod reader;
 mod state_space;
 mod test;
 
+pub enum  GeneralProperties {
+    OptionToComplete,
+    Safeness,
+    DeadActivities
+}
+
 #[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
     pub name: String,

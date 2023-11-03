@@ -2,10 +2,11 @@ mod bpmn;
 
 use std::error::Error;
 use std::str;
-use crate::bpmn::{read_bpmn_file, StateSpace};
+use crate::bpmn::{GeneralProperties, read_bpmn_file, StateSpace};
 
 pub struct Config {
-    pub file_path: String
+    pub file_path: String,
+    pub properties: Vec<GeneralProperties>,
 }
 
 impl Config {
@@ -14,7 +15,10 @@ impl Config {
             return Err("not enough arguments");
         }
         let file_path = args[1].clone();
-        Ok(Config { file_path })
+        Ok(Config {
+            file_path,
+            properties: vec![GeneralProperties::Safeness],
+        })
     }
 }
 
