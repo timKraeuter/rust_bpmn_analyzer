@@ -2,11 +2,11 @@ mod bpmn;
 
 use std::error::Error;
 use std::str;
-use crate::bpmn::{GeneralProperties, read_bpmn_file, StateSpace};
+use crate::bpmn::{GeneralProperty, ModelCheckingResult, read_bpmn_file};
 
 pub struct Config {
     pub file_path: String,
-    pub properties: Vec<GeneralProperties>,
+    pub properties: Vec<GeneralProperty>,
 }
 
 impl Config {
@@ -24,19 +24,20 @@ impl Config {
         let file_path = args[1].clone();
         Ok(Config {
             file_path,
-            properties: vec![GeneralProperties::Safeness],
+            properties: vec![GeneralProperty::Safeness],
         })
     }
 }
 
-pub fn run(config: Config) -> Result<StateSpace, Box<dyn Error>> {
+pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
     let collaboration = read_bpmn_file(&config);
 
     let start = collaboration.create_start_state();
-    let state_space = collaboration.explore_state_space(start, config.properties);
+    let result = collaboration.explore_state_space(start, config.properties);
 
     // println!("{:?}", state_space);
-    println!("Number of states: {}", state_space.states.len());
+    println!("Number of states: {}", result.state_space.states.len());
+    println!("Property results: {:?}", result.properties_results);
 
-    Ok(state_space)
+    Ok(result)
 }

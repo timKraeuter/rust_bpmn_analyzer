@@ -3,19 +3,14 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 pub use reader::read_bpmn_file;
 pub use state_space::StateSpace;
+pub use model_checking::{GeneralProperty, ModelCheckingResult, GeneralPropertyResult};
 
 use crate::bpmn::state_space::{ProcessSnapshot, State};
 
 mod reader;
 mod state_space;
 mod test;
-
-#[derive(Debug)]
-pub enum  GeneralProperties {
-    OptionToComplete,
-    Safeness,
-    DeadActivities
-}
+mod model_checking;
 
 #[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
@@ -28,7 +23,7 @@ impl BPMNCollaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space(&self, start_state: State, properties: Vec<GeneralProperties>) -> StateSpace {
+    pub fn explore_state_space(&self, start_state: State, properties: Vec<GeneralProperty>) -> ModelCheckingResult {
         println!("{:?}", properties);
 
         let mut state_hashes = HashMap::new();
@@ -61,9 +56,13 @@ impl BPMNCollaboration {
             };
             // println!("{} states to be explored", unexplored_states.len())
         }
-        StateSpace {
-            states: explored_states
+        ModelCheckingResult {
+            state_space: StateSpace {
+                states: explored_states
+            },
+            properties_results: vec![]
         }
+
     }
 
     pub fn create_start_state(&self) -> State {
