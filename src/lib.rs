@@ -10,6 +10,13 @@ pub struct Config {
 }
 
 impl Config {
+    pub fn new(file_path: String) -> Config {
+        Config {
+            file_path,
+            properties: vec![]
+        }
+    }
+
     pub fn build(args: &[String]) -> Result<Config, &'static str> {
         if args.len() < 2 {
             return Err("not enough arguments");
@@ -26,7 +33,7 @@ pub fn run(config: Config) -> Result<StateSpace, Box<dyn Error>> {
     let collaboration = read_bpmn_file(&config);
 
     let start = collaboration.create_start_state();
-    let state_space = collaboration.explore_state_space(start);
+    let state_space = collaboration.explore_state_space(start, config.properties);
 
     // println!("{:?}", state_space);
     println!("Number of states: {}", state_space.states.len());

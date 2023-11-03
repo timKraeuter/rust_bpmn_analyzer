@@ -163,7 +163,10 @@ mod tests {
         expected.add_participant(process);
 
         // When
-        let result = read_bpmn_file(&Config { file_path: String::from("resources/task-and-gateways.bpmn") });
+        let result = read_bpmn_file(&Config {
+            file_path: String::from("resources/task-and-gateways.bpmn"),
+            properties: vec![],
+        });
 
         assert_eq!(expected, result);
     }

@@ -10,6 +10,7 @@ mod reader;
 mod state_space;
 mod test;
 
+#[derive(Debug)]
 pub enum  GeneralProperties {
     OptionToComplete,
     Safeness,
@@ -27,8 +28,9 @@ impl BPMNCollaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space(&self, start_state: State) -> StateSpace {
-        // Should be a hashmap
+    pub fn explore_state_space(&self, start_state: State, properties: Vec<GeneralProperties>) -> StateSpace {
+        println!("{:?}", properties);
+
         let mut state_hashes = HashMap::new();
         state_hashes.insert(calculate_hash(&start_state), true);
 
