@@ -315,7 +315,6 @@ mod tests {
         let collaboration = read_bpmn_file(&Config {
             file_path: String::from("test/resources/task.bpmn")
         });
-        // Helper function
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Activity_A"));
@@ -331,6 +330,53 @@ mod tests {
             State::new(String::from("process"), vec![String::from("Flow_2"), String::from("Flow_3"), String::from("Flow_4")]),
             State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_3"), String::from("Flow_4")]),
         ])
+    }
+
+    #[test]
+    fn try_execute_exg_choice() {
+        let collaboration = read_bpmn_file(&Config {
+            file_path: String::from("test/resources/exg.bpmn")
+        });
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_1"));
+        let start_state = collaboration.create_start_state();
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&start_state),
+            &start_state);
+
+
+        println!("{:?}", next_states);
+        assert_eq!(next_states, vec![
+            State::new(String::from("process"), vec![String::from("Flow_2")]),
+            State::new(String::from("process"), vec![String::from("Flow_3")]),
+        ])
+    }
+
+    #[test]
+    fn try_execute_exg_merge() {
+        let collaboration = read_bpmn_file(&Config {
+            file_path: String::from("test/resources/exg.bpmn")
+        });
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_2"));
+        let start_state = State::new(String::from("process"), vec![
+            String::from("Flow_2"),
+            String::from("Flow_3")]
+        );
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&start_state),
+            &start_state);
+
+
+        println!("{:?}", next_states);
+        assert_eq!(next_states, vec![
+            State::new(String::from("process"), vec![String::from("Flow_3"), String::from("Flow_4")]),
+            State::new(String::from("process"), vec![String::from("Flow_2"), String::from("Flow_4")]),
+        ]);
     }
 
     fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {
