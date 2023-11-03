@@ -4,7 +4,7 @@ use std::hash::{Hash, Hasher};
 pub use reader::read_bpmn_file;
 pub use state_space::StateSpace;
 
-use crate::bpmn::state_space::{ProcessSnapshot, State, Token};
+use crate::bpmn::state_space::{ProcessSnapshot, State};
 
 mod reader;
 mod state_space;
@@ -66,20 +66,18 @@ impl BPMNCollaboration {
             let mut snapshot = ProcessSnapshot {
                 // Cloning the string here could be done differently.
                 id: process.id.clone(),
-                tokens: Vec::new(),
+                tokens: HashMap::new(),
             };
             for flow_node in &process.flow_nodes {
                 match flow_node.flow_node_type {
-                    // Cloning the string here could be done differently.
                     FlowNodeType::StartEvent => {
                         for out_sf in flow_node.outgoing_flows.iter() {
-                            snapshot.tokens.push(Token { position: out_sf.id.clone() })
+                            // Cloning the string here could be done differently.
+                            let position = out_sf.id.clone();
+                            snapshot.add_token(position);
                         }
                     }
-                    FlowNodeType::Task => {}
-                    FlowNodeType::ExclusiveGateway => {}
-                    FlowNodeType::ParallelGateway => {}
-                    FlowNodeType::EndEvent => {}
+                    _ => {}
                 }
             }
             start.snapshots.push(snapshot);
@@ -176,48 +174,52 @@ impl FlowNode {
     }
 
     fn try_execute_pg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        for inc_flow in self.incoming_flows.iter() {
-            if !snapshot.tokens.iter().any(|token| { token.position == inc_flow.id }) {
-                return vec![];
-            }
+        if self.missing_token_for_pg(snapshot) {
+            return vec![];
         }
         // Clone all snapshots and tokens
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
         let mut new_snapshot = ProcessSnapshot {
             id: snapshot.id.clone(),
             // Remove incoming tokens
-            tokens: snapshot.tokens.iter().filter(|t| { !self.incoming_flows.iter().any(|inc_sf| { inc_sf.id == t.position }) }).cloned().collect(),
+            tokens: snapshot.tokens.clone(),
         };
+        // Remove incoming tokens
+        for in_sf in self.incoming_flows.iter() {
+            new_snapshot.remove_token(in_sf.id.clone());
+        }
         // Add outgoing tokens
         self.add_outgoing_tokens(&mut new_snapshot);
         new_state.snapshots.push(new_snapshot);
         vec![new_state]
     }
 
+    fn missing_token_for_pg(&self, snapshot: &ProcessSnapshot) -> bool {
+        !self.incoming_flows.iter().all(|sf| { snapshot.tokens.contains_key(&sf.id) })
+    }
+
     fn create_new_state_without_snapshot(snapshot: &ProcessSnapshot, current_state: &State) -> State {
         State {
             // Do not copy snapshot but the rest.
+            // TODO: Could filter not removing be problematic?
             snapshots: current_state.snapshots.iter().filter(|x| { x.id != snapshot.id }).cloned().collect()
         }
     }
 
-    fn add_outgoing_tokens(&self, new_snapshot: &mut ProcessSnapshot) {
+    fn add_outgoing_tokens(&self, snapshot: &mut ProcessSnapshot) {
         for out_flow in self.outgoing_flows.iter() {
-            new_snapshot.tokens.push(Token {
-                position: out_flow.id.clone()
-            })
+            snapshot.add_token(out_flow.id.clone());
         }
     }
     fn try_execute_task(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
-            let token_at_flow = snapshot.tokens.iter().find(|token| { token.position == inc_flow.id });
-            match token_at_flow {
+            match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
-                Some(token_at_flow) => {
+                Some(_) => {
                     // Add new state
                     let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
-                    let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, token_at_flow);
+                    let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
                     // Add outgoing tokens
                     self.add_outgoing_tokens(&mut new_snapshot);
                     new_state.snapshots.push(new_snapshot);
@@ -231,19 +233,16 @@ impl FlowNode {
     fn try_execute_exg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
-            let token_at_flow = snapshot.tokens.iter().find(|token| { token.position == inc_flow.id });
-            match token_at_flow {
+            match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
-                Some(token_at_flow) => {
+                Some(_) => {
                     // Add one token for each outgoing flow
                     for out_flow in self.outgoing_flows.iter() {
                         // Add new state
                         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
-                        let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, token_at_flow);
+                        let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, &inc_flow.id.clone());
                         // Add outgoing token
-                        new_snapshot.tokens.push(Token {
-                            position: out_flow.id.clone()
-                        });
+                        new_snapshot.add_token(out_flow.id.clone());
                         new_state.snapshots.push(new_snapshot);
 
                         new_states.push(new_state);
@@ -254,23 +253,24 @@ impl FlowNode {
         new_states
     }
 
-    fn create_new_snapshot_without_token(snapshot: &ProcessSnapshot, token: &Token) -> ProcessSnapshot {
-        ProcessSnapshot {
+    fn create_new_snapshot_without_token(snapshot: &ProcessSnapshot, token: &String) -> ProcessSnapshot {
+        let mut snapshot = ProcessSnapshot {
             id: snapshot.id.clone(),
             // Remove incoming token
-            tokens: snapshot.tokens.iter().filter(|t| { t.position != token.position }).cloned().collect(),
-        }
+            tokens: snapshot.tokens.clone(),
+        };
+        snapshot.remove_token(token.clone());
+        snapshot
     }
     fn try_execute_end_event(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
-            let token_at_flow = snapshot.tokens.iter().find(|token| { token.position == inc_flow.id });
-            match token_at_flow {
+            match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
-                Some(token_at_flow) => {
+                Some(_) => {
                     // Consume incoming token
                     let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
-                    let new_snapshot = Self::create_new_snapshot_without_token(snapshot, token_at_flow);
+                    let new_snapshot = Self::create_new_snapshot_without_token(snapshot, &inc_flow.id.clone());
                     // Add outgoing token
                     new_state.snapshots.push(new_snapshot);
 
