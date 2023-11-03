@@ -9,6 +9,7 @@ pub struct StateSpace {
 #[derive(Debug, Hash, PartialEq)]
 pub struct State {
     pub snapshots: Vec<ProcessSnapshot>
+    // TODO: Add transitions here
 }
 
 impl State {

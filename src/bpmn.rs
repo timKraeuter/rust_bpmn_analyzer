@@ -243,10 +243,16 @@ impl FlowNode {
     }
 
     fn create_new_state_without_snapshot(snapshot: &ProcessSnapshot, current_state: &State) -> State {
+        // Clone should be avoided.
+        let mut snapshots = current_state.snapshots.clone();
+        // Remove the snapshot
+        let index = snapshots.iter()
+            .position(|sp| { snapshot.id == sp.id })
+            .expect("Snapshot not found!");
+        snapshots.swap_remove(index);
+
         State {
-            // Do not copy snapshot but the rest.
-            // TODO: Could filter not removing be problematic?
-            snapshots: current_state.snapshots.iter().filter(|x| { x.id != snapshot.id }).cloned().collect()
+            snapshots
         }
     }
 
