@@ -138,7 +138,7 @@ mod tests {
     }
 
     #[test]
-    fn unsafe_property() {
+    fn safeness_property_unsafe() {
         let collaboration = read_bpmn_file(&String::from("test/resources/unsafe.bpmn"));
 
         let start = collaboration.create_start_state();
@@ -151,9 +151,22 @@ mod tests {
             GeneralPropertyResult {
                 property: GeneralProperty::Safeness,
                 fulfilled: false,
-                problematic_elements: vec![String::from("Unsafe")]
+                problematic_elements: vec![String::from("Unsafe")],
             }
         ]);
+    }
+
+    #[test]
+    fn safeness_property_safe() {
+        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::Safeness],
+        );
+
+        assert_eq!(model_checking_result.property_results, vec![]);
     }
 
     fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {
