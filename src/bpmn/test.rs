@@ -145,6 +145,29 @@ mod tests {
         ]);
     }
 
+    #[test]
+    fn unsafe_property() {
+        let collaboration = read_bpmn_file(&Config::new(
+            String::from("test/resources/unsafe.bpmn")));
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
+        let start_state = State::new(String::from("process"), vec![
+            String::from("Flow_1"),
+            String::from("Flow_1"),
+            String::from("Flow_2")],
+        );
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&start_state),
+            &start_state);
+
+        assert_eq!(next_states, vec![
+            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_2")]),
+            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_1")]),
+        ]);
+    }
+
     fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {
         let process = collaboration.participants.get(0).unwrap();
         process

@@ -24,8 +24,7 @@ impl BPMNCollaboration {
     }
 
     pub fn explore_state_space(&self, start_state: State, properties: Vec<GeneralProperty>) -> ModelCheckingResult {
-        println!("{:?}", properties);
-
+        let mut property_results = vec![];
         let mut state_hashes = HashMap::new();
         state_hashes.insert(calculate_hash(&start_state), true);
 
@@ -39,17 +38,11 @@ impl BPMNCollaboration {
                     let potentially_unexplored_states = explore_state(self, &current_state);
                     // Check if we know the state already
                     for state in potentially_unexplored_states {
-                        let hash = calculate_hash(&state);
-                        match state_hashes.get(&hash) {
-                            None => {
-                                // State is new.
-                                state_hashes.insert(hash, true);
-                                unexplored_states.push(state)
-                            }
-                            Some(_) => {}
-                        }
+                        Self::record_unexplored_state(&mut state_hashes, &mut unexplored_states, state);
                     }
 
+                    // Some properties are checked for each state.
+                    check_properties(&current_state, &properties, &mut property_results);
                     // Explored states are saved.
                     explored_states.push(current_state);
                 }
@@ -60,9 +53,24 @@ impl BPMNCollaboration {
             state_space: StateSpace {
                 states: explored_states
             },
-            properties_results: vec![]
+            property_results
         }
 
+    }
+
+    fn record_unexplored_state(
+        state_hashes: &mut HashMap<u64, bool>,
+        unexplored_states: &mut Vec<State>,
+        potentially_new_state: State) {
+        let hash = calculate_hash(&potentially_new_state);
+        match state_hashes.get(&hash) {
+            None => {
+                // State is new.
+                state_hashes.insert(hash, true);
+                unexplored_states.push(potentially_new_state)
+            }
+            Some(_) => {}
+        }
     }
 
     pub fn create_start_state(&self) -> State {
@@ -90,6 +98,35 @@ impl BPMNCollaboration {
             start.snapshots.push(snapshot);
         }
         start
+    }
+}
+
+fn check_properties(state: &State, properties: &Vec<GeneralProperty>, results: &mut Vec<GeneralPropertyResult>) {
+    for property in properties.iter() {
+        match property {
+            GeneralProperty::Safeness => {
+                check_if_unsafe(state, results);
+            }
+            _ => {}
+        }
+    }
+}
+
+fn check_if_unsafe(state: &State, results: &mut Vec<GeneralPropertyResult>) {
+    let two: i16 = 2;
+    for snapshot in &state.snapshots {
+        match snapshot.tokens.iter().find(|(_, amount)| {
+            *amount >= &two
+        }) {
+            None => {}
+            Some((unsafe_flow_element, _)) => {
+                results.push(GeneralPropertyResult {
+                    property: GeneralProperty::Safeness,
+                    fulfilled: false,
+                    problematic_elements: vec![unsafe_flow_element.clone()]
+                })
+            }
+        }
     }
 }
 

@@ -37,7 +37,7 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
 
     // println!("{:?}", state_space);
     println!("Number of states: {}", result.state_space.states.len());
-    println!("Property results: {:?}", result.properties_results);
+    println!("Property results: {:?}", result.property_results);
 
     Ok(result)
 }
