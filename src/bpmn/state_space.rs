@@ -12,7 +12,7 @@ pub struct State {
 }
 
 impl State {
-    pub(crate) fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
+    pub fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, token_positions)]
         }
@@ -34,7 +34,7 @@ impl Hash for ProcessSnapshot {
 }
 
 impl ProcessSnapshot {
-    pub(crate) fn new(id: String, token_positions: Vec<String>) -> ProcessSnapshot {
+    pub fn new(id: String, token_positions: Vec<String>) -> ProcessSnapshot {
         let mut snapshot = ProcessSnapshot {
             id,
             tokens: HashMap::new(),
