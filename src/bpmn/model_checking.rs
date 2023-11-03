@@ -1,6 +1,6 @@
 use crate::bpmn::StateSpace;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum GeneralProperty {
     OptionToComplete,
     Safeness,
@@ -11,7 +11,7 @@ pub struct ModelCheckingResult {
     pub state_space: StateSpace,
     pub property_results: Vec<GeneralPropertyResult>
 }
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct GeneralPropertyResult {
     pub property: GeneralProperty,
     pub fulfilled: bool,

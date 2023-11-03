@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::bpmn::{BPMNCollaboration, BPMNProcess, FlowNode, read_bpmn_file};
+    use crate::bpmn::{BPMNCollaboration, BPMNProcess, FlowNode, GeneralProperty, GeneralPropertyResult, read_bpmn_file};
     use crate::bpmn::state_space::{ProcessSnapshot, State};
 
     #[test]
@@ -140,22 +140,19 @@ mod tests {
     #[test]
     fn unsafe_property() {
         let collaboration = read_bpmn_file(&String::from("test/resources/unsafe.bpmn"));
-        let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
-        let start_state = State::new(String::from("process"), vec![
-            String::from("Flow_1"),
-            String::from("Flow_1"),
-            String::from("Flow_2")],
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::Safeness],
         );
 
-        let next_states = flow_node.try_execute(
-            get_first_snapshot(&start_state),
-            &start_state);
-
-        assert_eq!(next_states, vec![
-            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_2")]),
-            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_1")]),
+        assert_eq!(model_checking_result.property_results, vec![
+            GeneralPropertyResult {
+                property: GeneralProperty::Safeness,
+                fulfilled: false,
+                problematic_elements: vec![String::from("Unsafe")]
+            }
         ]);
     }
 
