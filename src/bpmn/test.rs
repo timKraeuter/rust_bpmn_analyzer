@@ -133,6 +133,7 @@ mod tests {
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
         let start_state = State::new(String::from("process"), vec![
             String::from("Flow_1"),
+            String::from("Flow_1"),
             String::from("Flow_2")],
         );
 
@@ -141,8 +142,8 @@ mod tests {
             &start_state);
 
         assert_eq!(next_states, vec![
-            State::new(String::from("process"), vec![String::from("Flow_2")]),
-            State::new(String::from("process"), vec![String::from("Flow_1")])
+            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_2")]),
+            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_1")])
         ]);
     }
 
