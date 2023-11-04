@@ -12,7 +12,8 @@ mod tests {
         assert_eq!(start_state, State {
             snapshots: vec![ProcessSnapshot::new(
                 String::from("process"),
-                vec![String::from("Flow_1"), String::from("Flow_2")])]
+                vec![String::from("Flow_1"), String::from("Flow_2")])],
+            next_states: vec![]
         });
     }
 
