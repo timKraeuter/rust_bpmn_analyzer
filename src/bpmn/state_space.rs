@@ -9,15 +9,16 @@ pub struct StateSpace {
 #[derive(Debug, Hash, PartialEq)]
 pub struct State {
     pub snapshots: Vec<ProcessSnapshot>,
-    // Transitions to the next states.
-    pub next_states: Vec<State>
+    pub transitions: Vec<Transition>
 }
+#[derive(Debug, Hash, PartialEq)]
+pub struct Transition (String, State);
 
 impl State {
     pub fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, token_positions)],
-            next_states: vec![]
+            transitions: vec![]
         }
     }
 }

@@ -76,7 +76,7 @@ impl BPMNCollaboration {
     pub fn create_start_state(&self) -> State {
         let mut start = State {
             snapshots: vec![],
-            next_states: vec![]
+            transitions: vec![]
         };
         for process in &self.participants {
             let mut snapshot = ProcessSnapshot {
@@ -255,7 +255,7 @@ impl FlowNode {
 
         State {
             snapshots,
-            next_states: vec![]
+            transitions: vec![]
         }
     }
 
