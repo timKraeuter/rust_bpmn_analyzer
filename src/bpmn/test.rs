@@ -138,6 +138,27 @@ mod tests {
     }
 
     #[test]
+    fn try_execute_intermediate_throw_event() {
+        let collaboration = read_bpmn_file(&String::from("test/resources/intermediate_event.bpmn"));
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Intermediate"));
+        let start_state = State::new(String::from("process"), vec![
+            String::from("Flow_1"),
+            String::from("Flow_2")],
+        );
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&start_state),
+            &start_state);
+
+        assert_eq!(next_states, vec![
+            State::new(String::from("process"), vec![String::from("Flow_2"), String::from("Flow_3"), String::from("Flow_4")]),
+            State::new(String::from("process"), vec![String::from("Flow_1"), String::from("Flow_3"), String::from("Flow_4")]),
+        ]);
+    }
+
+    #[test]
     fn safeness_property_unsafe() {
         let collaboration = read_bpmn_file(&String::from("test/resources/unsafe.bpmn"));
 

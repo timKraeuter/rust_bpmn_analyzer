@@ -211,6 +211,7 @@ impl FlowNode {
         match self.flow_node_type {
             FlowNodeType::StartEvent => { vec![] }
             FlowNodeType::Task => { self.try_execute_task(snapshot, current_state) }
+            FlowNodeType::IntermediateThrowEvent => { self.try_intermediate_throw_event(snapshot, current_state) }
             FlowNodeType::ExclusiveGateway => { self.try_execute_exg(snapshot, current_state) }
             FlowNodeType::ParallelGateway => { self.try_execute_pg(snapshot, current_state) }
             FlowNodeType::EndEvent => { self.try_execute_end_event(snapshot, current_state) }
@@ -280,13 +281,17 @@ impl FlowNode {
         }
         new_states
     }
+    fn try_intermediate_throw_event(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
+        // Currently the same as task but event types will change this.
+        self.try_execute_task(snapshot, current_state)
+    }
     fn try_execute_exg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
                 Some(_) => {
-                    // Add one token for each outgoing flow
+                    // Add one state with a token for each outgoing flow
                     for out_flow in self.outgoing_flows.iter() {
                         // Add new state
                         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
@@ -335,6 +340,7 @@ impl FlowNode {
 #[derive(Debug, PartialEq)]
 pub enum FlowNodeType {
     StartEvent,
+    IntermediateThrowEvent,
     Task,
     ExclusiveGateway,
     ParallelGateway,

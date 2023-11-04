@@ -26,12 +26,13 @@ pub fn read_bpmn_file(file_path: &String) -> BPMNCollaboration {
                     b"process" => {
                         add_participant(&mut collaboration, e);
                     }
-                    b"startEvent" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::StartEvent),
-                    b"serviceTask" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::Task),
-                    b"task" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::Task),
-                    b"parallelGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ParallelGateway),
-                    b"exclusiveGateway" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
-                    b"endEvent" => add_flow_node_to_last_participant(&mut collaboration, e, FlowNodeType::EndEvent),
+                    b"startEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::StartEvent),
+                    b"serviceTask" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                    b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                    b"intermediateThrowEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::IntermediateThrowEvent),
+                    b"parallelGateway" => add_flow_node(&mut collaboration, e, FlowNodeType::ParallelGateway),
+                    b"exclusiveGateway" => add_flow_node(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
+                    b"endEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::EndEvent),
                     b"sequenceFlow" => sfs.push(e),
                     _ => (),
                 }
@@ -76,7 +77,7 @@ fn add_participant(collaboration: &mut BPMNCollaboration, p_bytes: BytesStart) {
     });
 }
 
-fn add_flow_node_to_last_participant(collaboration: &mut BPMNCollaboration, flow_node_bytes: BytesStart, flow_node_type: FlowNodeType) {
+fn add_flow_node(collaboration: &mut BPMNCollaboration, flow_node_bytes: BytesStart, flow_node_type: FlowNodeType) {
     let id = get_attribute_value_or_panic(&flow_node_bytes, &String::from("id"));
     let option = collaboration.participants.last_mut();
     match option {
