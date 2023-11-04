@@ -36,7 +36,7 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
     let result = collaboration.explore_state_space(start, config.properties);
 
     // println!("{:?}", state_space);
-    println!("Number of states: {}", result.state_space.states.len());
+    println!("Number of states: {}", "tbd");
     println!("Property results: {:?}", result.property_results);
 
     Ok(result)

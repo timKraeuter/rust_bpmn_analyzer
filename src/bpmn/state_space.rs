@@ -3,8 +3,7 @@ use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
 pub struct StateSpace {
-    pub states: Vec<State>
-    // Transitions are currently missing here. They could be handled in each individual state.
+    pub start_state: State
 }
 #[derive(Debug, Hash, PartialEq)]
 pub struct State {

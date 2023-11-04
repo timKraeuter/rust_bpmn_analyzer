@@ -25,40 +25,55 @@ impl BPMNCollaboration {
 
     pub fn explore_state_space(&self, start_state: State, properties: Vec<GeneralProperty>) -> ModelCheckingResult {
         let mut property_results = vec![];
-        let mut state_hashes = HashMap::new();
-        state_hashes.insert(calculate_hash(&start_state), true);
 
-        let mut explored_states = vec![];
-        let mut unexplored_states = vec![start_state];
+        let mut seen_state_hashes = HashMap::new();
+        seen_state_hashes.insert(calculate_hash(&start_state), true);
+
+        let mut unexplored_states = vec![];
+        self.explore_state_and_save(
+            &mut seen_state_hashes,
+            &mut unexplored_states,
+            &start_state);
+
         while !unexplored_states.is_empty() {
             match unexplored_states.pop() {
                 None => {}
                 Some(current_state) => {
-                    // Explore the state
-                    let potentially_unexplored_states = explore_state(self, &current_state);
-                    // Check if we know the state already
-                    for state in potentially_unexplored_states {
-                        Self::record_unexplored_state(&mut state_hashes, &mut unexplored_states, state);
-                    }
+                    self.explore_state_and_save(
+                        &mut seen_state_hashes,
+                        &mut unexplored_states,
+                        &current_state);
 
-                    // Some properties are checked for each state.
+                    // Some properties are checked for each state. --> Could stop here for on-the-fly model checking.
                     check_properties(&current_state, &properties, &mut property_results);
-                    // Explored states are saved.
-                    explored_states.push(current_state);
                 }
             };
             // println!("{} states to be explored", unexplored_states.len())
         }
         ModelCheckingResult {
             state_space: StateSpace {
-                states: explored_states
+                start_state
             },
-            property_results
+            property_results,
         }
-
     }
 
-    fn record_unexplored_state(
+    fn explore_state_and_save(&self,
+                              mut seen_state_hashes: &mut HashMap<u64, bool>,
+                              mut unexplored_states: &mut Vec<State>,
+                              current_state: &State) {
+        // Explore the state
+        let potentially_unexplored_states = explore_state(self, &current_state);
+        // Check if we know the state already
+        for state in potentially_unexplored_states {
+            Self::record_unexplored_state_or_add_transition(
+                &mut seen_state_hashes,
+                &mut unexplored_states,
+                state);
+        }
+    }
+
+    fn record_unexplored_state_or_add_transition(
         state_hashes: &mut HashMap<u64, bool>,
         unexplored_states: &mut Vec<State>,
         potentially_new_state: State) {
@@ -68,15 +83,19 @@ impl BPMNCollaboration {
                 // State is new.
                 state_hashes.insert(hash, true);
                 unexplored_states.push(potentially_new_state)
+                // TODO: Need smart pointers probably to reuse states and not duplicate them.
+                // TODO: Add transition
             }
-            Some(_) => {}
+            Some(_) => {
+                // TODO: Add a transition to the old state.
+            }
         }
     }
 
     pub fn create_start_state(&self) -> State {
         let mut start = State {
             snapshots: vec![],
-            transitions: vec![]
+            transitions: vec![],
         };
         for process in &self.participants {
             let mut snapshot = ProcessSnapshot {
@@ -124,7 +143,7 @@ fn check_if_unsafe(state: &State, results: &mut Vec<GeneralPropertyResult>) {
                 results.push(GeneralPropertyResult {
                     property: GeneralProperty::Safeness,
                     fulfilled: false,
-                    problematic_elements: vec![unsafe_flow_element.clone()]
+                    problematic_elements: vec![unsafe_flow_element.clone()],
                 })
             }
         }
@@ -140,7 +159,7 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
 fn explore_state(collab: &BPMNCollaboration, state: &State) -> Vec<State> {
     let mut unexplored_states: Vec<State> = vec![];
     for snapshot in &state.snapshots {
-        // Find participant for snapshot
+        // Find participant for snapshot, could also be hashmap but usually not a long list.
         let option = collab.participants.iter().find(|process_snapshot| { process_snapshot.id == snapshot.id });
         match option {
             None => { panic!("No process found for snapshot with id \"{}\"", snapshot.id) }
@@ -255,7 +274,7 @@ impl FlowNode {
 
         State {
             snapshots,
-            transitions: vec![]
+            transitions: vec![],
         }
     }
 
