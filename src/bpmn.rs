@@ -27,75 +27,52 @@ impl BPMNCollaboration {
         let mut property_results = vec![];
 
         let mut seen_state_hashes = HashMap::new();
-        seen_state_hashes.insert(calculate_hash(&start_state), true);
+        let start_hash = calculate_hash(&start_state);
+        seen_state_hashes.insert(start_hash, true);
 
-        let mut unexplored_states = vec![];
-        self.explore_state_and_save(
-            &mut seen_state_hashes,
-            &mut unexplored_states,
-            &start_state);
+        let mut state_space = StateSpace {
+            states: HashMap::new(),
+            transitions: HashMap::new(),
+        };
+
+        let mut unexplored_states = vec![(start_hash, start_state)];
 
         while !unexplored_states.is_empty() {
             match unexplored_states.pop() {
                 None => {}
-                Some(current_state) => {
-                    self.explore_state_and_save(
-                        &mut seen_state_hashes,
-                        &mut unexplored_states,
-                        &current_state);
-
+                Some((hash, current_state)) => {
                     // Some properties are checked for each state. --> Could stop here for on-the-fly model checking.
                     check_properties(&current_state, &properties, &mut property_results);
+                    // Explore the state
+                    let potentially_unexplored_states = explore_state(self, &current_state);
+                    // Check if we know the state already
+                    for new_state in potentially_unexplored_states {
+                        let hash = calculate_hash(&new_state);
+                        match seen_state_hashes.get(&hash) {
+                            None => {
+                                // State is new.
+                                seen_state_hashes.insert(hash, true);
+                                unexplored_states.push((hash, new_state));
+                                // TODO: Add transition
+                            }
+                            Some(_) => {
+                                // TODO: Add a transition to the old state.
+                            }
+                        }
+                    }
+                    state_space.states.insert(hash, current_state);
                 }
             };
-            // println!("{} states to be explored", unexplored_states.len())
         }
         ModelCheckingResult {
-            state_space: StateSpace {
-                start_state
-            },
+            state_space,
             property_results,
-        }
-    }
-
-    fn explore_state_and_save(&self,
-                              mut seen_state_hashes: &mut HashMap<u64, bool>,
-                              mut unexplored_states: &mut Vec<State>,
-                              current_state: &State) {
-        // Explore the state
-        let potentially_unexplored_states = explore_state(self, &current_state);
-        // Check if we know the state already
-        for state in potentially_unexplored_states {
-            Self::record_unexplored_state_or_add_transition(
-                &mut seen_state_hashes,
-                &mut unexplored_states,
-                state);
-        }
-    }
-
-    fn record_unexplored_state_or_add_transition(
-        state_hashes: &mut HashMap<u64, bool>,
-        unexplored_states: &mut Vec<State>,
-        potentially_new_state: State) {
-        let hash = calculate_hash(&potentially_new_state);
-        match state_hashes.get(&hash) {
-            None => {
-                // State is new.
-                state_hashes.insert(hash, true);
-                unexplored_states.push(potentially_new_state)
-                // TODO: Need smart pointers probably to reuse states and not duplicate them.
-                // TODO: Add transition
-            }
-            Some(_) => {
-                // TODO: Add a transition to the old state.
-            }
         }
     }
 
     pub fn create_start_state(&self) -> State {
         let mut start = State {
             snapshots: vec![],
-            transitions: vec![],
         };
         for process in &self.participants {
             let mut snapshot = ProcessSnapshot {
@@ -274,7 +251,6 @@ impl FlowNode {
 
         State {
             snapshots,
-            transitions: vec![],
         }
     }
 

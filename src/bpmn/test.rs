@@ -13,7 +13,6 @@ mod tests {
             snapshots: vec![ProcessSnapshot::new(
                 String::from("process"),
                 vec![String::from("Flow_1"), String::from("Flow_2")])],
-            transitions: vec![]
         });
     }
 

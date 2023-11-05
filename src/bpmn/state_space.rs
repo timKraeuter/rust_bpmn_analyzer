@@ -2,13 +2,15 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
-pub struct StateSpace {
-    pub start_state: State
+pub struct StateSpace<'a> {
+    pub states: HashMap<u64, State>,
+    // Outgoing transitions
+    pub transitions: HashMap<u64, Vec<&'a State>>,
+
 }
 #[derive(Debug, Hash, PartialEq)]
 pub struct State {
-    pub snapshots: Vec<ProcessSnapshot>,
-    pub transitions: Vec<Transition>
+    pub snapshots: Vec<ProcessSnapshot>
 }
 #[derive(Debug, Hash, PartialEq)]
 pub struct Transition (String, State);
@@ -17,7 +19,6 @@ impl State {
     pub fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, token_positions)],
-            transitions: vec![]
         }
     }
 }
