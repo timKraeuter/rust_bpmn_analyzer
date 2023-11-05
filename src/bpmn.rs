@@ -18,6 +18,7 @@ pub struct BPMNCollaboration {
     pub participants: Vec<BPMNProcess>,
 }
 
+
 impl BPMNCollaboration {
     pub fn add_participant(&mut self, participant: BPMNProcess) {
         self.participants.push(participant);
@@ -40,27 +41,29 @@ impl BPMNCollaboration {
         while !unexplored_states.is_empty() {
             match unexplored_states.pop() {
                 None => {}
-                Some((hash, current_state)) => {
+                Some((current_state_hash, current_state)) => {
                     // Some properties are checked for each state. --> Could stop here for on-the-fly model checking.
                     check_properties(&current_state, &properties, &mut property_results);
                     // Explore the state
                     let potentially_unexplored_states = explore_state(self, &current_state);
+
                     // Check if we know the state already
+                    let mut potentially_unexplored_states_hashes = vec![];
                     for new_state in potentially_unexplored_states {
-                        let hash = calculate_hash(&new_state);
-                        match seen_state_hashes.get(&hash) {
+                        let new_hash = calculate_hash(&new_state);
+                        match seen_state_hashes.get(&new_hash) {
                             None => {
                                 // State is new.
-                                seen_state_hashes.insert(hash, true);
-                                unexplored_states.push((hash, new_state));
-                                // TODO: Add transition
+                                seen_state_hashes.insert(new_hash, true);
+                                unexplored_states.push((new_hash, new_state));
                             }
-                            Some(_) => {
-                                // TODO: Add a transition to the old state.
-                            }
+                            Some(_) => {}
                         }
+                        potentially_unexplored_states_hashes.push(new_hash);
                     }
-                    state_space.states.insert(hash, current_state);
+                    // Save the state and its transitions.
+                    state_space.states.insert(current_state_hash, current_state);
+                    state_space.transitions.insert(current_state_hash, potentially_unexplored_states_hashes);
                 }
             };
         }

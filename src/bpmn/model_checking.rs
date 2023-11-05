@@ -8,7 +8,7 @@ pub enum GeneralProperty {
 }
 #[derive(Debug)]
 pub struct ModelCheckingResult {
-    pub state_space: StateSpace<'static>,
+    pub state_space: StateSpace,
     pub property_results: Vec<GeneralPropertyResult>
 }
 #[derive(Debug, PartialEq)]

@@ -2,10 +2,10 @@ use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
-pub struct StateSpace<'a> {
+pub struct StateSpace {
     pub states: HashMap<u64, State>,
-    // Outgoing transitions
-    pub transitions: HashMap<u64, Vec<&'a State>>,
+    // Outgoing transitions (using hashes to satisfy the borrow checker for now)
+    pub transitions: HashMap<u64, Vec<u64>>
 
 }
 #[derive(Debug, Hash, PartialEq)]
