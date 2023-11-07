@@ -187,7 +187,7 @@ mod tests {
             vec![GeneralProperty::Safeness],
         );
 
-        assert_eq!(model_checking_result.property_results, vec![]);
+        assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult::safe()]);
     }
 
     fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {

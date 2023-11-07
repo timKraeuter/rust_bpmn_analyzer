@@ -21,5 +21,14 @@ pub struct GeneralPropertyResult {
     pub problematic_elements: Vec<String>,
     // Path, i.e., Vec of transitions
     // counter_example: Vec<Transition>
+}
 
+impl GeneralPropertyResult {
+    pub fn safe() -> GeneralPropertyResult {
+        GeneralPropertyResult {
+            property: GeneralProperty::Safeness,
+            fulfilled: true,
+            problematic_elements: vec![]
+        }
+    }
 }

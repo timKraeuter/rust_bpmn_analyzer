@@ -67,6 +67,8 @@ impl BPMNCollaboration {
                 }
             };
         }
+        detetermine_safeness(&mut property_results);
+
         ModelCheckingResult {
             state_space,
             property_results,
@@ -98,6 +100,16 @@ impl BPMNCollaboration {
             start.snapshots.push(snapshot);
         }
         start
+    }
+}
+
+fn detetermine_safeness(results: &mut Vec<GeneralPropertyResult>) {
+    let safeness_result = results.iter().find(|result| {
+        result.property == GeneralProperty::Safeness
+    });
+    match safeness_result {
+        None => { results.push(GeneralPropertyResult::safe()) }
+        Some(_) => {}
     }
 }
 
