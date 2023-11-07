@@ -23,23 +23,23 @@ pub fn read_bpmn_file(file_path: &String) -> BPMNCollaboration {
         match reader.read_event() {
             Ok(Event::Start(e)) => {
                 match e.name().as_ref() {
-                    b"process" => {
+                    b"process" | b"bpmn:process" => {
                         add_participant(&mut collaboration, e);
                     }
-                    b"startEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::StartEvent),
-                    b"serviceTask" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
-                    b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
-                    b"intermediateThrowEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::IntermediateThrowEvent),
-                    b"parallelGateway" => add_flow_node(&mut collaboration, e, FlowNodeType::ParallelGateway),
-                    b"exclusiveGateway" => add_flow_node(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
-                    b"endEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::EndEvent),
-                    b"sequenceFlow" => sfs.push(e),
+                    b"startEvent" | b"bpmn:startEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::StartEvent),
+                    b"serviceTask" | b"bpmn:serviceTask" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                    b"task" | b"bpmn:task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                    b"intermediateThrowEvent" | b"bpmn:intermediateThrowEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::IntermediateThrowEvent),
+                    b"parallelGateway" | b"bpmn:parallelGateway" => add_flow_node(&mut collaboration, e, FlowNodeType::ParallelGateway),
+                    b"exclusiveGateway" | b"bpmn:exclusiveGateway" => add_flow_node(&mut collaboration, e, FlowNodeType::ExclusiveGateway),
+                    b"endEvent" | b"bpmn:endEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::EndEvent),
+                    b"sequenceFlow" | b"bpmn:sequenceFlow" => sfs.push(e),
                     _ => (),
                 }
             }
             Ok(Event::Empty(e)) => {
                 match e.name().as_ref() {
-                    b"sequenceFlow" => sfs.push(e),
+                    b"sequenceFlow" | b"bpmn:sequenceFlow" => sfs.push(e),
                     _ => (),
                 }
             }

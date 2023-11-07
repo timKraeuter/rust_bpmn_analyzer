@@ -19,6 +19,7 @@ pub struct GeneralPropertyResult {
     // Safeness: Unsafe sequence flows
     // OptionToComplete: empty or where stuck?
     pub problematic_elements: Vec<String>,
+    pub problematic_state_hashes: Vec<u64>,
     // Path, i.e., Vec of transitions
     // counter_example: Vec<Transition>
 }
@@ -28,7 +29,16 @@ impl GeneralPropertyResult {
         GeneralPropertyResult {
             property: GeneralProperty::Safeness,
             fulfilled: true,
-            problematic_elements: vec![]
+            problematic_elements: vec![],
+            problematic_state_hashes: vec![]
+        }
+    }
+    pub fn always_terminates() -> GeneralPropertyResult {
+        GeneralPropertyResult {
+            property: GeneralProperty::OptionToComplete,
+            fulfilled: true,
+            problematic_elements: vec![],
+            problematic_state_hashes: vec![]
         }
     }
 }

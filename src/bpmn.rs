@@ -28,22 +28,22 @@ impl BPMNCollaboration {
         let mut property_results = vec![];
 
         let mut seen_state_hashes = HashMap::new();
-        let start_hash = calculate_hash(&start_state);
-        seen_state_hashes.insert(start_hash, true);
+        let start_state_hash = calculate_hash(&start_state);
+        seen_state_hashes.insert(start_state_hash, true);
 
         let mut state_space = StateSpace {
+            start_state_hash,
+            terminated_state_hashes: vec![],
             states: HashMap::new(),
             transitions: HashMap::new(),
         };
 
-        let mut unexplored_states = vec![(start_hash, start_state)];
+        let mut unexplored_states = vec![(start_state_hash, start_state)];
 
         while !unexplored_states.is_empty() {
             match unexplored_states.pop() {
                 None => {}
                 Some((current_state_hash, current_state)) => {
-                    // Some properties are checked for each state. --> Could stop here for on-the-fly model checking.
-                    check_properties(&current_state, &properties, &mut property_results);
                     // Explore the state
                     let potentially_unexplored_states = explore_state(self, &current_state);
 
@@ -61,13 +61,17 @@ impl BPMNCollaboration {
                         }
                         potentially_unexplored_states_hashes.push(new_hash);
                     }
+                    // Do stuff for model checking
+                    check_properties(current_state_hash, &current_state, &properties, &mut property_results, &potentially_unexplored_states_hashes);
+                    add_terminated_state_hash_if_needed(current_state_hash, &current_state, &mut state_space);
+
                     // Save the state and its transitions.
                     state_space.states.insert(current_state_hash, current_state);
                     state_space.transitions.insert(current_state_hash, potentially_unexplored_states_hashes);
                 }
             };
         }
-        determine_safeness(&mut property_results);
+        determine_properties(&properties, &mut property_results);
 
         ModelCheckingResult {
             state_space,
@@ -103,23 +107,68 @@ impl BPMNCollaboration {
     }
 }
 
-fn determine_safeness(results: &mut Vec<GeneralPropertyResult>) {
-    let safeness_result = results.iter().find(|result| {
-        result.property == GeneralProperty::Safeness
-    });
-    match safeness_result {
-        None => { results.push(GeneralPropertyResult::safe()) }
-        Some(_) => {}
+fn add_terminated_state_hash_if_needed(state_hash: u64, state: &State, state_space: &mut StateSpace) {
+    if state.is_terminated() {
+        state_space.terminated_state_hashes.push(state_hash);
     }
 }
 
-fn check_properties(state: &State, properties: &Vec<GeneralProperty>, results: &mut Vec<GeneralPropertyResult>) {
+fn determine_properties(properties: &Vec<GeneralProperty>, results: &mut Vec<GeneralPropertyResult>) {
+    for property in properties.iter() {
+        match results.iter().find(|result| {
+            &result.property == property
+        }) {
+            None => {
+                match property {
+                    GeneralProperty::OptionToComplete => {
+                        results.push(GeneralPropertyResult::always_terminates())
+                    }
+                    GeneralProperty::Safeness => {
+                        results.push(GeneralPropertyResult::safe())
+                    }
+                    GeneralProperty::DeadActivities => {}
+                }
+            }
+            Some(_) => {}
+        };
+    }
+}
+
+fn check_properties(current_state_hash: u64,
+                    state: &State,
+                    properties: &Vec<GeneralProperty>,
+                    results: &mut Vec<GeneralPropertyResult>,
+                    next_state_hashes: &Vec<u64>) {
     for property in properties.iter() {
         match property {
             GeneralProperty::Safeness => {
                 check_if_unsafe(state, results);
             }
+            GeneralProperty::OptionToComplete => {
+                check_if_stuck(current_state_hash, state, results, next_state_hashes)
+            }
             _ => {}
+        }
+    }
+}
+
+fn check_if_stuck(current_state_hash: u64,
+                  state: &State,
+                  results: &mut Vec<GeneralPropertyResult>,
+                  next_state_hashes: &Vec<u64>) {
+    if next_state_hashes.is_empty() && !state.is_terminated() {
+        match results.iter_mut().find(|result| { result.property == GeneralProperty::OptionToComplete }) {
+            None => {
+                results.push(GeneralPropertyResult {
+                    property: GeneralProperty::OptionToComplete,
+                    fulfilled: false,
+                    problematic_elements: vec![],
+                    problematic_state_hashes: vec![current_state_hash]
+                })
+            }
+            Some(result) => {
+                result.problematic_state_hashes.push(current_state_hash)
+            }
         }
     }
 }
@@ -136,6 +185,7 @@ fn check_if_unsafe(state: &State, results: &mut Vec<GeneralPropertyResult>) {
                     property: GeneralProperty::Safeness,
                     fulfilled: false,
                     problematic_elements: vec![unsafe_flow_element.clone()],
+                    problematic_state_hashes: vec![],
                 })
             }
         }

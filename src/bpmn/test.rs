@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use crate::bpmn::{BPMNCollaboration, BPMNProcess, FlowNode, GeneralProperty, GeneralPropertyResult, read_bpmn_file};
     use crate::bpmn::state_space::{ProcessSnapshot, State};
 
@@ -159,7 +160,7 @@ mod tests {
     }
 
     #[test]
-    fn safeness_property_unsafe() {
+    fn safeness_property_unfulfilled() {
         let collaboration = read_bpmn_file(&String::from("test/resources/unsafe.bpmn"));
 
         let start = collaboration.create_start_state();
@@ -173,12 +174,13 @@ mod tests {
                 property: GeneralProperty::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe")],
+                problematic_state_hashes: vec![],
             }
         ]);
     }
 
     #[test]
-    fn safeness_property_safe() {
+    fn safeness_property_fulfilled() {
         let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
 
         let start = collaboration.create_start_state();
@@ -188,6 +190,65 @@ mod tests {
         );
 
         assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult::safe()]);
+    }
+
+    #[test]
+    fn option_to_complete_property_unfulfilled_1() {
+        let collaboration = read_bpmn_file(&String::from("test/resources/option_to_complete/no-option-to-complete-1.bpmn"));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::OptionToComplete],
+        );
+
+        assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult {
+            property: GeneralProperty::OptionToComplete,
+            fulfilled: false,
+            problematic_elements: vec![],
+            problematic_state_hashes: vec![2865282549678524369, 14709088705232714226],
+        }]);
+    }
+
+    #[test]
+    fn option_to_complete_property_unfulfilled_2() {
+        let collaboration = read_bpmn_file(&String::from("test/resources/option_to_complete/no-option-to-complete-2.bpmn"));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::OptionToComplete],
+        );
+
+        let expected_hash: u64 = 5226340431746374588;
+
+        assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult {
+            property: GeneralProperty::OptionToComplete,
+            fulfilled: false,
+            problematic_elements: vec![],
+            problematic_state_hashes: vec![expected_hash],
+        }]);
+
+        let stuck_state = model_checking_result.state_space.states.get(&expected_hash).unwrap();
+        assert_eq!(stuck_state, &State {
+            snapshots: vec![ProcessSnapshot {
+                id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
+                tokens: HashMap::from([(String::from("stuck"), 1i16)]),
+            }]
+        });
+    }
+
+    #[test]
+    fn option_to_complete_property_fulfilled() {
+        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::OptionToComplete],
+        );
+
+        assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult::always_terminates()]);
     }
 
     fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {

@@ -3,17 +3,20 @@ use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
 pub struct StateSpace {
+    pub start_state_hash: u64,
+    pub terminated_state_hashes: Vec<u64>,
     pub states: HashMap<u64, State>,
     // Outgoing transitions (using hashes to satisfy the borrow checker for now)
-    pub transitions: HashMap<u64, Vec<u64>>
-
+    pub transitions: HashMap<u64, Vec<u64>>,
 }
+
 #[derive(Debug, Hash, PartialEq)]
 pub struct State {
-    pub snapshots: Vec<ProcessSnapshot>
+    pub snapshots: Vec<ProcessSnapshot>,
 }
+
 #[derive(Debug, Hash, PartialEq)]
-pub struct Transition (String, State);
+pub struct Transition(String, State);
 
 impl State {
     pub fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
@@ -21,12 +24,16 @@ impl State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, token_positions)],
         }
     }
+
+    pub fn is_terminated(&self) -> bool {
+        self.snapshots.iter().all(|snapshot| { snapshot.tokens.is_empty() })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcessSnapshot {
     pub id: String,
-    pub tokens: HashMap<String, i16>
+    pub tokens: HashMap<String, i16>,
 }
 
 impl Hash for ProcessSnapshot {
@@ -57,7 +64,7 @@ impl ProcessSnapshot {
     }
     pub fn remove_token(&mut self, position: String) {
         match self.tokens.get(&position) {
-            None => {panic!("Token {} should be removed but was not present!", position)}
+            None => { panic!("Token {} should be removed but was not present!", position) }
             Some(amount) => {
                 let new_amount = amount - 1;
                 if new_amount == 0 {
