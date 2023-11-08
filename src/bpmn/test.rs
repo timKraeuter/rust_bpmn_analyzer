@@ -169,14 +169,24 @@ mod tests {
             vec![GeneralProperty::Safeness],
         );
 
+        let unsafe_state_hash: u64 = 7943842223099901633;
+
         assert_eq!(model_checking_result.property_results, vec![
             GeneralPropertyResult {
                 property: GeneralProperty::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe")],
-                problematic_state_hashes: vec![],
+                problematic_state_hashes: vec![unsafe_state_hash],
             }
         ]);
+
+        let unsafe_state = model_checking_result.state_space.states.get(&unsafe_state_hash).unwrap();
+        assert_eq!(unsafe_state, &State {
+            snapshots: vec![ProcessSnapshot {
+                id: String::from("process"),
+                tokens: HashMap::from([(String::from("Unsafe"), 2i16)]),
+            }]
+        });
     }
 
     #[test]

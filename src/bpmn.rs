@@ -172,7 +172,7 @@ fn check_properties(current_state_hash: u64,
     for property in properties.iter() {
         match property {
             GeneralProperty::Safeness => {
-                check_if_unsafe(state, results);
+                check_if_unsafe(current_state_hash, state, results);
             }
             GeneralProperty::OptionToComplete => {
                 check_if_stuck(current_state_hash, state, results, next_state_hashes)
@@ -203,7 +203,7 @@ fn check_if_stuck(current_state_hash: u64,
     }
 }
 
-fn check_if_unsafe(state: &State, results: &mut Vec<GeneralPropertyResult>) {
+fn check_if_unsafe(current_state_hash: u64, state: &State, results: &mut Vec<GeneralPropertyResult>) {
     let two: i16 = 2;
     for snapshot in &state.snapshots {
         match snapshot.tokens.iter().find(|(_, amount)| {
@@ -215,7 +215,7 @@ fn check_if_unsafe(state: &State, results: &mut Vec<GeneralPropertyResult>) {
                     property: GeneralProperty::Safeness,
                     fulfilled: false,
                     problematic_elements: vec![unsafe_flow_element.clone()],
-                    problematic_state_hashes: vec![],
+                    problematic_state_hashes: vec![current_state_hash],
                 })
             }
         }
