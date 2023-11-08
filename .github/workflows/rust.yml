@@ -16,10 +16,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build
-      run: cargo build
-    - name: Lint
-      run: cargo clippy -- -Dwarnings
-    - name: Run tests
-      run: cargo test
+      - uses: actions/checkout@v3
+      - name: Build
+        run: cargo build
+      - name: Format
+        run: cargo fmt --check
+      - name: Lint
+        run: cargo clippy -- -Dwarnings
+      - name: Run tests
+        run: cargo test
