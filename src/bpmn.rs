@@ -104,15 +104,12 @@ impl BPMNCollaboration {
                 tokens: HashMap::new(),
             };
             for flow_node in &process.flow_nodes {
-                match flow_node.flow_node_type {
-                    FlowNodeType::StartEvent => {
-                        for out_sf in flow_node.outgoing_flows.iter() {
-                            // Cloning the string here could be done differently.
-                            let position = out_sf.id.clone();
-                            snapshot.add_token(position);
-                        }
+                if flow_node.flow_node_type == FlowNodeType::StartEvent {
+                    for out_sf in flow_node.outgoing_flows.iter() {
+                        // Cloning the string here could be done differently.
+                        let position = out_sf.id.clone();
+                        snapshot.add_token(position);
                     }
-                    _ => {}
                 }
             }
             start.snapshots.push(snapshot);
@@ -127,7 +124,7 @@ fn add_terminated_state_hash_if_needed(state_hash: u64, state: &State, state_spa
     }
 }
 
-fn determine_properties(properties: &Vec<GeneralProperty>, results: &mut Vec<GeneralPropertyResult>, never_executed_activities: HashMap<String, bool>) {
+fn determine_properties(properties: &[GeneralProperty], results: &mut Vec<GeneralPropertyResult>, never_executed_activities: HashMap<String, bool>) {
     if properties.contains(&GeneralProperty::NoDeadActivities) {
         // Cannot do this in the loop due to the borrow checker.
         let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
@@ -166,7 +163,7 @@ fn determine_properties(properties: &Vec<GeneralProperty>, results: &mut Vec<Gen
 
 fn check_properties(current_state_hash: u64,
                     state: &State,
-                    properties: &Vec<GeneralProperty>,
+                    properties: &[GeneralProperty],
                     results: &mut Vec<GeneralPropertyResult>,
                     next_state_hashes: &Vec<u64>) {
     for property in properties.iter() {
@@ -241,8 +238,8 @@ fn explore_state(collab: &BPMNCollaboration, state: &State, not_executed_activit
 
                     // Record activity execution
                     if flow_node.flow_node_type == FlowNodeType::Task
-                        && new_states.len() > 0
-                        && not_executed_activities.len() > 0 {
+                        && !new_states.is_empty()
+                        && !not_executed_activities.is_empty() {
                         not_executed_activities.remove(&flow_node.id);
                     }
 
@@ -395,7 +392,7 @@ impl FlowNode {
                     for out_flow in self.outgoing_flows.iter() {
                         // Add new state
                         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
-                        let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, &inc_flow.id.clone());
+                        let mut new_snapshot = Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
                         // Add outgoing token
                         new_snapshot.add_token(out_flow.id.clone());
                         new_state.snapshots.push(new_snapshot);
@@ -408,13 +405,13 @@ impl FlowNode {
         new_states
     }
 
-    fn create_new_snapshot_without_token(snapshot: &ProcessSnapshot, token: &String) -> ProcessSnapshot {
+    fn create_new_snapshot_without_token(snapshot: &ProcessSnapshot, token: &str) -> ProcessSnapshot {
         let mut snapshot = ProcessSnapshot {
             id: snapshot.id.clone(),
             // Remove incoming token
             tokens: snapshot.tokens.clone(),
         };
-        snapshot.remove_token(token.clone());
+        snapshot.remove_token(token.to_string());
         snapshot
     }
     fn try_execute_end_event(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
