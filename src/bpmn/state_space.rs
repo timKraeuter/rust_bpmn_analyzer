@@ -6,8 +6,8 @@ pub struct StateSpace {
     pub start_state_hash: u64,
     pub terminated_state_hashes: Vec<u64>,
     pub states: HashMap<u64, State>,
-    // Outgoing transitions (using hashes to satisfy the borrow checker for now)
-    pub transitions: HashMap<u64, Vec<u64>>,
+    // Outgoing transitions (executed flow node id, target state hash)
+    pub transitions: HashMap<u64, Vec<(String, u64)>>,
 }
 
 #[derive(Debug, Hash, PartialEq)]

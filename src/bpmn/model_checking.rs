@@ -18,21 +18,28 @@ impl ModelCheckingResult {
     pub fn get_state(&self, state_hash: &u64) -> Option<&State> {
         self.state_space.states.get(state_hash)
     }
-    pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<u64>> {
+    pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<(String, u64)>> {
         self.get_path(self.state_space.start_state_hash, state_hash)
     }
-    fn get_path(&self, from_state_hash: u64, to_state_hash: u64) -> Option<Vec<u64>> {
+    fn get_path(&self, from_state_hash: u64, to_state_hash: u64) -> Option<Vec<(String, u64)>> {
         match self.state_space.transitions.get(&from_state_hash) {
             None => None,
             Some(next_states) => {
-                if next_states.contains(&to_state_hash) {
-                    return Some(vec![to_state_hash]);
+                match next_states
+                    .iter()
+                    .find(|(_, next_state_hash)| next_state_hash == &to_state_hash)
+                {
+                    None => {}
+                    // Should be Rc in the future.
+                    Some(last_transition) => return Some(vec![last_transition.clone()]),
                 }
-                for next_state in next_states {
+                // Not found continue searching
+                for (flow_node_id, next_state) in next_states {
                     match self.get_path(*next_state, to_state_hash) {
                         None => {}
                         Some(mut path) => {
-                            path.insert(0, from_state_hash);
+                            // Should be Rc in the future.
+                            path.insert(0, (flow_node_id.clone(), from_state_hash));
                             return Some(path);
                         }
                     };

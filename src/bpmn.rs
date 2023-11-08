@@ -54,7 +54,7 @@ impl BPMNCollaboration {
 
                     // Check if we know the state already
                     let mut potentially_unexplored_states_hashes = vec![];
-                    for new_state in potentially_unexplored_states {
+                    for (flow_node_id, new_state) in potentially_unexplored_states {
                         let new_hash = calculate_hash(&new_state);
                         match seen_state_hashes.get(&new_hash) {
                             None => {
@@ -64,7 +64,7 @@ impl BPMNCollaboration {
                             }
                             Some(_) => {}
                         }
-                        potentially_unexplored_states_hashes.push(new_hash);
+                        potentially_unexplored_states_hashes.push((flow_node_id, new_hash));
                     }
                     // Do stuff for model checking
                     check_properties(
@@ -182,7 +182,7 @@ fn check_properties(
     state: &State,
     properties: &[GeneralProperty],
     results: &mut Vec<GeneralPropertyResult>,
-    next_state_hashes: &Vec<u64>,
+    next_state_hashes: &Vec<(String, u64)>,
 ) {
     for property in properties.iter() {
         match property {
@@ -201,7 +201,7 @@ fn check_if_stuck(
     current_state_hash: u64,
     state: &State,
     results: &mut Vec<GeneralPropertyResult>,
-    next_state_hashes: &Vec<u64>,
+    next_state_hashes: &Vec<(String, u64)>,
 ) {
     if next_state_hashes.is_empty() && !state.is_terminated() {
         match results
@@ -248,8 +248,8 @@ fn explore_state(
     collab: &BPMNCollaboration,
     state: &State,
     not_executed_activities: &mut HashMap<String, bool>,
-) -> Vec<State> {
-    let mut unexplored_states: Vec<State> = vec![];
+) -> Vec<(String, State)> {
+    let mut unexplored_states: Vec<(String, State)> = vec![];
     for snapshot in &state.snapshots {
         // Find participant for snapshot, could also be hashmap but usually not a long list.
         let option = collab
@@ -262,7 +262,7 @@ fn explore_state(
             }
             Some(matching_process) => {
                 for flow_node in matching_process.flow_nodes.iter() {
-                    let mut new_states = flow_node.try_execute(snapshot, state);
+                    let new_states = flow_node.try_execute(snapshot, state);
 
                     // Record activity execution
                     if flow_node.flow_node_type == FlowNodeType::Task
@@ -273,7 +273,13 @@ fn explore_state(
                     }
 
                     // Would want to check if the state has been explored here not later to not take up unnecessary memory.
-                    unexplored_states.append(&mut new_states);
+                    unexplored_states.append(
+                        &mut new_states
+                            .into_iter()
+                            // Add info about flow node. Should use Rc instead of clone in the future.
+                            .map(|state| (flow_node.id.clone(), state))
+                            .collect(),
+                    );
                 }
             }
         }

@@ -3,7 +3,7 @@ mod tests {
     use crate::bpmn::state_space::{ProcessSnapshot, State};
     use crate::bpmn::{
         read_bpmn_file, BPMNCollaboration, BPMNProcess, FlowNode, GeneralProperty,
-        GeneralPropertyResult,
+        GeneralPropertyResult, ModelCheckingResult,
     };
     use std::collections::HashMap;
 
@@ -249,11 +249,24 @@ mod tests {
             }
         );
 
-        let path_to_unsafe = model_checking_result
-            .get_path_to_state(unsafe_state_hash)
-            .unwrap();
+        let path_to_unsafe =
+            get_flow_nodes_executed_to_reach(&model_checking_result, unsafe_state_hash);
 
-        assert_eq!(3, path_to_unsafe.len());
+        assert_eq!(
+            vec!["Gateway_0wc9tmn", "Gateway_0re1nqe", "Gateway_0re1nqe"],
+            path_to_unsafe
+        );
+    }
+
+    fn get_flow_nodes_executed_to_reach(
+        model_checking_result: &ModelCheckingResult,
+        state_hash: u64,
+    ) -> Vec<String> {
+        let path_to_unsafe = model_checking_result.get_path_to_state(state_hash).unwrap();
+        path_to_unsafe
+            .into_iter()
+            .map(|(executed_flow_node_id, _)| executed_flow_node_id)
+            .collect()
     }
 
     #[test]
@@ -280,14 +293,35 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![GeneralProperty::OptionToComplete]);
 
+        let not_terminated_state_hash_1 = 2865282549678524369;
+        let not_terminated_state_hash_2 = 14709088705232714226;
         assert_eq!(
             model_checking_result.property_results,
             vec![GeneralPropertyResult {
                 property: GeneralProperty::OptionToComplete,
                 fulfilled: false,
-                problematic_state_hashes: vec![2865282549678524369, 14709088705232714226],
+                problematic_state_hashes: vec![
+                    not_terminated_state_hash_1,
+                    not_terminated_state_hash_2
+                ],
                 problematic_elements: vec![],
             }]
+        );
+
+        let path_to_not_terminated_1 =
+            get_flow_nodes_executed_to_reach(&model_checking_result, not_terminated_state_hash_1);
+
+        assert_eq!(
+            vec!["Gateway_0do975f", "Activity_0x2nbu7"],
+            path_to_not_terminated_1
+        );
+
+        let path_to_not_terminated_2 =
+            get_flow_nodes_executed_to_reach(&model_checking_result, not_terminated_state_hash_2);
+
+        assert_eq!(
+            vec!["Gateway_0do975f", "Activity_03mx8x5"],
+            path_to_not_terminated_2
         );
     }
 
