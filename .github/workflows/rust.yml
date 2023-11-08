@@ -1,4 +1,4 @@
-name: Rust compile & test
+name: Rust compile, lint & test
 
 on:
   workflow_dispatch:
@@ -20,6 +20,6 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Lint
-      run: cargo clippy
+      run: cargo clippy -- -Dwarnings
     - name: Run tests
       run: cargo test --verbose
