@@ -1,8 +1,8 @@
 mod bpmn;
 
+use crate::bpmn::{read_bpmn_file, GeneralProperty, ModelCheckingResult};
 use std::error::Error;
 use std::str;
-use crate::bpmn::{GeneralProperty, ModelCheckingResult, read_bpmn_file};
 
 pub struct Config {
     pub file_path: String,
@@ -13,7 +13,7 @@ impl Config {
     pub fn new(file_path: String) -> Config {
         Config {
             file_path,
-            properties: vec![]
+            properties: vec![],
         }
     }
 

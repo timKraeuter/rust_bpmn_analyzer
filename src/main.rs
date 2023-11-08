@@ -1,6 +1,6 @@
+use bpmnanalyzer::Config;
 use std::env;
 use std::process;
-use bpmnanalyzer::Config;
 
 fn main() {
     let args: Vec<String> = env::args().collect();

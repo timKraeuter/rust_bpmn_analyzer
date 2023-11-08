@@ -26,7 +26,9 @@ impl State {
     }
 
     pub fn is_terminated(&self) -> bool {
-        self.snapshots.iter().all(|snapshot| { snapshot.tokens.is_empty() })
+        self.snapshots
+            .iter()
+            .all(|snapshot| snapshot.tokens.is_empty())
     }
 }
 
@@ -58,13 +60,15 @@ impl ProcessSnapshot {
     }
     pub fn add_token(&mut self, position: String) {
         match self.tokens.get(&position) {
-            None => { self.tokens.insert(position, 1) }
-            Some(amount) => { self.tokens.insert(position, amount + 1) }
+            None => self.tokens.insert(position, 1),
+            Some(amount) => self.tokens.insert(position, amount + 1),
         };
     }
     pub fn remove_token(&mut self, position: String) {
         match self.tokens.get(&position) {
-            None => { panic!("Token {} should be removed but was not present!", position) }
+            None => {
+                panic!("Token {} should be removed but was not present!", position)
+            }
             Some(amount) => {
                 let new_amount = amount - 1;
                 if new_amount == 0 {
