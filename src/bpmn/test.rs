@@ -174,7 +174,7 @@ mod tests {
                 property: GeneralProperty::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe")],
-                problematic_state_hashes: vec![]
+                problematic_state_hashes: vec![],
             }
         ]);
     }
@@ -206,7 +206,7 @@ mod tests {
             property: GeneralProperty::OptionToComplete,
             fulfilled: false,
             problematic_state_hashes: vec![2865282549678524369, 14709088705232714226],
-            problematic_elements: vec![]
+            problematic_elements: vec![],
         }]);
     }
 
@@ -226,7 +226,7 @@ mod tests {
             property: GeneralProperty::OptionToComplete,
             fulfilled: false,
             problematic_state_hashes: vec![expected_hash],
-            problematic_elements: vec![]
+            problematic_elements: vec![],
         }]);
 
         let stuck_state = model_checking_result.state_space.states.get(&expected_hash).unwrap();
@@ -264,8 +264,11 @@ mod tests {
         assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult {
             property: GeneralProperty::NoDeadActivities,
             fulfilled: false,
-            problematic_elements: vec![String::from("123"), String::from("1234")],
-            problematic_state_hashes: vec![]
+            problematic_elements: vec![
+                String::from("Dead_1"),
+                String::from("Dead_2"),
+                String::from("Dead_3")],
+            problematic_state_hashes: vec![],
         }]);
     }
 

@@ -26,6 +26,7 @@ impl BPMNCollaboration {
 
     pub fn explore_state_space(&self, start_state: State, properties: Vec<GeneralProperty>) -> ModelCheckingResult {
         let mut property_results = vec![];
+        let mut not_executed_activities = self.get_all_activities();
 
         let mut seen_state_hashes = HashMap::new();
         let start_state_hash = calculate_hash(&start_state);
@@ -45,7 +46,7 @@ impl BPMNCollaboration {
                 None => {}
                 Some((current_state_hash, current_state)) => {
                     // Explore the state
-                    let potentially_unexplored_states = explore_state(self, &current_state);
+                    let potentially_unexplored_states = explore_state(self, &current_state, &mut not_executed_activities);
 
                     // Check if we know the state already
                     let mut potentially_unexplored_states_hashes = vec![];
@@ -71,12 +72,25 @@ impl BPMNCollaboration {
                 }
             };
         }
-        determine_properties(&properties, &mut property_results);
+        determine_properties(&properties, &mut property_results, not_executed_activities);
 
         ModelCheckingResult {
             state_space,
             property_results,
         }
+    }
+
+    fn get_all_activities(&self) -> HashMap<String, bool> {
+        let mut never_executed_activities = HashMap::new();
+        self.participants.iter().for_each(|process| {
+            process.flow_nodes.iter().for_each(|flow_node| {
+                if flow_node.flow_node_type == FlowNodeType::Task {
+                    // Cloned id here. Could use RC smart pointer instead.
+                    never_executed_activities.insert(flow_node.id.clone(), true);
+                }
+            })
+        });
+        never_executed_activities
     }
 
     pub fn create_start_state(&self) -> State {
@@ -113,7 +127,23 @@ fn add_terminated_state_hash_if_needed(state_hash: u64, state: &State, state_spa
     }
 }
 
-fn determine_properties(properties: &Vec<GeneralProperty>, results: &mut Vec<GeneralPropertyResult>) {
+fn determine_properties(properties: &Vec<GeneralProperty>, results: &mut Vec<GeneralPropertyResult>, never_executed_activities: HashMap<String, bool>) {
+    if properties.contains(&GeneralProperty::NoDeadActivities) {
+        // Cannot do this in the loop due to the borrow checker.
+        let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
+        if !dead_activities.is_empty() {
+            dead_activities.sort();
+            results.push(GeneralPropertyResult {
+                property: GeneralProperty::NoDeadActivities,
+                fulfilled: false,
+                problematic_elements: dead_activities,
+                problematic_state_hashes: vec![],
+            });
+        } else {
+            results.push(GeneralPropertyResult::no_dead_activities());
+        }
+    }
+
     for property in properties.iter() {
         match results.iter().find(|result| {
             &result.property == property
@@ -126,7 +156,7 @@ fn determine_properties(properties: &Vec<GeneralProperty>, results: &mut Vec<Gen
                     GeneralProperty::Safeness => {
                         results.push(GeneralPropertyResult::safe())
                     }
-                    GeneralProperty::NoDeadActivities => {}
+                    _ => {}
                 }
             }
             Some(_) => {}
@@ -163,7 +193,7 @@ fn check_if_stuck(current_state_hash: u64,
                     property: GeneralProperty::OptionToComplete,
                     fulfilled: false,
                     problematic_elements: vec![],
-                    problematic_state_hashes: vec![current_state_hash]
+                    problematic_state_hashes: vec![current_state_hash],
                 })
             }
             Some(result) => {
@@ -198,7 +228,7 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
     s.finish()
 }
 
-fn explore_state(collab: &BPMNCollaboration, state: &State) -> Vec<State> {
+fn explore_state(collab: &BPMNCollaboration, state: &State, not_executed_activities: &mut HashMap<String, bool>) -> Vec<State> {
     let mut unexplored_states: Vec<State> = vec![];
     for snapshot in &state.snapshots {
         // Find participant for snapshot, could also be hashmap but usually not a long list.
@@ -208,6 +238,14 @@ fn explore_state(collab: &BPMNCollaboration, state: &State) -> Vec<State> {
             Some(matching_process) => {
                 for flow_node in matching_process.flow_nodes.iter() {
                     let mut new_states = flow_node.try_execute(snapshot, state);
+
+                    // Record activity execution
+                    if flow_node.flow_node_type == FlowNodeType::Task
+                        && new_states.len() > 0
+                        && not_executed_activities.len() > 0 {
+                        not_executed_activities.remove(&flow_node.id);
+                    }
+
                     // Would want to check if the state has been explored here not later to not take up unnecessary memory.
                     unexplored_states.append(&mut new_states);
                 }
