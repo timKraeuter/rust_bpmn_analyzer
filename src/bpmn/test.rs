@@ -238,11 +238,7 @@ mod tests {
             }]
         );
 
-        let unsafe_state = model_checking_result
-            .state_space
-            .states
-            .get(&unsafe_state_hash)
-            .unwrap();
+        let unsafe_state = model_checking_result.get_state(&unsafe_state_hash).unwrap();
         assert_eq!(
             unsafe_state,
             &State {
@@ -252,6 +248,12 @@ mod tests {
                 }]
             }
         );
+
+        let path_to_unsafe = model_checking_result
+            .get_path_to_state(unsafe_state_hash)
+            .unwrap();
+
+        assert_eq!(3, path_to_unsafe.len());
     }
 
     #[test]
@@ -311,11 +313,7 @@ mod tests {
             }]
         );
 
-        let stuck_state = model_checking_result
-            .state_space
-            .states
-            .get(&expected_hash)
-            .unwrap();
+        let stuck_state = model_checking_result.get_state(&expected_hash).unwrap();
         assert_eq!(
             stuck_state,
             &State {
