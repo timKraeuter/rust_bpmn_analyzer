@@ -174,7 +174,7 @@ mod tests {
                 property: GeneralProperty::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe")],
-                problematic_state_hashes: vec![],
+                problematic_state_hashes: vec![]
             }
         ]);
     }
@@ -205,8 +205,8 @@ mod tests {
         assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult {
             property: GeneralProperty::OptionToComplete,
             fulfilled: false,
-            problematic_elements: vec![],
             problematic_state_hashes: vec![2865282549678524369, 14709088705232714226],
+            problematic_elements: vec![]
         }]);
     }
 
@@ -225,8 +225,8 @@ mod tests {
         assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult {
             property: GeneralProperty::OptionToComplete,
             fulfilled: false,
-            problematic_elements: vec![],
             problematic_state_hashes: vec![expected_hash],
+            problematic_elements: vec![]
         }]);
 
         let stuck_state = model_checking_result.state_space.states.get(&expected_hash).unwrap();
@@ -249,6 +249,37 @@ mod tests {
         );
 
         assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult::always_terminates()]);
+    }
+
+    #[test]
+    fn no_dead_activities_property_unfulfilled() {
+        let collaboration = read_bpmn_file(&String::from("test/resources/no_dead_activities/dead-activities.bpmn"));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::NoDeadActivities],
+        );
+
+        assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult {
+            property: GeneralProperty::NoDeadActivities,
+            fulfilled: false,
+            problematic_elements: vec![String::from("123"), String::from("1234")],
+            problematic_state_hashes: vec![]
+        }]);
+    }
+
+    #[test]
+    fn no_dead_activities_property_fulfilled() {
+        let collaboration = read_bpmn_file(&String::from("test/resources/no_dead_activities/no-dead-activities.bpmn"));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::NoDeadActivities],
+        );
+
+        assert_eq!(model_checking_result.property_results, vec![GeneralPropertyResult::no_dead_activities()]);
     }
 
     fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {

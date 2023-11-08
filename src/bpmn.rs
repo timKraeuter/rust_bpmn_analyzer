@@ -126,7 +126,7 @@ fn determine_properties(properties: &Vec<GeneralProperty>, results: &mut Vec<Gen
                     GeneralProperty::Safeness => {
                         results.push(GeneralPropertyResult::safe())
                     }
-                    GeneralProperty::DeadActivities => {}
+                    GeneralProperty::NoDeadActivities => {}
                 }
             }
             Some(_) => {}

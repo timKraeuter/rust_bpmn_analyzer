@@ -4,8 +4,9 @@ use crate::bpmn::StateSpace;
 pub enum GeneralProperty {
     OptionToComplete,
     Safeness,
-    DeadActivities
+    NoDeadActivities
 }
+
 #[derive(Debug)]
 pub struct ModelCheckingResult {
     pub state_space: StateSpace,
@@ -36,6 +37,14 @@ impl GeneralPropertyResult {
     pub fn always_terminates() -> GeneralPropertyResult {
         GeneralPropertyResult {
             property: GeneralProperty::OptionToComplete,
+            fulfilled: true,
+            problematic_elements: vec![],
+            problematic_state_hashes: vec![]
+        }
+    }
+    pub fn no_dead_activities() -> GeneralPropertyResult {
+        GeneralPropertyResult {
+            property: GeneralProperty::NoDeadActivities,
             fulfilled: true,
             problematic_elements: vec![],
             problematic_state_hashes: vec![]
