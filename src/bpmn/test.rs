@@ -248,7 +248,7 @@ mod tests {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("process"),
-                    tokens: HashMap::from([(String::from("Unsafe"), 2i16)]),
+                    tokens: HashMap::from([(String::from("Unsafe"), 2u16)]),
                 }]
             }
         );
@@ -321,7 +321,7 @@ mod tests {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
-                    tokens: HashMap::from([(String::from("stuck"), 1i16)]),
+                    tokens: HashMap::from([(String::from("stuck"), 1u16)]),
                 }]
             }
         );

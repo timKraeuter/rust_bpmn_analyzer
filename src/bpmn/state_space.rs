@@ -35,7 +35,7 @@ impl State {
 #[derive(Debug, Clone, PartialEq)]
 pub struct ProcessSnapshot {
     pub id: String,
-    pub tokens: HashMap<String, i16>,
+    pub tokens: HashMap<String, u16>,
 }
 
 impl Hash for ProcessSnapshot {

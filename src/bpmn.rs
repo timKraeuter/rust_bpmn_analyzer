@@ -224,9 +224,9 @@ fn check_if_unsafe(
     state: &State,
     results: &mut Vec<GeneralPropertyResult>,
 ) {
-    let two: i16 = 2;
+    const TWO: u16 = 2;
     for snapshot in &state.snapshots {
-        match snapshot.tokens.iter().find(|(_, amount)| *amount >= &two) {
+        match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
             None => {}
             Some((unsafe_flow_element, _)) => results.push(GeneralPropertyResult {
                 property: GeneralProperty::Safeness,
