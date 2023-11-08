@@ -41,7 +41,7 @@ impl BPMNCollaboration {
 
         let mut unexplored_states = vec![(start_state_hash, start_state)];
 
-        while !unexplored_states.is_empty() {
+        while unexplored_states.len() > 0 {
             match unexplored_states.pop() {
                 None => {}
                 Some((current_state_hash, current_state)) => {
