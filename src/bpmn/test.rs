@@ -218,8 +218,19 @@ mod tests {
         );
     }
 
+    fn get_flow_nodes_executed_to_reach(
+        model_checking_result: &ModelCheckingResult,
+        state_hash: u64,
+    ) -> Vec<String> {
+        let path_to_unsafe = model_checking_result.get_path_to_state(state_hash).unwrap();
+        path_to_unsafe
+            .into_iter()
+            .map(|(executed_flow_node_id, _)| executed_flow_node_id)
+            .collect()
+    }
+
     #[test]
-    fn safeness_property_unfulfilled() {
+    fn safeness_unfulfilled() {
         let collaboration = read_bpmn_file(&String::from("test/resources/unsafe.bpmn"));
 
         let start = collaboration.create_start_state();
@@ -258,19 +269,8 @@ mod tests {
         );
     }
 
-    fn get_flow_nodes_executed_to_reach(
-        model_checking_result: &ModelCheckingResult,
-        state_hash: u64,
-    ) -> Vec<String> {
-        let path_to_unsafe = model_checking_result.get_path_to_state(state_hash).unwrap();
-        path_to_unsafe
-            .into_iter()
-            .map(|(executed_flow_node_id, _)| executed_flow_node_id)
-            .collect()
-    }
-
     #[test]
-    fn safeness_property_fulfilled() {
+    fn safeness_fulfilled() {
         let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
 
         let start = collaboration.create_start_state();
@@ -284,7 +284,7 @@ mod tests {
     }
 
     #[test]
-    fn option_to_complete_property_unfulfilled_1() {
+    fn option_to_complete_unfulfilled_1() {
         let collaboration = read_bpmn_file(&String::from(
             "test/resources/option_to_complete/no-option-to-complete-1.bpmn",
         ));
@@ -326,7 +326,7 @@ mod tests {
     }
 
     #[test]
-    fn option_to_complete_property_unfulfilled_2() {
+    fn option_to_complete_unfulfilled_2() {
         let collaboration = read_bpmn_file(&String::from(
             "test/resources/option_to_complete/no-option-to-complete-2.bpmn",
         ));
@@ -360,7 +360,7 @@ mod tests {
     }
 
     #[test]
-    fn option_to_complete_property_fulfilled() {
+    fn option_to_complete_fulfilled() {
         let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
 
         let start = collaboration.create_start_state();
@@ -374,7 +374,7 @@ mod tests {
     }
 
     #[test]
-    fn no_dead_activities_property_unfulfilled() {
+    fn no_dead_activities_unfulfilled() {
         let collaboration = read_bpmn_file(&String::from(
             "test/resources/no_dead_activities/dead-activities.bpmn",
         ));
@@ -399,7 +399,7 @@ mod tests {
     }
 
     #[test]
-    fn no_dead_activities_property_fulfilled() {
+    fn no_dead_activities_fulfilled() {
         let collaboration = read_bpmn_file(&String::from(
             "test/resources/no_dead_activities/no-dead-activities.bpmn",
         ));
@@ -411,6 +411,121 @@ mod tests {
         assert_eq!(
             model_checking_result.property_results,
             vec![GeneralPropertyResult::no_dead_activities()]
+        );
+    }
+
+    #[test]
+    fn proper_completion_fulfilled_1() {
+        let collaboration = read_bpmn_file(&String::from(
+            "test/resources/proper_completion/proper-completion-1.bpmn",
+        ));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result =
+            collaboration.explore_state_space(start, vec![GeneralProperty::ProperCompletion]);
+
+        assert_eq!(
+            model_checking_result.property_results,
+            vec![GeneralPropertyResult {
+                property: GeneralProperty::ProperCompletion,
+                fulfilled: true,
+                problematic_elements: vec![],
+                problematic_state_hashes: vec![],
+            }]
+        );
+    }
+
+    #[test]
+    fn proper_completion_fulfilled_2() {
+        let collaboration = read_bpmn_file(&String::from(
+            "test/resources/proper_completion/proper-completion-2.bpmn",
+        ));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result =
+            collaboration.explore_state_space(start, vec![GeneralProperty::ProperCompletion]);
+
+        assert_eq!(
+            model_checking_result.property_results,
+            vec![GeneralPropertyResult {
+                property: GeneralProperty::ProperCompletion,
+                fulfilled: true,
+                problematic_elements: vec![],
+                problematic_state_hashes: vec![],
+            }]
+        );
+    }
+
+    #[test]
+    fn proper_completion_unfulfilled_1() {
+        let collaboration = read_bpmn_file(&String::from(
+            "test/resources/proper_completion/no-proper-completion-1.bpmn",
+        ));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result =
+            collaboration.explore_state_space(start, vec![GeneralProperty::ProperCompletion]);
+
+        assert_eq!(
+            model_checking_result.property_results,
+            vec![GeneralPropertyResult {
+                property: GeneralProperty::ProperCompletion,
+                fulfilled: false,
+                problematic_elements: vec![String::from("EndEvent_1")],
+                problematic_state_hashes: vec![],
+            }]
+        );
+    }
+
+    #[test]
+    fn proper_completion_unfulfilled_2() {
+        let collaboration = read_bpmn_file(&String::from(
+            "test/resources/proper_completion/no-proper-completion-2.bpmn",
+        ));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result =
+            collaboration.explore_state_space(start, vec![GeneralProperty::ProperCompletion]);
+
+        assert_eq!(
+            model_checking_result.property_results,
+            vec![GeneralPropertyResult {
+                property: GeneralProperty::ProperCompletion,
+                fulfilled: false,
+                problematic_elements: vec![String::from("EndEvent_1")],
+                problematic_state_hashes: vec![],
+            }]
+        );
+    }
+
+    #[test]
+    fn proper_completion_unfulfilled_3() {
+        let collaboration = read_bpmn_file(&String::from(
+            "test/resources/proper_completion/no-proper-completion-3-unsafe.bpmn",
+        ));
+
+        let start = collaboration.create_start_state();
+        let model_checking_result = collaboration.explore_state_space(
+            start,
+            vec![GeneralProperty::Safeness, GeneralProperty::ProperCompletion],
+        );
+
+        assert_eq!(
+            model_checking_result.property_results,
+            vec![
+                GeneralPropertyResult {
+                    property: GeneralProperty::Safeness,
+                    fulfilled: false,
+                    problematic_elements: vec![String::from("Flow_0d6wprw")],
+                    problematic_state_hashes: vec![13607897659918858973],
+                },
+                GeneralPropertyResult {
+                    property: GeneralProperty::ProperCompletion,
+                    fulfilled: false,
+                    problematic_elements: vec![String::from("EndEvent_1")],
+                    problematic_state_hashes: vec![],
+                }
+            ]
         );
     }
 

@@ -3,8 +3,9 @@ use crate::bpmn::StateSpace;
 
 #[derive(Debug, PartialEq)]
 pub enum GeneralProperty {
-    OptionToComplete,
     Safeness,
+    OptionToComplete,
+    ProperCompletion,
     NoDeadActivities,
 }
 
@@ -83,6 +84,14 @@ impl GeneralPropertyResult {
     pub fn no_dead_activities() -> GeneralPropertyResult {
         GeneralPropertyResult {
             property: GeneralProperty::NoDeadActivities,
+            fulfilled: true,
+            problematic_elements: vec![],
+            problematic_state_hashes: vec![],
+        }
+    }
+    pub fn proper_completion() -> GeneralPropertyResult {
+        GeneralPropertyResult {
+            property: GeneralProperty::ProperCompletion,
             fulfilled: true,
             problematic_elements: vec![],
             problematic_state_hashes: vec![],

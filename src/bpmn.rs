@@ -29,7 +29,7 @@ impl BPMNCollaboration {
         properties: Vec<GeneralProperty>,
     ) -> ModelCheckingResult {
         let mut property_results = vec![];
-        let mut not_executed_activities = self.get_all_activities();
+        let mut not_executed_activities = self.get_all_flow_nodes_by_type(FlowNodeType::Task);
 
         let mut seen_state_hashes = HashMap::new();
         let start_state_hash = calculate_hash(&start_state);
@@ -88,7 +88,13 @@ impl BPMNCollaboration {
                 }
             };
         }
-        determine_properties(&properties, &mut property_results, not_executed_activities);
+        determine_properties(
+            &properties,
+            &mut property_results,
+            &state_space,
+            &self,
+            not_executed_activities,
+        );
 
         ModelCheckingResult {
             state_space,
@@ -96,17 +102,19 @@ impl BPMNCollaboration {
         }
     }
 
-    fn get_all_activities(&self) -> HashMap<String, bool> {
-        let mut never_executed_activities = HashMap::new();
+    fn get_all_flow_nodes_by_type(&self, flow_node_type: FlowNodeType) -> HashMap<String, bool> {
+        let mut flow_nodes = HashMap::new();
         self.participants.iter().for_each(|process| {
-            process.flow_nodes.iter().for_each(|flow_node| {
-                if flow_node.flow_node_type == FlowNodeType::Task {
+            process
+                .flow_nodes
+                .iter()
+                .filter(|flow_node| flow_node.flow_node_type == flow_node_type)
+                .for_each(|flow_node| {
                     // Cloned id here. Could use RC smart pointer instead.
-                    never_executed_activities.insert(flow_node.id.clone(), true);
-                }
-            })
+                    flow_nodes.insert(flow_node.id.clone(), true);
+                })
         });
-        never_executed_activities
+        flow_nodes
     }
 
     pub fn create_start_state(&self) -> State {
@@ -145,8 +153,23 @@ fn add_terminated_state_hash_if_needed(
 fn determine_properties(
     properties: &[GeneralProperty],
     results: &mut Vec<GeneralPropertyResult>,
+    state_space: &StateSpace,
+    collaboration: &BPMNCollaboration,
     never_executed_activities: HashMap<String, bool>,
 ) {
+    if properties.contains(&GeneralProperty::Safeness)
+        && contains_property_result(results, GeneralProperty::Safeness)
+    {
+        results.push(GeneralPropertyResult::safe());
+    }
+    if properties.contains(&GeneralProperty::OptionToComplete)
+        && contains_property_result(results, GeneralProperty::OptionToComplete)
+    {
+        results.push(GeneralPropertyResult::always_terminates())
+    }
+    if properties.contains(&GeneralProperty::ProperCompletion) {
+        check_proper_completion(collaboration, state_space, results);
+    }
     if properties.contains(&GeneralProperty::NoDeadActivities) {
         // Cannot do this in the loop due to the borrow checker.
         let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
@@ -162,19 +185,86 @@ fn determine_properties(
             results.push(GeneralPropertyResult::no_dead_activities());
         }
     }
+}
 
-    for property in properties.iter() {
-        match results.iter().find(|result| &result.property == property) {
-            None => match property {
-                GeneralProperty::OptionToComplete => {
-                    results.push(GeneralPropertyResult::always_terminates())
-                }
-                GeneralProperty::Safeness => results.push(GeneralPropertyResult::safe()),
-                _ => {}
-            },
-            Some(_) => {}
-        };
+fn check_proper_completion(
+    collaboration: &BPMNCollaboration,
+    state_space: &StateSpace,
+    results: &mut Vec<GeneralPropertyResult>,
+) {
+    let end_events: Vec<String> = collaboration
+        .get_all_flow_nodes_by_type(FlowNodeType::EndEvent)
+        .into_keys()
+        .collect();
+
+    match state_space.transitions.get(&state_space.start_state_hash) {
+        None => {}
+        Some(transitions) => {
+            for (flow_node, next_state_hash) in transitions {
+                match check_if_end_event_executed_twice(
+                    flow_node,
+                    next_state_hash,
+                    state_space,
+                    HashMap::new(),
+                    &end_events,
+                ) {
+                    None => {}
+                    Some(end_event) => {
+                        results.push(GeneralPropertyResult {
+                            property: GeneralProperty::ProperCompletion,
+                            fulfilled: false,
+                            problematic_state_hashes: vec![],
+                            problematic_elements: vec![end_event],
+                        });
+                        return;
+                    }
+                };
+            }
+        }
     }
+
+    results.push(GeneralPropertyResult::proper_completion());
+}
+
+fn check_if_end_event_executed_twice(
+    flow_node: &String,
+    current_state: &u64,
+    state_space: &StateSpace,
+    mut seen_end_events: HashMap<String, bool>,
+    all_end_events: &Vec<String>,
+) -> Option<String> {
+    if all_end_events.contains(flow_node) {
+        match seen_end_events.get(flow_node) {
+            None => {
+                seen_end_events.insert(flow_node.clone(), true);
+            }
+            Some(_) => {
+                return Some(flow_node.to_string());
+            }
+        }
+    }
+    match state_space.transitions.get(current_state) {
+        None => {}
+        Some(transitions) => {
+            for (next_flow_node, next_state_hash) in transitions {
+                let result = check_if_end_event_executed_twice(
+                    next_flow_node,
+                    next_state_hash,
+                    state_space,
+                    seen_end_events.clone(),
+                    all_end_events,
+                );
+                if result.is_some() {
+                    return result;
+                }
+            }
+        }
+    }
+    None
+}
+
+fn contains_property_result(results: &[GeneralPropertyResult], property: GeneralProperty) -> bool {
+    !results.iter().any(|result| result.property == property)
 }
 
 fn check_properties(
@@ -245,14 +335,14 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
 }
 
 fn explore_state(
-    collab: &BPMNCollaboration,
+    collaboration: &BPMNCollaboration,
     state: &State,
     not_executed_activities: &mut HashMap<String, bool>,
 ) -> Vec<(String, State)> {
     let mut unexplored_states: Vec<(String, State)> = vec![];
     for snapshot in &state.snapshots {
         // Find participant for snapshot, could also be hashmap but usually not a long list.
-        let option = collab
+        let option = collaboration
             .participants
             .iter()
             .find(|process_snapshot| process_snapshot.id == snapshot.id);
