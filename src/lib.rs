@@ -1,32 +1,20 @@
 mod bpmn;
+use clap::Parser;
 
 use crate::bpmn::{read_bpmn_file, GeneralProperty, ModelCheckingResult};
 use std::error::Error;
-use std::str;
 
+/// CLI BPMN Analyzer written in Rust
+#[derive(Parser, Debug)]
+#[command(version, author, about, long_about = None)]
 pub struct Config {
+    /// File path to the BPMN file.
+    #[arg(short, long, required = true)]
     pub file_path: String,
-    pub properties: Vec<GeneralProperty>,
-}
 
-impl Config {
-    pub fn new(file_path: String) -> Config {
-        Config {
-            file_path,
-            properties: vec![],
-        }
-    }
-
-    pub fn build(args: &[String]) -> Result<Config, &'static str> {
-        if args.len() < 2 {
-            return Err("not enough arguments");
-        }
-        let file_path = args[1].clone();
-        Ok(Config {
-            file_path,
-            properties: vec![GeneralProperty::Safeness],
-        })
-    }
+    /// BPMN properties to be checked
+    #[arg(short, long, required = true, value_enum, value_delimiter = ',')]
+    properties: Vec<GeneralProperty>,
 }
 
 pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
@@ -35,8 +23,6 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
     let start = collaboration.create_start_state();
     let result: ModelCheckingResult = collaboration.explore_state_space(start, config.properties);
 
-    // println!("{:?}", state_space);
-    println!("Number of states: {:?}", result.state_space);
     println!("Number of states: {}", result.state_space.states.len());
     println!("Property results: {:?}", result.property_results);
 

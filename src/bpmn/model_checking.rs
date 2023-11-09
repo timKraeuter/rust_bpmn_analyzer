@@ -1,7 +1,8 @@
+use clap::ValueEnum;
 use crate::bpmn::state_space::State;
 use crate::bpmn::StateSpace;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, ValueEnum)]
 pub enum GeneralProperty {
     Safeness,
     OptionToComplete,
