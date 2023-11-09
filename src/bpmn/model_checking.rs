@@ -1,6 +1,6 @@
-use clap::ValueEnum;
 use crate::bpmn::state_space::State;
 use crate::bpmn::StateSpace;
+use clap::ValueEnum;
 
 #[derive(Debug, PartialEq, Clone, ValueEnum)]
 pub enum GeneralProperty {
