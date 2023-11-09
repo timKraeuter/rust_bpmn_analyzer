@@ -15,6 +15,10 @@ pub struct Config {
     /// BPMN properties to be checked
     #[arg(short, long, required = true, value_enum, value_delimiter = ',')]
     properties: Vec<GeneralProperty>,
+
+    /// File path to export the generated state space.
+    #[arg(short, long, required = false)]
+    pub state_space_path: String,
 }
 
 pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
