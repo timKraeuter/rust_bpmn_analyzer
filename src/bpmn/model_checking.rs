@@ -61,7 +61,7 @@ pub struct GeneralPropertyResult {
     pub problematic_elements: Vec<String>,
     pub problematic_state_hashes: Vec<u64>,
     // Path for option_to_complete
-    pub counter_example: Vec<u64>,
+    pub counter_example: Vec<(String, u64)>,
 }
 
 impl Default for GeneralPropertyResult {

@@ -209,11 +209,12 @@ fn check_proper_completion(
                     &end_events,
                 ) {
                     None => {}
-                    Some(end_event) => {
+                    Some((end_event, path)) => {
                         results.push(GeneralPropertyResult {
                             property: GeneralProperty::ProperCompletion,
                             fulfilled: false,
                             problematic_elements: vec![end_event],
+                            counter_example: path,
                             ..Default::default()
                         });
                         return;
@@ -232,14 +233,14 @@ fn check_if_end_event_executed_twice(
     state_space: &StateSpace,
     mut seen_end_events: HashMap<String, bool>,
     all_end_events: &Vec<String>,
-) -> Option<String> {
+) -> Option<(String, Vec<(String, u64)>)> {
     if all_end_events.contains(flow_node) {
         match seen_end_events.get(flow_node) {
             None => {
                 seen_end_events.insert(flow_node.clone(), true);
             }
             Some(_) => {
-                return Some(flow_node.to_string());
+                return Some((flow_node.clone(), vec![(flow_node.clone(), *current_state)]));
             }
         }
     }
@@ -247,16 +248,19 @@ fn check_if_end_event_executed_twice(
         None => {}
         Some(transitions) => {
             for (next_flow_node, next_state_hash) in transitions {
-                let result = check_if_end_event_executed_twice(
+                match check_if_end_event_executed_twice(
                     next_flow_node,
                     next_state_hash,
                     state_space,
                     seen_end_events.clone(),
                     all_end_events,
-                );
-                if result.is_some() {
-                    return result;
-                }
+                ) {
+                    None => {}
+                    Some((end_event, mut path)) => {
+                        path.insert(0, (flow_node.clone(), *current_state));
+                        return Some((end_event, path));
+                    }
+                };
             }
         }
     }
@@ -468,7 +472,6 @@ impl FlowNode {
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
         let mut new_snapshot = ProcessSnapshot {
             id: snapshot.id.clone(),
-            // Remove incoming tokens
             tokens: snapshot.tokens.clone(),
         };
         // Remove incoming tokens

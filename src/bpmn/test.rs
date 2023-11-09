@@ -223,6 +223,10 @@ mod tests {
         state_hash: u64,
     ) -> Vec<String> {
         let path_to_unsafe = model_checking_result.get_path_to_state(state_hash).unwrap();
+        get_flow_nodes_for_path(path_to_unsafe)
+    }
+
+    fn get_flow_nodes_for_path(path_to_unsafe: Vec<(String, u64)>) -> Vec<String> {
         path_to_unsafe
             .into_iter()
             .map(|(executed_flow_node_id, _)| executed_flow_node_id)
@@ -457,14 +461,28 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![GeneralProperty::ProperCompletion]);
 
+        let result = model_checking_result.property_results.get(0).unwrap();
+        assert!(!result.fulfilled);
+        assert_eq!(result.property, GeneralProperty::ProperCompletion);
         assert_eq!(
-            model_checking_result.property_results,
-            vec![GeneralPropertyResult {
-                property: GeneralProperty::ProperCompletion,
-                fulfilled: false,
-                problematic_elements: vec![String::from("EndEvent_1")],
-                ..Default::default()
-            }]
+            result.problematic_elements,
+            vec![String::from("EndEvent_1")]
+        );
+
+        // Same path but different hashes due to hashmap ordering of tokens.
+        let expected_path_1 = vec![
+            ("Gateway_043ppqt".to_string(), 11544654538002244535),
+            ("EndEvent_1".to_string(), 15019738428683846599),
+            ("EndEvent_1".to_string(), 3001297282923415647),
+        ];
+        let expected_path_2 = vec![
+            ("Gateway_043ppqt".to_string(), 11468766902515292417),
+            ("EndEvent_1".to_string(), 15019738428683846599),
+            ("EndEvent_1".to_string(), 3001297282923415647),
+        ];
+
+        assert!(
+            result.counter_example == expected_path_1 || result.counter_example == expected_path_2
         );
     }
 
@@ -478,14 +496,12 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![GeneralProperty::ProperCompletion]);
 
+        let result = model_checking_result.property_results.get(0).unwrap();
+        assert!(!result.fulfilled);
+        assert_eq!(result.property, GeneralProperty::ProperCompletion);
         assert_eq!(
-            model_checking_result.property_results,
-            vec![GeneralPropertyResult {
-                property: GeneralProperty::ProperCompletion,
-                fulfilled: false,
-                problematic_elements: vec![String::from("EndEvent_1")],
-                ..Default::default()
-            }]
+            result.problematic_elements,
+            vec![String::from("EndEvent_1")]
         );
     }
 
@@ -501,23 +517,12 @@ mod tests {
             vec![GeneralProperty::Safeness, GeneralProperty::ProperCompletion],
         );
 
+        let result = model_checking_result.property_results.get(1).unwrap();
+        assert!(!result.fulfilled);
+        assert_eq!(result.property, GeneralProperty::ProperCompletion);
         assert_eq!(
-            model_checking_result.property_results,
-            vec![
-                GeneralPropertyResult {
-                    property: GeneralProperty::Safeness,
-                    fulfilled: false,
-                    problematic_elements: vec![String::from("Flow_0d6wprw")],
-                    problematic_state_hashes: vec![13607897659918858973],
-                    ..Default::default()
-                },
-                GeneralPropertyResult {
-                    property: GeneralProperty::ProperCompletion,
-                    fulfilled: false,
-                    problematic_elements: vec![String::from("EndEvent_1")],
-                    ..Default::default()
-                }
-            ]
+            result.problematic_elements,
+            vec![String::from("EndEvent_1")]
         );
     }
 
