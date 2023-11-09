@@ -33,6 +33,8 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
         "Terminated states: {}",
         result.state_space.terminated_state_hashes.len()
     );
+    // TODO: Output the property checking results.
+    // TODO: Make it possible to export the state space to a file by a param!.
 
     Ok(result)
 }
