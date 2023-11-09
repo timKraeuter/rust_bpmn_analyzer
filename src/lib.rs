@@ -23,8 +23,16 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
     let start = collaboration.create_start_state();
     let result: ModelCheckingResult = collaboration.explore_state_space(start, config.properties);
 
-    println!("Number of states: {}", result.state_space.states.len());
-    println!("Property results: {:?}", result.property_results);
+    println!("State space generation successful!");
+    println!("States: {}", result.state_space.states.len());
+    println!(
+        "Transitions: {}",
+        result.state_space.transitions.values().len()
+    );
+    println!(
+        "Terminated states: {}",
+        result.state_space.terminated_state_hashes.len()
+    );
 
     Ok(result)
 }

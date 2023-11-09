@@ -1,6 +1,6 @@
 use bpmnanalyzer::Config;
-use std::process;
 use clap::Parser;
+use std::process;
 
 fn main() {
     let config = Config::parse();
