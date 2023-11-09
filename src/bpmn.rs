@@ -92,7 +92,7 @@ impl BPMNCollaboration {
             &properties,
             &mut property_results,
             &state_space,
-            &self,
+            self,
             not_executed_activities,
         );
 
@@ -179,7 +179,7 @@ fn determine_properties(
                 property: GeneralProperty::NoDeadActivities,
                 fulfilled: false,
                 problematic_elements: dead_activities,
-                problematic_state_hashes: vec![],
+                ..Default::default()
             });
         } else {
             results.push(GeneralPropertyResult::no_dead_activities());
@@ -213,8 +213,8 @@ fn check_proper_completion(
                         results.push(GeneralPropertyResult {
                             property: GeneralProperty::ProperCompletion,
                             fulfilled: false,
-                            problematic_state_hashes: vec![],
                             problematic_elements: vec![end_event],
+                            ..Default::default()
                         });
                         return;
                     }
@@ -301,8 +301,8 @@ fn check_if_stuck(
             None => results.push(GeneralPropertyResult {
                 property: GeneralProperty::OptionToComplete,
                 fulfilled: false,
-                problematic_elements: vec![],
                 problematic_state_hashes: vec![current_state_hash],
+                ..Default::default()
             }),
             Some(result) => result.problematic_state_hashes.push(current_state_hash),
         }
@@ -323,6 +323,7 @@ fn check_if_unsafe(
                 fulfilled: false,
                 problematic_elements: vec![unsafe_flow_element.clone()],
                 problematic_state_hashes: vec![current_state_hash],
+                ..Default::default()
             }),
         }
     }

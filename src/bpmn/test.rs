@@ -246,6 +246,7 @@ mod tests {
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe")],
                 problematic_state_hashes: vec![unsafe_state_hash],
+                ..Default::default()
             }]
         );
 
@@ -304,7 +305,7 @@ mod tests {
                     not_terminated_state_hash_1,
                     not_terminated_state_hash_2
                 ],
-                problematic_elements: vec![],
+                ..Default::default()
             }]
         );
 
@@ -343,7 +344,7 @@ mod tests {
                 property: GeneralProperty::OptionToComplete,
                 fulfilled: false,
                 problematic_state_hashes: vec![expected_hash],
-                problematic_elements: vec![],
+                ..Default::default()
             }]
         );
 
@@ -393,7 +394,7 @@ mod tests {
                     String::from("Dead_2"),
                     String::from("Dead_3")
                 ],
-                problematic_state_hashes: vec![],
+                ..Default::default()
             }]
         );
     }
@@ -426,12 +427,7 @@ mod tests {
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![GeneralPropertyResult {
-                property: GeneralProperty::ProperCompletion,
-                fulfilled: true,
-                problematic_elements: vec![],
-                problematic_state_hashes: vec![],
-            }]
+            vec![GeneralPropertyResult::proper_completion()]
         );
     }
 
@@ -447,12 +443,7 @@ mod tests {
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![GeneralPropertyResult {
-                property: GeneralProperty::ProperCompletion,
-                fulfilled: true,
-                problematic_elements: vec![],
-                problematic_state_hashes: vec![],
-            }]
+            vec![GeneralPropertyResult::proper_completion()]
         );
     }
 
@@ -472,7 +463,7 @@ mod tests {
                 property: GeneralProperty::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec![String::from("EndEvent_1")],
-                problematic_state_hashes: vec![],
+                ..Default::default()
             }]
         );
     }
@@ -493,7 +484,7 @@ mod tests {
                 property: GeneralProperty::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec![String::from("EndEvent_1")],
-                problematic_state_hashes: vec![],
+                ..Default::default()
             }]
         );
     }
@@ -518,12 +509,13 @@ mod tests {
                     fulfilled: false,
                     problematic_elements: vec![String::from("Flow_0d6wprw")],
                     problematic_state_hashes: vec![13607897659918858973],
+                    ..Default::default()
                 },
                 GeneralPropertyResult {
                     property: GeneralProperty::ProperCompletion,
                     fulfilled: false,
                     problematic_elements: vec![String::from("EndEvent_1")],
-                    problematic_state_hashes: vec![],
+                    ..Default::default()
                 }
             ]
         );

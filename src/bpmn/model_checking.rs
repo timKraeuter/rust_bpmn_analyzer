@@ -60,8 +60,20 @@ pub struct GeneralPropertyResult {
     // OptionToComplete: empty or where stuck?
     pub problematic_elements: Vec<String>,
     pub problematic_state_hashes: Vec<u64>,
-    // Path, i.e., Vec of transitions
-    // counter_example: Vec<Transition>
+    // Path for option_to_complete
+    pub counter_example: Vec<u64>,
+}
+
+impl Default for GeneralPropertyResult {
+    fn default() -> Self {
+        GeneralPropertyResult {
+            property: GeneralProperty::Safeness,
+            fulfilled: false,
+            problematic_elements: vec![],
+            problematic_state_hashes: vec![],
+            counter_example: vec![],
+        }
+    }
 }
 
 impl GeneralPropertyResult {
@@ -69,32 +81,28 @@ impl GeneralPropertyResult {
         GeneralPropertyResult {
             property: GeneralProperty::Safeness,
             fulfilled: true,
-            problematic_elements: vec![],
-            problematic_state_hashes: vec![],
+            ..Default::default()
         }
     }
     pub fn always_terminates() -> GeneralPropertyResult {
         GeneralPropertyResult {
             property: GeneralProperty::OptionToComplete,
             fulfilled: true,
-            problematic_elements: vec![],
-            problematic_state_hashes: vec![],
+            ..Default::default()
         }
     }
     pub fn no_dead_activities() -> GeneralPropertyResult {
         GeneralPropertyResult {
             property: GeneralProperty::NoDeadActivities,
             fulfilled: true,
-            problematic_elements: vec![],
-            problematic_state_hashes: vec![],
+            ..Default::default()
         }
     }
     pub fn proper_completion() -> GeneralPropertyResult {
         GeneralPropertyResult {
             property: GeneralProperty::ProperCompletion,
             fulfilled: true,
-            problematic_elements: vec![],
-            problematic_state_hashes: vec![],
+            ..Default::default()
         }
     }
 }
