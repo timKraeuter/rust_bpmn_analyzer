@@ -241,15 +241,15 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::Safeness]);
 
-        let unsafe_state_hash: u64 = 8983749558242272234;
+        let unsafe_state_hash: u64 = 16162784866411060449;
 
         assert_eq!(
             model_checking_result.property_results,
             vec![PropertyResult {
                 property: Property::Safeness,
                 fulfilled: false,
-                problematic_elements: vec![String::from("Unsafe")],
-                problematic_state_hashes: vec![unsafe_state_hash],
+                problematic_elements: vec![String::from("Unsafe2"), String::from("Unsafe1")],
+                problematic_state_hashes: vec![18171826408927070191, unsafe_state_hash],
                 ..Default::default()
             }]
         );
@@ -260,7 +260,7 @@ mod tests {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("process"),
-                    tokens: BTreeMap::from([(String::from("Unsafe"), 2u16)]),
+                    tokens: BTreeMap::from([(String::from("Unsafe1"), 2u16)]),
                 }]
             }
         );

@@ -178,60 +178,25 @@ fn check_if_stuck(
 }
 
 fn check_if_unsafe(current_state_hash: u64, state: &State, results: &mut Vec<PropertyResult>) {
-    const TWO: u16 = 2;
-    for snapshot in &state.snapshots {
-        match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
-            None => {}
-            Some((unsafe_flow_element, _)) => results.push(PropertyResult {
-                property: Property::Safeness,
-                fulfilled: false,
-                problematic_elements: vec![unsafe_flow_element.clone()],
-                problematic_state_hashes: vec![current_state_hash],
-                ..Default::default()
-            }),
-        }
-    }
-}
-
-fn explore_state(
-    collaboration: &Collaboration,
-    state: &State,
-    not_executed_activities: &mut HashMap<String, bool>,
-) -> Vec<(String, State)> {
-    let mut unexplored_states: Vec<(String, State)> = vec![];
-    for snapshot in &state.snapshots {
-        // Find participant for snapshot, could also be hashmap but usually not a long list.
-        let option = collaboration
-            .participants
-            .iter()
-            .find(|process_snapshot| process_snapshot.id == snapshot.id);
-        match option {
-            None => {
-                panic!("No process found for snapshot with id \"{}\"", snapshot.id)
-            }
-            Some(matching_process) => {
-                for flow_node in matching_process.flow_nodes.iter() {
-                    let new_states = flow_node.try_execute(snapshot, state);
-
-                    // Record activity execution
-                    if flow_node.flow_node_type == FlowNodeType::Task
-                        && !new_states.is_empty()
-                        && !not_executed_activities.is_empty()
-                    {
-                        not_executed_activities.remove(&flow_node.id);
-                    }
-
-                    // Would want to check if the state has been explored here not later to not take up unnecessary memory.
-                    unexplored_states.append(
-                        &mut new_states
-                            .into_iter()
-                            // Add info about flow node. Should use Rc instead of clone in the future.
-                            .map(|state| (flow_node.id.clone(), state))
-                            .collect(),
-                    );
+    match state.get_unsafe_sf() {
+        None => {}
+        Some(unsafe_sf) => {
+            match results
+                .iter_mut()
+                .find(|result| result.property == Property::Safeness)
+            {
+                None => results.push(PropertyResult {
+                    property: Property::Safeness,
+                    fulfilled: false,
+                    problematic_elements: vec![unsafe_sf.clone()],
+                    problematic_state_hashes: vec![current_state_hash],
+                    ..Default::default()
+                }),
+                Some(result) => {
+                    result.problematic_elements.push(unsafe_sf.clone());
+                    result.problematic_state_hashes.push(current_state_hash)
                 }
             }
         }
     }
-    unexplored_states
 }
