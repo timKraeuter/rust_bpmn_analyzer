@@ -16,9 +16,9 @@ pub struct State {
 }
 
 impl State {
-    pub fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
+    pub fn new(snapshot_id: String, tokens: Vec<String>) -> State {
         State {
-            snapshots: vec![ProcessSnapshot::new(snapshot_id, token_positions)],
+            snapshots: vec![ProcessSnapshot::new(snapshot_id, tokens)],
         }
     }
 
@@ -36,12 +36,12 @@ pub struct ProcessSnapshot {
 }
 
 impl ProcessSnapshot {
-    pub fn new(id: String, token_positions: Vec<String>) -> ProcessSnapshot {
+    pub fn new(id: String, tokens: Vec<String>) -> ProcessSnapshot {
         let mut snapshot = ProcessSnapshot {
             id,
             tokens: BTreeMap::new(),
         };
-        for position in token_positions {
+        for position in tokens {
             snapshot.add_token(position);
         }
         snapshot
@@ -52,7 +52,7 @@ impl ProcessSnapshot {
             Some(amount) => self.tokens.insert(position, amount + 1),
         };
     }
-    pub fn remove_token(&mut self, position: String) {
+    pub fn delete_token(&mut self, position: String) {
         match self.tokens.get(&position) {
             None => {
                 panic!("Token {} should be removed but was not present!", position)

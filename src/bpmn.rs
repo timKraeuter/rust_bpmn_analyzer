@@ -472,7 +472,7 @@ impl FlowNode {
         };
         // Remove incoming tokens
         for in_sf in self.incoming_flows.iter() {
-            new_snapshot.remove_token(in_sf.id.clone());
+            new_snapshot.delete_token(in_sf.id.clone());
         }
         // Add outgoing tokens
         self.add_outgoing_tokens(&mut new_snapshot);
@@ -571,7 +571,7 @@ impl FlowNode {
             // Remove incoming token
             tokens: snapshot.tokens.clone(),
         };
-        snapshot.remove_token(token.to_string());
+        snapshot.delete_token(token.to_string());
         snapshot
     }
     fn try_execute_end_event(
