@@ -5,7 +5,7 @@ mod tests {
         read_bpmn_file, BPMNCollaboration, BPMNProcess, FlowNode, GeneralProperty,
         GeneralPropertyResult, ModelCheckingResult,
     };
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
     #[test]
     fn create_start_state() {
@@ -242,7 +242,7 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![GeneralProperty::Safeness]);
 
-        let unsafe_state_hash: u64 = 7943842223099901633;
+        let unsafe_state_hash: u64 = 8983749558242272234;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -261,7 +261,7 @@ mod tests {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("process"),
-                    tokens: HashMap::from([(String::from("Unsafe"), 2u16)]),
+                    tokens: BTreeMap::from([(String::from("Unsafe"), 2u16)]),
                 }]
             }
         );
@@ -299,8 +299,8 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![GeneralProperty::OptionToComplete]);
 
-        let not_terminated_state_hash_1 = 2865282549678524369;
-        let not_terminated_state_hash_2 = 14709088705232714226;
+        let not_terminated_state_hash_1 = 889428745242360938;
+        let not_terminated_state_hash_2 = 10415212047764370249;
         assert_eq!(
             model_checking_result.property_results,
             vec![GeneralPropertyResult {
@@ -341,7 +341,7 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![GeneralProperty::OptionToComplete]);
 
-        let expected_hash: u64 = 5226340431746374588;
+        let expected_hash: u64 = 6211060949274127890;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -359,7 +359,7 @@ mod tests {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
-                    tokens: HashMap::from([(String::from("stuck"), 1u16)]),
+                    tokens: BTreeMap::from([(String::from("stuck"), 1u16)]),
                 }]
             }
         );
@@ -472,19 +472,12 @@ mod tests {
 
         // Same path but different hashes due to hashmap ordering of tokens.
         let expected_path_1 = vec![
-            ("Gateway_043ppqt".to_string(), 11544654538002244535),
-            ("EndEvent_1".to_string(), 15019738428683846599),
-            ("EndEvent_1".to_string(), 3001297282923415647),
-        ];
-        let expected_path_2 = vec![
-            ("Gateway_043ppqt".to_string(), 11468766902515292417),
-            ("EndEvent_1".to_string(), 15019738428683846599),
-            ("EndEvent_1".to_string(), 3001297282923415647),
+            ("Gateway_043ppqt".to_string(), 1818213233942283238),
+            ("EndEvent_1".to_string(), 15434666861843592536),
+            ("EndEvent_1".to_string(), 226175114188610093),
         ];
 
-        assert!(
-            result.counter_example == expected_path_1 || result.counter_example == expected_path_2
-        );
+        assert_eq!(result.counter_example, expected_path_1);
     }
 
     #[test]

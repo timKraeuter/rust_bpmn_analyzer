@@ -2,7 +2,7 @@ pub use model_checking::{GeneralProperty, GeneralPropertyResult, ModelCheckingRe
 pub use reader::read_bpmn_file;
 pub use state_space::StateSpace;
 use std::collections::hash_map::DefaultHasher;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::hash::{Hash, Hasher};
 
 use crate::bpmn::state_space::{ProcessSnapshot, State};
@@ -123,7 +123,7 @@ impl BPMNCollaboration {
             let mut snapshot = ProcessSnapshot {
                 // Cloning the string here could be done differently.
                 id: process.id.clone(),
-                tokens: HashMap::new(),
+                tokens: BTreeMap::new(),
             };
             for flow_node in &process.flow_nodes {
                 if flow_node.flow_node_type == FlowNodeType::StartEvent {

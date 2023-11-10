@@ -1,5 +1,5 @@
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
+use std::collections::{BTreeMap, HashMap};
+use std::hash::Hash;
 
 #[derive(Debug)]
 pub struct StateSpace {
@@ -32,26 +32,17 @@ impl State {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Hash)]
 pub struct ProcessSnapshot {
     pub id: String,
-    pub tokens: HashMap<String, u16>,
-}
-
-impl Hash for ProcessSnapshot {
-    fn hash<H: Hasher>(&self, hasher: &mut H) {
-        self.id.hash(hasher);
-        for position_and_amount in self.tokens.iter() {
-            position_and_amount.hash(hasher);
-        }
-    }
+    pub tokens: BTreeMap<String, u16>,
 }
 
 impl ProcessSnapshot {
     pub fn new(id: String, token_positions: Vec<String>) -> ProcessSnapshot {
         let mut snapshot = ProcessSnapshot {
             id,
-            tokens: HashMap::new(),
+            tokens: BTreeMap::new(),
         };
         for position in token_positions {
             snapshot.add_token(position);
