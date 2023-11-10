@@ -1,5 +1,6 @@
+use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
-use std::hash::Hash;
+use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
 pub struct StateSpace {
@@ -20,6 +21,12 @@ impl State {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, tokens)],
         }
+    }
+
+    pub fn calc_hash(&self) -> u64 {
+        let mut s = DefaultHasher::new();
+        self.hash(&mut s);
+        s.finish()
     }
 
     pub fn is_terminated(&self) -> bool {
@@ -46,6 +53,7 @@ impl ProcessSnapshot {
         }
         snapshot
     }
+
     pub fn add_token(&mut self, position: String) {
         match self.tokens.get(&position) {
             None => self.tokens.insert(position, 1),

@@ -1,19 +1,20 @@
 use super::*;
 
+use crate::bpmn::collaboration::Collaboration;
 use crate::bpmn::flow_node::SequenceFlow;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
 use std::fs;
 use std::path::Path;
 
-pub fn read_bpmn_file(file_path: &String) -> BPMNCollaboration {
+pub fn read_bpmn_file(file_path: &String) -> Collaboration {
     // TODO: Read directly from file (less peak memory usage).
     // TODO: Use serde to map to structs.
     let (contents, file_name) = read_file_and_get_name(file_path);
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
 
-    let mut collaboration = BPMNCollaboration {
+    let mut collaboration = Collaboration {
         name: file_name,
         participants: Vec::new(),
     };
@@ -80,7 +81,7 @@ fn get_file_name(path: &String) -> String {
     path.file_name().unwrap().to_str().unwrap().parse().unwrap()
 }
 
-fn add_participant(collaboration: &mut BPMNCollaboration, p_bytes: BytesStart) {
+fn add_participant(collaboration: &mut Collaboration, p_bytes: BytesStart) {
     let id = get_attribute_value_or_panic(&p_bytes, &String::from("id"));
     collaboration.add_participant(Process {
         id,
@@ -89,7 +90,7 @@ fn add_participant(collaboration: &mut BPMNCollaboration, p_bytes: BytesStart) {
 }
 
 fn add_flow_node(
-    collaboration: &mut BPMNCollaboration,
+    collaboration: &mut Collaboration,
     flow_node_bytes: BytesStart,
     flow_node_type: FlowNodeType,
 ) {
@@ -105,7 +106,7 @@ fn add_flow_node(
     }
 }
 
-fn add_sf_to_last_participant(collaboration: &mut BPMNCollaboration, sf_bytes: &BytesStart) {
+fn add_sf_to_last_participant(collaboration: &mut Collaboration, sf_bytes: &BytesStart) {
     let id = get_attribute_value_or_panic(sf_bytes, &String::from("id"));
     let source_ref = get_attribute_value_or_panic(sf_bytes, &String::from("sourceRef"));
     let target_ref = get_attribute_value_or_panic(sf_bytes, &String::from("targetRef"));
@@ -147,7 +148,7 @@ mod tests {
 
     #[test]
     fn read_task_and_gateways() {
-        let mut expected = BPMNCollaboration {
+        let mut expected = Collaboration {
             name: String::from("task-and-gateways.bpmn"),
             participants: Vec::new(),
         };

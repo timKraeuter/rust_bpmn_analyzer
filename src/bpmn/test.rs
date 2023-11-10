@@ -1,9 +1,8 @@
 #[cfg(test)]
 mod tests {
-    use crate::bpmn::{
-        read_bpmn_file, BPMNCollaboration, FlowNode, ModelCheckingResult, Process, Property,
-        PropertyResult,
-    };
+    use crate::bpmn::collaboration::Collaboration;
+    use crate::bpmn::{read_bpmn_file, FlowNode, Process, Property, PropertyResult};
+    use crate::model_checking::bpmn_properties::ModelCheckingResult;
     use crate::states::state_space::{ProcessSnapshot, State};
     use std::collections::BTreeMap;
 
@@ -518,7 +517,7 @@ mod tests {
         );
     }
 
-    fn get_first_process(collaboration: &BPMNCollaboration) -> &Process {
+    fn get_first_process(collaboration: &Collaboration) -> &Process {
         let process = collaboration.participants.get(0).unwrap();
         process
     }
