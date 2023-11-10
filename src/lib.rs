@@ -17,8 +17,8 @@ pub struct Config {
     properties: Vec<GeneralProperty>,
 
     /// File path to export the generated state space.
-    #[arg(short, long, required = false)]
-    pub state_space_path: String,
+    #[arg(short, long)]
+    pub state_space_path: Option<String>,
 }
 
 pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
