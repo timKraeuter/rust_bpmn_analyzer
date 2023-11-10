@@ -1,0 +1,5 @@
+State space generation successful in 111.1082ms!
+States: 1324, Transitions: 1324
+Terminated states: 1
+
+The property Safeness is fulfilled.
