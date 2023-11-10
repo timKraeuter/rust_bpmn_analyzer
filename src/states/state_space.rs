@@ -11,6 +11,14 @@ pub struct StateSpace {
     pub transitions: HashMap<u64, Vec<(String, u64)>>,
 }
 
+impl StateSpace {
+    pub fn mark_terminated_if_needed(&mut self, state: &State, state_hash: u64) {
+        if state.is_terminated() {
+            self.terminated_state_hashes.push(state_hash);
+        }
+    }
+}
+
 #[derive(Debug, Hash, PartialEq)]
 pub struct State {
     pub snapshots: Vec<ProcessSnapshot>,

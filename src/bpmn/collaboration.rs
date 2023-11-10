@@ -1,8 +1,6 @@
 use crate::bpmn::flow_node::FlowNodeType;
 use crate::bpmn::process::Process;
-use crate::bpmn::{
-    add_terminated_state_hash_if_needed, check_properties, determine_properties, explore_state,
-};
+use crate::bpmn::{check_properties, determine_properties, explore_state};
 use crate::model_checking::bpmn_properties::{ModelCheckingResult, Property};
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 use std::collections::{BTreeMap, HashMap};
@@ -69,11 +67,7 @@ impl Collaboration {
                         &mut property_results,
                         &potentially_unexplored_states_hashes,
                     );
-                    add_terminated_state_hash_if_needed(
-                        current_state_hash,
-                        &current_state,
-                        &mut state_space,
-                    );
+                    state_space.mark_terminated_if_needed(&current_state, current_state_hash);
 
                     // Save the state and its transitions.
                     state_space.states.insert(current_state_hash, current_state);

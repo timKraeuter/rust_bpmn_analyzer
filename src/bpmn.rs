@@ -12,16 +12,6 @@ mod process;
 mod reader;
 mod test;
 
-fn add_terminated_state_hash_if_needed(
-    state_hash: u64,
-    state: &State,
-    state_space: &mut StateSpace,
-) {
-    if state.is_terminated() {
-        state_space.terminated_state_hashes.push(state_hash);
-    }
-}
-
 fn determine_properties(
     properties: &[Property],
     results: &mut Vec<PropertyResult>,
