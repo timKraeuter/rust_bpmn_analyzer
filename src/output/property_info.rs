@@ -1,24 +1,36 @@
 use crate::model_checking::bpmn_properties::{
     BPMNProperty, BPMNPropertyResult, ModelCheckingResult,
 };
-use colored::Colorize;
+use colored::{ColoredString, Colorize};
+use std::fmt::{Display, Formatter};
 
 pub fn output_property_results(result: &ModelCheckingResult) {
     for property_result in result.property_results.iter() {
         if property_result.fulfilled {
-            println!(
-                "The property {:?} is {}.",
-                property_result.property,
-                "fulfilled".green()
-            )
+            println!("{} is {}.", property_result.property, "fulfilled".green())
         } else {
             println!(
-                "The property {:?} is {}. ",
+                "{} is {}. ",
                 property_result.property,
                 "not fulfilled".red()
             );
             print_result_unfulfilled_details(property_result);
         }
+    }
+}
+
+impl Display for BPMNProperty {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", get_string(self))
+    }
+}
+
+fn get_string(property: &BPMNProperty) -> ColoredString {
+    match property {
+        BPMNProperty::Safeness => "Safeness".blue(),
+        BPMNProperty::OptionToComplete => "Option to complete".blue(),
+        BPMNProperty::ProperCompletion => "Proper completion".blue(),
+        BPMNProperty::NoDeadActivities => "No dead activities".blue(),
     }
 }
 
