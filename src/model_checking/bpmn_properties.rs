@@ -1,4 +1,4 @@
-use crate::state_space::state_space::{State, StateSpace};
+use crate::states::state_space::{State, StateSpace};
 use clap::ValueEnum;
 
 #[derive(Debug, PartialEq, Clone, ValueEnum)]

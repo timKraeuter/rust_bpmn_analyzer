@@ -1,6 +1,6 @@
 mod bpmn;
 mod model_checking;
-mod state_space;
+mod states;
 use clap::Parser;
 
 use crate::bpmn::read_bpmn_file;

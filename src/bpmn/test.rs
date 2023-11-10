@@ -4,7 +4,7 @@ mod tests {
         read_bpmn_file, BPMNCollaboration, BPMNProcess, BPMNProperty, BPMNPropertyResult, FlowNode,
         ModelCheckingResult,
     };
-    use crate::state_space::state_space::{ProcessSnapshot, State};
+    use crate::states::state_space::{ProcessSnapshot, State};
     use std::collections::BTreeMap;
 
     #[test]

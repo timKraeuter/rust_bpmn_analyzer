@@ -1,7 +1,7 @@
 use crate::model_checking::bpmn_properties::{
     BPMNProperty, BPMNPropertyResult, ModelCheckingResult,
 };
-use crate::state_space::state_space::{ProcessSnapshot, State, StateSpace};
+use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 pub use reader::read_bpmn_file;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
