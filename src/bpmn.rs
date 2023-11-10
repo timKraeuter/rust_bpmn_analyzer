@@ -1,30 +1,32 @@
-use crate::model_checking::bpmn_properties::{
-    BPMNProperty, BPMNPropertyResult, ModelCheckingResult,
-};
+use crate::bpmn::flow_node::{FlowNode, FlowNodeType};
+use crate::bpmn::process::Process;
+use crate::model_checking::bpmn_properties::{ModelCheckingResult, Property, PropertyResult};
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 pub use reader::read_bpmn_file;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
 use std::hash::{Hash, Hasher};
 
+mod flow_node;
+mod process;
 mod reader;
 mod test;
 
 #[derive(Debug, PartialEq)]
 pub struct BPMNCollaboration {
     pub name: String,
-    pub participants: Vec<BPMNProcess>,
+    pub participants: Vec<Process>,
 }
 
 impl BPMNCollaboration {
-    pub fn add_participant(&mut self, participant: BPMNProcess) {
+    pub fn add_participant(&mut self, participant: Process) {
         self.participants.push(participant);
     }
 
     pub fn explore_state_space(
         &self,
         start_state: State,
-        properties: Vec<BPMNProperty>,
+        properties: Vec<Property>,
     ) -> ModelCheckingResult {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_flow_nodes_by_type(FlowNodeType::Task);
@@ -149,40 +151,40 @@ fn add_terminated_state_hash_if_needed(
 }
 
 fn determine_properties(
-    properties: &[BPMNProperty],
-    results: &mut Vec<BPMNPropertyResult>,
+    properties: &[Property],
+    results: &mut Vec<PropertyResult>,
     state_space: &StateSpace,
     collaboration: &BPMNCollaboration,
     never_executed_activities: HashMap<String, bool>,
 ) {
-    if properties.contains(&BPMNProperty::Safeness)
-        && contains_property_result(results, BPMNProperty::Safeness)
+    if properties.contains(&Property::Safeness)
+        && contains_property_result(results, Property::Safeness)
     {
-        results.push(BPMNPropertyResult::safe());
+        results.push(PropertyResult::safe());
     }
-    if properties.contains(&BPMNProperty::OptionToComplete)
-        && contains_property_result(results, BPMNProperty::OptionToComplete)
+    if properties.contains(&Property::OptionToComplete)
+        && contains_property_result(results, Property::OptionToComplete)
     {
-        results.push(BPMNPropertyResult::always_terminates())
+        results.push(PropertyResult::always_terminates())
     }
-    if properties.contains(&BPMNProperty::ProperCompletion) {
+    if properties.contains(&Property::ProperCompletion) {
         // TODO: This can loop and never end
         check_proper_completion(collaboration, state_space, results);
     }
-    if properties.contains(&BPMNProperty::NoDeadActivities) {
+    if properties.contains(&Property::NoDeadActivities) {
         // Cannot do this in the loop due to the borrow checker.
         // TODO: This can loop and never end
         let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
         if !dead_activities.is_empty() {
             dead_activities.sort();
-            results.push(BPMNPropertyResult {
-                property: BPMNProperty::NoDeadActivities,
+            results.push(PropertyResult {
+                property: Property::NoDeadActivities,
                 fulfilled: false,
                 problematic_elements: dead_activities,
                 ..Default::default()
             });
         } else {
-            results.push(BPMNPropertyResult::no_dead_activities());
+            results.push(PropertyResult::no_dead_activities());
         }
     }
 }
@@ -190,7 +192,7 @@ fn determine_properties(
 fn check_proper_completion(
     collaboration: &BPMNCollaboration,
     state_space: &StateSpace,
-    results: &mut Vec<BPMNPropertyResult>,
+    results: &mut Vec<PropertyResult>,
 ) {
     let end_events: Vec<String> = collaboration
         .get_all_flow_nodes_by_type(FlowNodeType::EndEvent)
@@ -210,8 +212,8 @@ fn check_proper_completion(
                 ) {
                     None => {}
                     Some((end_event, path)) => {
-                        results.push(BPMNPropertyResult {
-                            property: BPMNProperty::ProperCompletion,
+                        results.push(PropertyResult {
+                            property: Property::ProperCompletion,
                             fulfilled: false,
                             problematic_elements: vec![end_event],
                             counter_example: path,
@@ -224,7 +226,7 @@ fn check_proper_completion(
         }
     }
 
-    results.push(BPMNPropertyResult::proper_completion());
+    results.push(PropertyResult::proper_completion());
 }
 
 fn check_if_end_event_executed_twice(
@@ -267,23 +269,23 @@ fn check_if_end_event_executed_twice(
     None
 }
 
-fn contains_property_result(results: &[BPMNPropertyResult], property: BPMNProperty) -> bool {
+fn contains_property_result(results: &[PropertyResult], property: Property) -> bool {
     !results.iter().any(|result| result.property == property)
 }
 
 fn check_properties(
     current_state_hash: u64,
     state: &State,
-    properties: &[BPMNProperty],
-    results: &mut Vec<BPMNPropertyResult>,
+    properties: &[Property],
+    results: &mut Vec<PropertyResult>,
     next_state_hashes: &Vec<(String, u64)>,
 ) {
     for property in properties.iter() {
         match property {
-            BPMNProperty::Safeness => {
+            Property::Safeness => {
                 check_if_unsafe(current_state_hash, state, results);
             }
-            BPMNProperty::OptionToComplete => {
+            Property::OptionToComplete => {
                 check_if_stuck(current_state_hash, state, results, next_state_hashes)
             }
             _ => {}
@@ -294,16 +296,16 @@ fn check_properties(
 fn check_if_stuck(
     current_state_hash: u64,
     state: &State,
-    results: &mut Vec<BPMNPropertyResult>,
+    results: &mut Vec<PropertyResult>,
     next_state_hashes: &Vec<(String, u64)>,
 ) {
     if next_state_hashes.is_empty() && !state.is_terminated() {
         match results
             .iter_mut()
-            .find(|result| result.property == BPMNProperty::OptionToComplete)
+            .find(|result| result.property == Property::OptionToComplete)
         {
-            None => results.push(BPMNPropertyResult {
-                property: BPMNProperty::OptionToComplete,
+            None => results.push(PropertyResult {
+                property: Property::OptionToComplete,
                 fulfilled: false,
                 problematic_state_hashes: vec![current_state_hash],
                 ..Default::default()
@@ -313,13 +315,13 @@ fn check_if_stuck(
     }
 }
 
-fn check_if_unsafe(current_state_hash: u64, state: &State, results: &mut Vec<BPMNPropertyResult>) {
+fn check_if_unsafe(current_state_hash: u64, state: &State, results: &mut Vec<PropertyResult>) {
     const TWO: u16 = 2;
     for snapshot in &state.snapshots {
         match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
             None => {}
-            Some((unsafe_flow_element, _)) => results.push(BPMNPropertyResult {
-                property: BPMNProperty::Safeness,
+            Some((unsafe_flow_element, _)) => results.push(PropertyResult {
+                property: Property::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![unsafe_flow_element.clone()],
                 problematic_state_hashes: vec![current_state_hash],
@@ -376,236 +378,4 @@ fn explore_state(
         }
     }
     unexplored_states
-}
-
-#[derive(Debug, PartialEq)]
-pub struct BPMNProcess {
-    pub id: String,
-    pub flow_nodes: Vec<FlowNode>,
-}
-
-impl BPMNProcess {
-    pub fn add_sf(&mut self, sf: SequenceFlow, source_ref: String, target_ref: String) {
-        let mut source_flow_node: Vec<&mut FlowNode> = self
-            .flow_nodes
-            .iter_mut()
-            .filter(|f| f.id == source_ref)
-            .collect();
-        // TODO: Clone for now but maybe refactor using lifetimes?
-        let sf_id = sf.id.clone();
-
-        match source_flow_node.last_mut() {
-            None => {
-                panic!("There should be a flow node for the id \"{}\"", source_ref)
-            }
-            Some(source) => source.add_outgoing_flow(sf),
-        }
-        let mut target_flow_node: Vec<&mut FlowNode> = self
-            .flow_nodes
-            .iter_mut()
-            .filter(|f| f.id == target_ref)
-            .collect();
-        match target_flow_node.last_mut() {
-            None => {
-                panic!("There should be a flow node for the id \"{}\"", target_ref)
-            }
-            Some(target) => target.add_incoming_flow(SequenceFlow { id: sf_id }),
-        }
-    }
-    pub fn add_flow_node(&mut self, flow_node: FlowNode) {
-        self.flow_nodes.push(flow_node);
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct SequenceFlow {
-    pub id: String,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct FlowNode {
-    pub id: String,
-    pub flow_node_type: FlowNodeType,
-    pub incoming_flows: Vec<SequenceFlow>,
-    pub outgoing_flows: Vec<SequenceFlow>,
-}
-
-impl FlowNode {
-    pub fn add_outgoing_flow(&mut self, sf: SequenceFlow) {
-        self.outgoing_flows.push(sf);
-    }
-    pub fn add_incoming_flow(&mut self, sf: SequenceFlow) {
-        self.incoming_flows.push(sf);
-    }
-    pub fn new(id: String, flow_node_type: FlowNodeType) -> FlowNode {
-        FlowNode {
-            id,
-            flow_node_type,
-            incoming_flows: Vec::new(),
-            outgoing_flows: Vec::new(),
-        }
-    }
-    pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        match self.flow_node_type {
-            FlowNodeType::StartEvent => {
-                vec![]
-            }
-            FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
-            FlowNodeType::IntermediateThrowEvent => {
-                self.try_intermediate_throw_event(snapshot, current_state)
-            }
-            FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
-            FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
-            FlowNodeType::EndEvent => self.try_execute_end_event(snapshot, current_state),
-        }
-    }
-
-    fn try_execute_pg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        if self.missing_token_for_pg(snapshot) {
-            return vec![];
-        }
-        // Clone all snapshots and tokens
-        let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
-        let mut new_snapshot = ProcessSnapshot {
-            id: snapshot.id.clone(),
-            tokens: snapshot.tokens.clone(),
-        };
-        // Remove incoming tokens
-        for in_sf in self.incoming_flows.iter() {
-            new_snapshot.delete_token(in_sf.id.clone());
-        }
-        // Add outgoing tokens
-        self.add_outgoing_tokens(&mut new_snapshot);
-        new_state.snapshots.push(new_snapshot);
-        vec![new_state]
-    }
-
-    fn missing_token_for_pg(&self, snapshot: &ProcessSnapshot) -> bool {
-        !self
-            .incoming_flows
-            .iter()
-            .all(|sf| snapshot.tokens.contains_key(&sf.id))
-    }
-
-    fn create_new_state_without_snapshot(
-        snapshot: &ProcessSnapshot,
-        current_state: &State,
-    ) -> State {
-        // Clone should be avoided.
-        let mut snapshots = current_state.snapshots.clone();
-        // Remove the snapshot
-        let index = snapshots
-            .iter()
-            .position(|sp| snapshot.id == sp.id)
-            .expect("Snapshot not found!");
-        snapshots.swap_remove(index);
-
-        State { snapshots }
-    }
-
-    fn add_outgoing_tokens(&self, snapshot: &mut ProcessSnapshot) {
-        for out_flow in self.outgoing_flows.iter() {
-            snapshot.add_token(out_flow.id.clone());
-        }
-    }
-    fn try_execute_task(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        let mut new_states: Vec<State> = vec![];
-        for inc_flow in self.incoming_flows.iter() {
-            match snapshot.tokens.get(&inc_flow.id) {
-                None => {}
-                Some(_) => {
-                    // Add new state
-                    let mut new_state =
-                        Self::create_new_state_without_snapshot(snapshot, current_state);
-                    let mut new_snapshot =
-                        Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
-                    // Add outgoing tokens
-                    self.add_outgoing_tokens(&mut new_snapshot);
-                    new_state.snapshots.push(new_snapshot);
-
-                    new_states.push(new_state);
-                }
-            }
-        }
-        new_states
-    }
-    fn try_intermediate_throw_event(
-        &self,
-        snapshot: &ProcessSnapshot,
-        current_state: &State,
-    ) -> Vec<State> {
-        // Currently the same as task but event types will change this.
-        self.try_execute_task(snapshot, current_state)
-    }
-    fn try_execute_exg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        let mut new_states: Vec<State> = vec![];
-        for inc_flow in self.incoming_flows.iter() {
-            match snapshot.tokens.get(&inc_flow.id) {
-                None => {}
-                Some(_) => {
-                    // Add one state with a token for each outgoing flow
-                    for out_flow in self.outgoing_flows.iter() {
-                        // Add new state
-                        let mut new_state =
-                            Self::create_new_state_without_snapshot(snapshot, current_state);
-                        let mut new_snapshot =
-                            Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
-                        // Add outgoing token
-                        new_snapshot.add_token(out_flow.id.clone());
-                        new_state.snapshots.push(new_snapshot);
-
-                        new_states.push(new_state);
-                    }
-                }
-            }
-        }
-        new_states
-    }
-
-    fn create_new_snapshot_without_token(
-        snapshot: &ProcessSnapshot,
-        token: &str,
-    ) -> ProcessSnapshot {
-        let mut snapshot = ProcessSnapshot {
-            id: snapshot.id.clone(),
-            // Remove incoming token
-            tokens: snapshot.tokens.clone(),
-        };
-        snapshot.delete_token(token.to_string());
-        snapshot
-    }
-    fn try_execute_end_event(
-        &self,
-        snapshot: &ProcessSnapshot,
-        current_state: &State,
-    ) -> Vec<State> {
-        let mut new_states: Vec<State> = vec![];
-        for inc_flow in self.incoming_flows.iter() {
-            match snapshot.tokens.get(&inc_flow.id) {
-                None => {}
-                Some(_) => {
-                    // Consume incoming token
-                    let mut new_state =
-                        Self::create_new_state_without_snapshot(snapshot, current_state);
-                    let new_snapshot =
-                        Self::create_new_snapshot_without_token(snapshot, &inc_flow.id.clone());
-                    // Add outgoing token
-                    new_state.snapshots.push(new_snapshot);
-
-                    new_states.push(new_state);
-                }
-            }
-        }
-        new_states
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum FlowNodeType {
-    StartEvent,
-    IntermediateThrowEvent,
-    Task,
-    ExclusiveGateway,
-    ParallelGateway,
-    EndEvent,
 }

@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::bpmn::{
-        read_bpmn_file, BPMNCollaboration, BPMNProcess, BPMNProperty, BPMNPropertyResult, FlowNode,
-        ModelCheckingResult,
+        read_bpmn_file, BPMNCollaboration, FlowNode, ModelCheckingResult, Process, Property,
+        PropertyResult,
     };
     use crate::states::state_space::{ProcessSnapshot, State};
     use std::collections::BTreeMap;
@@ -240,14 +240,14 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::Safeness]);
+            collaboration.explore_state_space(start, vec![Property::Safeness]);
 
         let unsafe_state_hash: u64 = 8983749558242272234;
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult {
-                property: BPMNProperty::Safeness,
+            vec![PropertyResult {
+                property: Property::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe")],
                 problematic_state_hashes: vec![unsafe_state_hash],
@@ -281,11 +281,11 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::Safeness]);
+            collaboration.explore_state_space(start, vec![Property::Safeness]);
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult::safe()]
+            vec![PropertyResult::safe()]
         );
     }
 
@@ -297,14 +297,14 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::OptionToComplete]);
+            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
 
         let not_terminated_state_hash_1 = 889428745242360938;
         let not_terminated_state_hash_2 = 10415212047764370249;
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult {
-                property: BPMNProperty::OptionToComplete,
+            vec![PropertyResult {
+                property: Property::OptionToComplete,
                 fulfilled: false,
                 problematic_state_hashes: vec![
                     not_terminated_state_hash_1,
@@ -339,14 +339,14 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::OptionToComplete]);
+            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
 
         let expected_hash: u64 = 6211060949274127890;
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult {
-                property: BPMNProperty::OptionToComplete,
+            vec![PropertyResult {
+                property: Property::OptionToComplete,
                 fulfilled: false,
                 problematic_state_hashes: vec![expected_hash],
                 ..Default::default()
@@ -371,11 +371,11 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::OptionToComplete]);
+            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult::always_terminates()]
+            vec![PropertyResult::always_terminates()]
         );
     }
 
@@ -387,12 +387,12 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::NoDeadActivities]);
+            collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult {
-                property: BPMNProperty::NoDeadActivities,
+            vec![PropertyResult {
+                property: Property::NoDeadActivities,
                 fulfilled: false,
                 problematic_elements: vec![
                     String::from("Dead_1"),
@@ -412,11 +412,11 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::NoDeadActivities]);
+            collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult::no_dead_activities()]
+            vec![PropertyResult::no_dead_activities()]
         );
     }
 
@@ -428,11 +428,11 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::ProperCompletion]);
+            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult::proper_completion()]
+            vec![PropertyResult::proper_completion()]
         );
     }
 
@@ -444,11 +444,11 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::ProperCompletion]);
+            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
         assert_eq!(
             model_checking_result.property_results,
-            vec![BPMNPropertyResult::proper_completion()]
+            vec![PropertyResult::proper_completion()]
         );
     }
 
@@ -460,11 +460,11 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::ProperCompletion]);
+            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(0).unwrap();
         assert!(!result.fulfilled);
-        assert_eq!(result.property, BPMNProperty::ProperCompletion);
+        assert_eq!(result.property, Property::ProperCompletion);
         assert_eq!(
             result.problematic_elements,
             vec![String::from("EndEvent_1")]
@@ -488,11 +488,11 @@ mod tests {
 
         let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![BPMNProperty::ProperCompletion]);
+            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(0).unwrap();
         assert!(!result.fulfilled);
-        assert_eq!(result.property, BPMNProperty::ProperCompletion);
+        assert_eq!(result.property, Property::ProperCompletion);
         assert_eq!(
             result.problematic_elements,
             vec![String::from("EndEvent_1")]
@@ -506,21 +506,19 @@ mod tests {
         ));
 
         let start = collaboration.create_start_state();
-        let model_checking_result = collaboration.explore_state_space(
-            start,
-            vec![BPMNProperty::Safeness, BPMNProperty::ProperCompletion],
-        );
+        let model_checking_result = collaboration
+            .explore_state_space(start, vec![Property::Safeness, Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(1).unwrap();
         assert!(!result.fulfilled);
-        assert_eq!(result.property, BPMNProperty::ProperCompletion);
+        assert_eq!(result.property, Property::ProperCompletion);
         assert_eq!(
             result.problematic_elements,
             vec![String::from("EndEvent_1")]
         );
     }
 
-    fn get_first_process(collaboration: &BPMNCollaboration) -> &BPMNProcess {
+    fn get_first_process(collaboration: &BPMNCollaboration) -> &Process {
         let process = collaboration.participants.get(0).unwrap();
         process
     }
@@ -530,7 +528,7 @@ mod tests {
         snapshot
     }
 
-    fn get_flow_node_with_id(process: &BPMNProcess, id: String) -> &FlowNode {
+    fn get_flow_node_with_id(process: &Process, id: String) -> &FlowNode {
         process
             .flow_nodes
             .iter()

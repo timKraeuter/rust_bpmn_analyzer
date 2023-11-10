@@ -5,7 +5,7 @@ mod states;
 use clap::Parser;
 
 use crate::bpmn::read_bpmn_file;
-use crate::model_checking::bpmn_properties::{BPMNProperty, ModelCheckingResult};
+use crate::model_checking::bpmn_properties::{ModelCheckingResult, Property};
 use crate::output::property_info::output_property_results;
 use crate::output::state_space_info::output_state_information;
 use std::error::Error;
@@ -21,7 +21,7 @@ pub struct Config {
 
     /// BPMN properties to be checked.
     #[arg(short, long, value_enum, value_delimiter = ',')]
-    pub properties: Vec<BPMNProperty>,
+    pub properties: Vec<Property>,
 
     /// File path for results.
     #[arg(short, long, default_value = "./bpmn-analysis-results.json")]

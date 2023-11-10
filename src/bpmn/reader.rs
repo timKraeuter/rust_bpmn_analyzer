@@ -1,5 +1,6 @@
 use super::*;
 
+use crate::bpmn::flow_node::SequenceFlow;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
 use std::fs;
@@ -81,7 +82,7 @@ fn get_file_name(path: &String) -> String {
 
 fn add_participant(collaboration: &mut BPMNCollaboration, p_bytes: BytesStart) {
     let id = get_attribute_value_or_panic(&p_bytes, &String::from("id"));
-    collaboration.add_participant(BPMNProcess {
+    collaboration.add_participant(Process {
         id,
         flow_nodes: Vec::new(),
     });
@@ -150,7 +151,7 @@ mod tests {
             name: String::from("task-and-gateways.bpmn"),
             participants: Vec::new(),
         };
-        let mut process = BPMNProcess {
+        let mut process = Process {
             id: String::from("process_id"),
             flow_nodes: Vec::new(),
         };
