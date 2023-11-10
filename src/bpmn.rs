@@ -168,10 +168,12 @@ fn determine_properties(
         results.push(GeneralPropertyResult::always_terminates())
     }
     if properties.contains(&GeneralProperty::ProperCompletion) {
+        // TODO: This can loop and never end
         check_proper_completion(collaboration, state_space, results);
     }
     if properties.contains(&GeneralProperty::NoDeadActivities) {
         // Cannot do this in the loop due to the borrow checker.
+        // TODO: This can loop and never end
         let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
         if !dead_activities.is_empty() {
             dead_activities.sort();

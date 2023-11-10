@@ -3,6 +3,7 @@ use clap::Parser;
 
 use crate::bpmn::{read_bpmn_file, GeneralProperty, ModelCheckingResult};
 use std::error::Error;
+use std::time::{Duration, Instant};
 
 /// CLI BPMN Analyzer written in Rust
 #[derive(Parser, Debug)]
@@ -25,16 +26,19 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
     let collaboration = read_bpmn_file(&config.file_path);
 
     let start = collaboration.create_start_state();
-    let result: ModelCheckingResult = collaboration.explore_state_space(start, config.properties);
 
-    output_to_console(&result);
+    let start_time = Instant::now();
+    let result: ModelCheckingResult = collaboration.explore_state_space(start, config.properties);
+    let runtime = start_time.elapsed();
+
+    output_to_console(&result, runtime);
     // TODO: Make it possible to export the state space to a file by a param (json).
 
     Ok(result)
 }
 
-fn output_to_console(result: &ModelCheckingResult) {
-    output_state_information(result);
+fn output_to_console(result: &ModelCheckingResult, runtime: Duration) {
+    output_state_information(result, runtime);
     println!();
     output_property_results(result);
 }
@@ -75,8 +79,8 @@ fn output_property_results(result: &ModelCheckingResult) {
     }
 }
 
-fn output_state_information(result: &ModelCheckingResult) {
-    println!("State space generation successful!");
+fn output_state_information(result: &ModelCheckingResult, runtime: Duration) {
+    println!("State space generation successful in {:?}!", runtime);
     println!(
         "States: {}, Transitions: {}",
         result.state_space.states.len(),
