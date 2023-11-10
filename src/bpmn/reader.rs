@@ -199,7 +199,7 @@ mod tests {
         expected.add_participant(process);
 
         // When
-        let result = read_bpmn_file(&String::from("resources/task-and-gateways.bpmn"));
+        let result = read_bpmn_file(&String::from("tests/resources/task-and-gateways.bpmn"));
 
         assert_eq!(expected, result);
     }

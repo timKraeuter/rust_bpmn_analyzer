@@ -1,15 +1,13 @@
-pub use model_checking::{GeneralProperty, GeneralPropertyResult, ModelCheckingResult};
+use crate::model_checking::bpmn_properties::{
+    BPMNProperty, BPMNPropertyResult, ModelCheckingResult,
+};
+use crate::state_space::state_space::{ProcessSnapshot, State, StateSpace};
 pub use reader::read_bpmn_file;
-pub use state_space::StateSpace;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
 use std::hash::{Hash, Hasher};
 
-use crate::bpmn::state_space::{ProcessSnapshot, State};
-
-mod model_checking;
 mod reader;
-mod state_space;
 mod test;
 
 #[derive(Debug, PartialEq)]
@@ -26,7 +24,7 @@ impl BPMNCollaboration {
     pub fn explore_state_space(
         &self,
         start_state: State,
-        properties: Vec<GeneralProperty>,
+        properties: Vec<BPMNProperty>,
     ) -> ModelCheckingResult {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_flow_nodes_by_type(FlowNodeType::Task);
@@ -151,40 +149,40 @@ fn add_terminated_state_hash_if_needed(
 }
 
 fn determine_properties(
-    properties: &[GeneralProperty],
-    results: &mut Vec<GeneralPropertyResult>,
+    properties: &[BPMNProperty],
+    results: &mut Vec<BPMNPropertyResult>,
     state_space: &StateSpace,
     collaboration: &BPMNCollaboration,
     never_executed_activities: HashMap<String, bool>,
 ) {
-    if properties.contains(&GeneralProperty::Safeness)
-        && contains_property_result(results, GeneralProperty::Safeness)
+    if properties.contains(&BPMNProperty::Safeness)
+        && contains_property_result(results, BPMNProperty::Safeness)
     {
-        results.push(GeneralPropertyResult::safe());
+        results.push(BPMNPropertyResult::safe());
     }
-    if properties.contains(&GeneralProperty::OptionToComplete)
-        && contains_property_result(results, GeneralProperty::OptionToComplete)
+    if properties.contains(&BPMNProperty::OptionToComplete)
+        && contains_property_result(results, BPMNProperty::OptionToComplete)
     {
-        results.push(GeneralPropertyResult::always_terminates())
+        results.push(BPMNPropertyResult::always_terminates())
     }
-    if properties.contains(&GeneralProperty::ProperCompletion) {
+    if properties.contains(&BPMNProperty::ProperCompletion) {
         // TODO: This can loop and never end
         check_proper_completion(collaboration, state_space, results);
     }
-    if properties.contains(&GeneralProperty::NoDeadActivities) {
+    if properties.contains(&BPMNProperty::NoDeadActivities) {
         // Cannot do this in the loop due to the borrow checker.
         // TODO: This can loop and never end
         let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
         if !dead_activities.is_empty() {
             dead_activities.sort();
-            results.push(GeneralPropertyResult {
-                property: GeneralProperty::NoDeadActivities,
+            results.push(BPMNPropertyResult {
+                property: BPMNProperty::NoDeadActivities,
                 fulfilled: false,
                 problematic_elements: dead_activities,
                 ..Default::default()
             });
         } else {
-            results.push(GeneralPropertyResult::no_dead_activities());
+            results.push(BPMNPropertyResult::no_dead_activities());
         }
     }
 }
@@ -192,7 +190,7 @@ fn determine_properties(
 fn check_proper_completion(
     collaboration: &BPMNCollaboration,
     state_space: &StateSpace,
-    results: &mut Vec<GeneralPropertyResult>,
+    results: &mut Vec<BPMNPropertyResult>,
 ) {
     let end_events: Vec<String> = collaboration
         .get_all_flow_nodes_by_type(FlowNodeType::EndEvent)
@@ -212,8 +210,8 @@ fn check_proper_completion(
                 ) {
                     None => {}
                     Some((end_event, path)) => {
-                        results.push(GeneralPropertyResult {
-                            property: GeneralProperty::ProperCompletion,
+                        results.push(BPMNPropertyResult {
+                            property: BPMNProperty::ProperCompletion,
                             fulfilled: false,
                             problematic_elements: vec![end_event],
                             counter_example: path,
@@ -226,7 +224,7 @@ fn check_proper_completion(
         }
     }
 
-    results.push(GeneralPropertyResult::proper_completion());
+    results.push(BPMNPropertyResult::proper_completion());
 }
 
 fn check_if_end_event_executed_twice(
@@ -269,23 +267,23 @@ fn check_if_end_event_executed_twice(
     None
 }
 
-fn contains_property_result(results: &[GeneralPropertyResult], property: GeneralProperty) -> bool {
+fn contains_property_result(results: &[BPMNPropertyResult], property: BPMNProperty) -> bool {
     !results.iter().any(|result| result.property == property)
 }
 
 fn check_properties(
     current_state_hash: u64,
     state: &State,
-    properties: &[GeneralProperty],
-    results: &mut Vec<GeneralPropertyResult>,
+    properties: &[BPMNProperty],
+    results: &mut Vec<BPMNPropertyResult>,
     next_state_hashes: &Vec<(String, u64)>,
 ) {
     for property in properties.iter() {
         match property {
-            GeneralProperty::Safeness => {
+            BPMNProperty::Safeness => {
                 check_if_unsafe(current_state_hash, state, results);
             }
-            GeneralProperty::OptionToComplete => {
+            BPMNProperty::OptionToComplete => {
                 check_if_stuck(current_state_hash, state, results, next_state_hashes)
             }
             _ => {}
@@ -296,16 +294,16 @@ fn check_properties(
 fn check_if_stuck(
     current_state_hash: u64,
     state: &State,
-    results: &mut Vec<GeneralPropertyResult>,
+    results: &mut Vec<BPMNPropertyResult>,
     next_state_hashes: &Vec<(String, u64)>,
 ) {
     if next_state_hashes.is_empty() && !state.is_terminated() {
         match results
             .iter_mut()
-            .find(|result| result.property == GeneralProperty::OptionToComplete)
+            .find(|result| result.property == BPMNProperty::OptionToComplete)
         {
-            None => results.push(GeneralPropertyResult {
-                property: GeneralProperty::OptionToComplete,
+            None => results.push(BPMNPropertyResult {
+                property: BPMNProperty::OptionToComplete,
                 fulfilled: false,
                 problematic_state_hashes: vec![current_state_hash],
                 ..Default::default()
@@ -315,17 +313,13 @@ fn check_if_stuck(
     }
 }
 
-fn check_if_unsafe(
-    current_state_hash: u64,
-    state: &State,
-    results: &mut Vec<GeneralPropertyResult>,
-) {
+fn check_if_unsafe(current_state_hash: u64, state: &State, results: &mut Vec<BPMNPropertyResult>) {
     const TWO: u16 = 2;
     for snapshot in &state.snapshots {
         match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
             None => {}
-            Some((unsafe_flow_element, _)) => results.push(GeneralPropertyResult {
-                property: GeneralProperty::Safeness,
+            Some((unsafe_flow_element, _)) => results.push(BPMNPropertyResult {
+                property: BPMNProperty::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![unsafe_flow_element.clone()],
                 problematic_state_hashes: vec![current_state_hash],

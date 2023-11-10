@@ -1,7 +1,10 @@
 mod bpmn;
+mod model_checking;
+mod state_space;
 use clap::Parser;
 
-use crate::bpmn::{read_bpmn_file, GeneralProperty, ModelCheckingResult};
+use crate::bpmn::read_bpmn_file;
+use crate::model_checking::bpmn_properties::{BPMNProperty, ModelCheckingResult};
 use std::error::Error;
 use std::time::{Duration, Instant};
 
@@ -13,13 +16,13 @@ pub struct Config {
     #[arg(short, long, required = true)]
     pub file_path: String,
 
-    /// BPMN properties to be checked
+    /// BPMN properties to be checked.
     #[arg(short, long, value_enum, value_delimiter = ',')]
-    pub properties: Vec<GeneralProperty>,
+    pub properties: Vec<BPMNProperty>,
 
-    /// File path to export the generated state space.
-    #[arg(short, long)]
-    pub state_space_path: Option<String>,
+    /// File path for results.
+    #[arg(short, long, default_value = "./bpmn-analysis-results.json")]
+    pub result_path: Option<String>,
 }
 
 pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
@@ -32,7 +35,6 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
     let runtime = start_time.elapsed();
 
     output_to_console(&result, runtime);
-    // TODO: Make it possible to export the state space to a file by a param (json).
 
     Ok(result)
 }
@@ -53,22 +55,22 @@ fn output_property_results(result: &ModelCheckingResult) {
                 property_result.property
             );
             match property_result.property {
-                GeneralProperty::Safeness => {
+                BPMNProperty::Safeness => {
                     println!(
                         "The sequence flow(s) {:?} can hold two or more tokens.",
                         property_result.problematic_elements
                     );
                 }
-                GeneralProperty::OptionToComplete => {
+                BPMNProperty::OptionToComplete => {
                     println!();
                 }
-                GeneralProperty::ProperCompletion => {
+                BPMNProperty::ProperCompletion => {
                     println!(
                         "The end event(s) {:?} consume two or more tokens.",
                         property_result.problematic_elements
                     );
                 }
-                GeneralProperty::NoDeadActivities => {
+                BPMNProperty::NoDeadActivities => {
                     println!(
                         "The activities {:?} cannot be executed.",
                         property_result.problematic_elements

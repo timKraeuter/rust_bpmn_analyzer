@@ -15,9 +15,6 @@ pub struct State {
     pub snapshots: Vec<ProcessSnapshot>,
 }
 
-#[derive(Debug, Hash, PartialEq)]
-pub struct Transition(String, State);
-
 impl State {
     pub fn new(snapshot_id: String, token_positions: Vec<String>) -> State {
         State {

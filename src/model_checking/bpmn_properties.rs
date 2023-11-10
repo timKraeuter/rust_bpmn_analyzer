@@ -1,9 +1,8 @@
-use crate::bpmn::state_space::State;
-use crate::bpmn::StateSpace;
+use crate::state_space::state_space::{State, StateSpace};
 use clap::ValueEnum;
 
 #[derive(Debug, PartialEq, Clone, ValueEnum)]
-pub enum GeneralProperty {
+pub enum BPMNProperty {
     Safeness,
     OptionToComplete,
     ProperCompletion,
@@ -13,7 +12,7 @@ pub enum GeneralProperty {
 #[derive(Debug)]
 pub struct ModelCheckingResult {
     pub state_space: StateSpace,
-    pub property_results: Vec<GeneralPropertyResult>,
+    pub property_results: Vec<BPMNPropertyResult>,
 }
 
 impl ModelCheckingResult {
@@ -53,8 +52,8 @@ impl ModelCheckingResult {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct GeneralPropertyResult {
-    pub property: GeneralProperty,
+pub struct BPMNPropertyResult {
+    pub property: BPMNProperty,
     pub fulfilled: bool,
     // DeadActivities: Dead activities
     // Safeness: Unsafe sequence flows
@@ -65,10 +64,10 @@ pub struct GeneralPropertyResult {
     pub counter_example: Vec<(String, u64)>,
 }
 
-impl Default for GeneralPropertyResult {
+impl Default for BPMNPropertyResult {
     fn default() -> Self {
-        GeneralPropertyResult {
-            property: GeneralProperty::Safeness,
+        BPMNPropertyResult {
+            property: BPMNProperty::Safeness,
             fulfilled: false,
             problematic_elements: vec![],
             problematic_state_hashes: vec![],
@@ -77,31 +76,31 @@ impl Default for GeneralPropertyResult {
     }
 }
 
-impl GeneralPropertyResult {
-    pub fn safe() -> GeneralPropertyResult {
-        GeneralPropertyResult {
-            property: GeneralProperty::Safeness,
+impl BPMNPropertyResult {
+    pub fn safe() -> BPMNPropertyResult {
+        BPMNPropertyResult {
+            property: BPMNProperty::Safeness,
             fulfilled: true,
             ..Default::default()
         }
     }
-    pub fn always_terminates() -> GeneralPropertyResult {
-        GeneralPropertyResult {
-            property: GeneralProperty::OptionToComplete,
+    pub fn always_terminates() -> BPMNPropertyResult {
+        BPMNPropertyResult {
+            property: BPMNProperty::OptionToComplete,
             fulfilled: true,
             ..Default::default()
         }
     }
-    pub fn no_dead_activities() -> GeneralPropertyResult {
-        GeneralPropertyResult {
-            property: GeneralProperty::NoDeadActivities,
+    pub fn no_dead_activities() -> BPMNPropertyResult {
+        BPMNPropertyResult {
+            property: BPMNProperty::NoDeadActivities,
             fulfilled: true,
             ..Default::default()
         }
     }
-    pub fn proper_completion() -> GeneralPropertyResult {
-        GeneralPropertyResult {
-            property: GeneralProperty::ProperCompletion,
+    pub fn proper_completion() -> BPMNPropertyResult {
+        BPMNPropertyResult {
+            property: BPMNProperty::ProperCompletion,
             fulfilled: true,
             ..Default::default()
         }
