@@ -9,7 +9,7 @@ mod tests {
 
     #[test]
     fn create_start_state() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/start.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/start.bpmn"));
 
         let start_state = collaboration.create_start_state();
 
@@ -26,7 +26,7 @@ mod tests {
 
     #[test]
     fn try_execute_task() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/task.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/task.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -60,7 +60,7 @@ mod tests {
 
     #[test]
     fn try_execute_exg_choice() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/exg.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -80,7 +80,7 @@ mod tests {
 
     #[test]
     fn try_execute_exg_merge() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/exg.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -109,7 +109,7 @@ mod tests {
 
     #[test]
     fn try_execute_pg_split() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -129,7 +129,7 @@ mod tests {
 
     #[test]
     fn try_execute_pg_sync() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn try_execute_end_event() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/end.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/end.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
@@ -184,7 +184,8 @@ mod tests {
 
     #[test]
     fn try_execute_intermediate_throw_event() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/intermediate_event.bpmn"));
+        let collaboration =
+            read_bpmn_file(&String::from("tests/resources/intermediate_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Intermediate"));
@@ -235,7 +236,7 @@ mod tests {
 
     #[test]
     fn safeness_unfulfilled() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/unsafe.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/unsafe.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -276,7 +277,7 @@ mod tests {
 
     #[test]
     fn safeness_fulfilled() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -291,7 +292,7 @@ mod tests {
     #[test]
     fn option_to_complete_unfulfilled_1() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/option_to_complete/no-option-to-complete-1.bpmn",
+            "tests/resources/option_to_complete/no-option-to-complete-1.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -333,7 +334,7 @@ mod tests {
     #[test]
     fn option_to_complete_unfulfilled_2() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/option_to_complete/no-option-to-complete-2.bpmn",
+            "tests/resources/option_to_complete/no-option-to-complete-2.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -366,7 +367,7 @@ mod tests {
 
     #[test]
     fn option_to_complete_fulfilled() {
-        let collaboration = read_bpmn_file(&String::from("test/resources/pg.bpmn"));
+        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -381,7 +382,7 @@ mod tests {
     #[test]
     fn no_dead_activities_unfulfilled() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/no_dead_activities/dead-activities.bpmn",
+            "tests/resources/no_dead_activities/dead-activities.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -406,7 +407,7 @@ mod tests {
     #[test]
     fn no_dead_activities_fulfilled() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/no_dead_activities/no-dead-activities.bpmn",
+            "tests/resources/no_dead_activities/no-dead-activities.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -422,7 +423,7 @@ mod tests {
     #[test]
     fn proper_completion_fulfilled_1() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/proper_completion/proper-completion-1.bpmn",
+            "tests/resources/proper_completion/proper-completion-1.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -438,7 +439,7 @@ mod tests {
     #[test]
     fn proper_completion_fulfilled_2() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/proper_completion/proper-completion-2.bpmn",
+            "tests/resources/proper_completion/proper-completion-2.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -454,7 +455,7 @@ mod tests {
     #[test]
     fn proper_completion_unfulfilled_1() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/proper_completion/no-proper-completion-1.bpmn",
+            "tests/resources/proper_completion/no-proper-completion-1.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -489,7 +490,7 @@ mod tests {
     #[test]
     fn proper_completion_unfulfilled_2() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/proper_completion/no-proper-completion-2.bpmn",
+            "tests/resources/proper_completion/no-proper-completion-2.bpmn",
         ));
 
         let start = collaboration.create_start_state();
@@ -508,7 +509,7 @@ mod tests {
     #[test]
     fn proper_completion_unfulfilled_3() {
         let collaboration = read_bpmn_file(&String::from(
-            "test/resources/proper_completion/no-proper-completion-3-unsafe.bpmn",
+            "tests/resources/proper_completion/no-proper-completion-3-unsafe.bpmn",
         ));
 
         let start = collaboration.create_start_state();

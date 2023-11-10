@@ -14,8 +14,8 @@ pub struct Config {
     pub file_path: String,
 
     /// BPMN properties to be checked
-    #[arg(short, long, required = true, value_enum, value_delimiter = ',')]
-    properties: Vec<GeneralProperty>,
+    #[arg(short, long, value_enum, value_delimiter = ',')]
+    pub properties: Vec<GeneralProperty>,
 
     /// File path to export the generated state space.
     #[arg(short, long)]
