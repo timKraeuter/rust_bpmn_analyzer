@@ -1,1 +1,1 @@
-pub mod bpmn_properties;
+pub mod properties;

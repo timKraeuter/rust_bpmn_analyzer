@@ -4,7 +4,7 @@ mod tests {
     use crate::bpmn::flow_node::FlowNode;
     use crate::bpmn::process::Process;
     use crate::bpmn::reader::read_bpmn_file;
-    use crate::model_checking::bpmn_properties::{ModelCheckingResult, PropertyResult};
+    use crate::model_checking::properties::{ModelCheckingResult, PropertyResult};
     use crate::states::state_space::{ProcessSnapshot, State};
     use crate::Property;
     use std::collections::BTreeMap;

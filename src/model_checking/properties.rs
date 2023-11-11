@@ -182,7 +182,6 @@ fn record_proper_completion(
             fulfilled: false,
             problematic_elements: vec![end_event.to_owned()],
             problematic_state_hashes: vec![current_state_hash],
-            ..Default::default()
         }),
         Some(result) => {
             result.problematic_elements.push(end_event.to_owned());
@@ -209,7 +208,6 @@ fn check_if_unsafe(current_state_hash: u64, state: &State, results: &mut Vec<Pro
                 fulfilled: false,
                 problematic_elements: vec![unsafe_sf.clone()],
                 problematic_state_hashes: vec![current_state_hash],
-                ..Default::default()
             }),
             Some(result) => {
                 result.problematic_elements.push(unsafe_sf.clone());

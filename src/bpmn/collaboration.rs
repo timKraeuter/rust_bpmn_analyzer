@@ -1,6 +1,6 @@
 use crate::bpmn::flow_node::{FlowNode, FlowNodeType};
 use crate::bpmn::process::Process;
-use crate::model_checking::bpmn_properties::{
+use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};

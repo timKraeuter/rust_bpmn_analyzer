@@ -1,4 +1,4 @@
-use crate::model_checking::bpmn_properties::{ModelCheckingResult, Property, PropertyResult};
+use crate::model_checking::properties::{ModelCheckingResult, Property, PropertyResult};
 use crate::states::state_space::{State, StateSpace};
 use colored::{ColoredString, Colorize};
 use std::fmt::{Display, Formatter};

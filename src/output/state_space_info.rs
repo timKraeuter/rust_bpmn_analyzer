@@ -1,4 +1,4 @@
-use crate::model_checking::bpmn_properties::ModelCheckingResult;
+use crate::model_checking::properties::ModelCheckingResult;
 use colored::Colorize;
 use std::time::Duration;
 
