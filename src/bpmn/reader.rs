@@ -125,7 +125,7 @@ fn add_sf_to_last_participant(collaboration: &mut Collaboration, sf_bytes: &Byte
 
 fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
     match e.try_get_attribute(key) {
-        Ok(x) => match x {
+        Ok(attribute) => match attribute {
             None => {
                 panic!("Attribute value for key \"{}\" not found.", key)
             }
