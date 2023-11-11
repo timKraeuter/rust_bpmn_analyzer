@@ -39,7 +39,7 @@ fn determine_properties(
                     }
                 }
             });
-        if not_contains_property_result(results, Property::OptionToComplete) {
+        if not_contains_property_result(results, Property::ProperCompletion) {
             results.push(PropertyResult::proper_completion())
         }
     }
