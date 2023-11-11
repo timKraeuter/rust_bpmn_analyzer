@@ -38,7 +38,6 @@ fn determine_properties(
                         record_proper_completion(*terminated_state_hash, results, end_event);
                     }
                 }
-                return;
             });
         if not_contains_property_result(results, Property::OptionToComplete) {
             results.push(PropertyResult::proper_completion())
@@ -111,25 +110,25 @@ fn record_option_to_complete(current_state_hash: u64, results: &mut Vec<Property
 fn record_proper_completion(
     current_state_hash: u64,
     results: &mut Vec<PropertyResult>,
-    end_event: &String,
+    end_event: &str,
 ) {
     match find_property_result(results, Property::ProperCompletion) {
         None => results.push(PropertyResult {
             property: Property::ProperCompletion,
             fulfilled: false,
-            problematic_elements: vec![end_event.clone()],
+            problematic_elements: vec![end_event.to_owned()],
             problematic_state_hashes: vec![current_state_hash],
             ..Default::default()
         }),
         Some(result) => {
-            result.problematic_elements.push(end_event.clone());
+            result.problematic_elements.push(end_event.to_owned());
             result.problematic_state_hashes.push(current_state_hash);
         }
     }
 }
 
 fn find_property_result(
-    results: &mut Vec<PropertyResult>,
+    results: &mut [PropertyResult],
     property: Property,
 ) -> Option<&mut PropertyResult> {
     results

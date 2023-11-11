@@ -48,10 +48,12 @@ impl State {
     pub fn get_unsafe_sf(&self) -> Option<&String> {
         const TWO: u16 = 2;
         for snapshot in self.snapshots.iter() {
-            return match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
-                None => None,
-                Some((unsafe_flow_element, _)) => Some(unsafe_flow_element),
-            };
+            match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
+                None => {}
+                Some((sf, _)) => {
+                    return Some(sf);
+                }
+            }
         }
         None
     }
