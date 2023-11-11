@@ -1,7 +1,6 @@
-use super::*;
-
 use crate::bpmn::collaboration::Collaboration;
-use crate::bpmn::flow_node::SequenceFlow;
+use crate::bpmn::flow_node::{FlowNode, FlowNodeType, SequenceFlow};
+use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
 use std::fs;
@@ -145,6 +144,7 @@ fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::bpmn::flow_node::FlowNode;
 
     #[test]
     fn read_task_and_gateways() {

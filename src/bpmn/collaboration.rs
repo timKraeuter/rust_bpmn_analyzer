@@ -1,7 +1,8 @@
 use crate::bpmn::flow_node::{FlowNode, FlowNodeType};
 use crate::bpmn::process::Process;
-use crate::bpmn::{check_on_the_fly_properties, determine_properties};
-use crate::model_checking::bpmn_properties::{ModelCheckingResult, Property};
+use crate::model_checking::bpmn_properties::{
+    check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
+};
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 use std::collections::{BTreeMap, HashMap};
 

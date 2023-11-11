@@ -4,7 +4,7 @@ mod output;
 mod states;
 use clap::Parser;
 
-use crate::bpmn::read_bpmn_file;
+use crate::bpmn::reader::read_bpmn_file;
 pub use crate::model_checking::bpmn_properties::{ModelCheckingResult, Property};
 use crate::output::property_info::output_property_results;
 use crate::output::state_space_info::output_state_information;
