@@ -22,12 +22,14 @@ impl StateSpace {
 #[derive(Debug, Hash, PartialEq)]
 pub struct State {
     pub snapshots: Vec<ProcessSnapshot>,
+    pub executed_end_event_counter: BTreeMap<String, u16>,
 }
 
 impl State {
     pub fn new(snapshot_id: String, tokens: Vec<String>) -> State {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, tokens)],
+            executed_end_event_counter: BTreeMap::new(),
         }
     }
 

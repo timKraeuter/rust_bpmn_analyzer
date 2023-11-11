@@ -1,6 +1,6 @@
-use crate::bpmn::flow_node::FlowNodeType;
+use crate::bpmn::flow_node::{FlowNode, FlowNodeType};
 use crate::bpmn::process::Process;
-use crate::bpmn::{check_properties, determine_properties};
+use crate::bpmn::{check_on_the_fly_properties, determine_properties};
 use crate::model_checking::bpmn_properties::{ModelCheckingResult, Property};
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 use std::collections::{BTreeMap, HashMap};
@@ -60,7 +60,7 @@ impl Collaboration {
                         potentially_unexplored_states_hashes.push((flow_node_id, new_hash));
                     }
                     // Do stuff for model checking
-                    check_properties(
+                    check_on_the_fly_properties(
                         current_state_hash,
                         &current_state,
                         &properties,
@@ -80,9 +80,8 @@ impl Collaboration {
         determine_properties(
             &properties,
             &mut property_results,
-            &state_space,
-            self,
             not_executed_activities,
+            &state_space,
         );
 
         ModelCheckingResult {
@@ -110,7 +109,10 @@ impl Collaboration {
     }
 
     pub fn create_start_state(&self) -> State {
-        let mut start = State { snapshots: vec![] };
+        let mut start = State {
+            snapshots: vec![],
+            executed_end_event_counter: BTreeMap::new(),
+        };
         for process in &self.participants {
             let mut snapshot = ProcessSnapshot {
                 // Cloning the string here could be done differently.
@@ -151,19 +153,16 @@ impl Collaboration {
                     for flow_node in matching_process.flow_nodes.iter() {
                         let new_states = flow_node.try_execute(snapshot, state);
 
-                        // Record activity execution
-                        if flow_node.flow_node_type == FlowNodeType::Task
-                            && !new_states.is_empty()
-                            && !not_executed_activities.is_empty()
-                        {
-                            not_executed_activities.remove(&flow_node.id);
-                        }
+                        Self::record_executed_activities(
+                            not_executed_activities,
+                            flow_node,
+                            &new_states,
+                        );
 
                         // Would want to check if the state has been explored here not later to not take up unnecessary memory.
                         unexplored_states.append(
                             &mut new_states
                                 .into_iter()
-                                // Add info about flow node. Should use Rc instead of clone in the future.
                                 .map(|state| (flow_node.id.clone(), state))
                                 .collect(),
                         );
@@ -172,5 +171,18 @@ impl Collaboration {
             }
         }
         unexplored_states
+    }
+
+    fn record_executed_activities(
+        not_executed_activities: &mut HashMap<String, bool>,
+        flow_node: &FlowNode,
+        new_states: &Vec<State>,
+    ) {
+        if flow_node.flow_node_type == FlowNodeType::Task
+            && !new_states.is_empty()
+            && !not_executed_activities.is_empty()
+        {
+            not_executed_activities.remove(&flow_node.id);
+        }
     }
 }

@@ -19,6 +19,7 @@ mod tests {
                     String::from("process"),
                     vec![String::from("Flow_1"), String::from("Flow_2")]
                 )],
+                executed_end_event_counter: BTreeMap::new()
             }
         );
     }
@@ -166,19 +167,21 @@ mod tests {
 
         let next_states = flow_node.try_execute(get_first_snapshot(&start_state), &start_state);
 
-        assert_eq!(
-            next_states,
-            vec![
-                State::new(
-                    String::from("process"),
-                    vec![String::from("Flow_1"), String::from("Flow_2")]
-                ),
-                State::new(
-                    String::from("process"),
-                    vec![String::from("Flow_1"), String::from("Flow_1")]
-                ),
-            ]
+        let mut state1 = State::new(
+            String::from("process"),
+            vec![String::from("Flow_1"), String::from("Flow_2")],
         );
+        state1
+            .executed_end_event_counter
+            .insert("End".to_string(), 1);
+        let mut state2 = State::new(
+            String::from("process"),
+            vec![String::from("Flow_1"), String::from("Flow_1")],
+        );
+        state2
+            .executed_end_event_counter
+            .insert("End".to_string(), 1);
+        assert_eq!(next_states, vec![state1, state2,]);
     }
 
     #[test]
@@ -241,7 +244,7 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::Safeness]);
 
-        let unsafe_state_hash: u64 = 16162784866411060449;
+        let unsafe_state_hash: u64 = 5036971803133640392;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -249,7 +252,7 @@ mod tests {
                 property: Property::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe2"), String::from("Unsafe1")],
-                problematic_state_hashes: vec![18171826408927070191, unsafe_state_hash],
+                problematic_state_hashes: vec![13741427997559944324, unsafe_state_hash],
                 ..Default::default()
             }]
         );
@@ -261,7 +264,8 @@ mod tests {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("process"),
                     tokens: BTreeMap::from([(String::from("Unsafe1"), 2u16)]),
-                }]
+                }],
+                executed_end_event_counter: BTreeMap::new()
             }
         );
 
@@ -298,8 +302,8 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
 
-        let not_terminated_state_hash_1 = 889428745242360938;
-        let not_terminated_state_hash_2 = 10415212047764370249;
+        let not_terminated_state_hash_1 = 576705523175660082;
+        let not_terminated_state_hash_2 = 16736083492202242885;
         assert_eq!(
             model_checking_result.property_results,
             vec![PropertyResult {
@@ -340,7 +344,7 @@ mod tests {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
 
-        let expected_hash: u64 = 6211060949274127890;
+        let expected_hash: u64 = 7328816658838297303;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -359,7 +363,8 @@ mod tests {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
                     tokens: BTreeMap::from([(String::from("stuck"), 1u16)]),
-                }]
+                }],
+                executed_end_event_counter: BTreeMap::new()
             }
         );
     }
@@ -462,21 +467,16 @@ mod tests {
             collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(0).unwrap();
-        assert!(!result.fulfilled);
-        assert_eq!(result.property, Property::ProperCompletion);
         assert_eq!(
-            result.problematic_elements,
-            vec![String::from("EndEvent_1")]
+            result,
+            &PropertyResult {
+                property: Property::ProperCompletion,
+                fulfilled: false,
+                problematic_elements: vec!["EndEvent_1".to_string()],
+                problematic_state_hashes: vec![9775884300989159360],
+                counter_example: vec![]
+            }
         );
-
-        // Same path but different hashes due to hashmap ordering of tokens.
-        let expected_path_1 = vec![
-            ("Gateway_043ppqt".to_string(), 1818213233942283238),
-            ("EndEvent_1".to_string(), 15434666861843592536),
-            ("EndEvent_1".to_string(), 226175114188610093),
-        ];
-
-        assert_eq!(result.counter_example, expected_path_1);
     }
 
     #[test]
@@ -490,11 +490,15 @@ mod tests {
             collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(0).unwrap();
-        assert!(!result.fulfilled);
-        assert_eq!(result.property, Property::ProperCompletion);
         assert_eq!(
-            result.problematic_elements,
-            vec![String::from("EndEvent_1")]
+            result,
+            &PropertyResult {
+                property: Property::ProperCompletion,
+                fulfilled: false,
+                problematic_elements: vec!["EndEvent_1".to_string()],
+                problematic_state_hashes: vec![9775884300989159360],
+                counter_example: vec![]
+            }
         );
     }
 
@@ -509,11 +513,15 @@ mod tests {
             .explore_state_space(start, vec![Property::Safeness, Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(1).unwrap();
-        assert!(!result.fulfilled);
-        assert_eq!(result.property, Property::ProperCompletion);
         assert_eq!(
-            result.problematic_elements,
-            vec![String::from("EndEvent_1")]
+            result,
+            &PropertyResult {
+                property: Property::ProperCompletion,
+                fulfilled: false,
+                problematic_elements: vec!["EndEvent_1".to_string()],
+                problematic_state_hashes: vec![15747585000097647928],
+                counter_example: vec![]
+            }
         );
     }
 

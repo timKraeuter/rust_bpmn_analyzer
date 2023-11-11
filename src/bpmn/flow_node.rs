@@ -83,7 +83,10 @@ impl FlowNode {
             .expect("Snapshot not found!");
         snapshots.swap_remove(index);
 
-        State { snapshots }
+        State {
+            snapshots,
+            executed_end_event_counter: current_state.executed_end_event_counter.clone(),
+        }
     }
 
     fn add_outgoing_tokens(&self, snapshot: &mut ProcessSnapshot) {
@@ -171,15 +174,27 @@ impl FlowNode {
                     let mut new_state =
                         Self::create_new_state_without_snapshot(snapshot, current_state);
                     let new_snapshot =
-                        Self::create_new_snapshot_without_token(snapshot, &inc_flow.id.clone());
+                        Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
                     // Add outgoing token
                     new_state.snapshots.push(new_snapshot);
+                    self.record_end_event_execution(&mut new_state);
 
                     new_states.push(new_state);
                 }
             }
         }
         new_states
+    }
+
+    fn record_end_event_execution(&self, new_state: &mut State) {
+        match new_state.executed_end_event_counter.get(&self.id) {
+            None => new_state
+                .executed_end_event_counter
+                .insert(self.id.clone(), 1),
+            Some(count) => new_state
+                .executed_end_event_counter
+                .insert(self.id.clone(), count + 1),
+        };
     }
 }
 
