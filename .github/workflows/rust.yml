@@ -24,4 +24,4 @@ jobs:
       - name: Lint
         run: cargo clippy -- -Dwarnings
       - name: Run tests
-        run: cargo test
+        run: cargo test -- --show-output
