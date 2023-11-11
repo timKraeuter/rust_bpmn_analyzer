@@ -17,6 +17,47 @@ impl StateSpace {
             self.terminated_state_hashes.push(state_hash);
         }
     }
+
+    pub fn get_state(&self, state_hash: &u64) -> &State {
+        match self.states.get(state_hash) {
+            None => {
+                panic!("State for {} not found!", state_hash)
+            }
+            Some(state) => state,
+        }
+    }
+
+    // TODO: This can loop and never end
+    pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<(String, u64)>> {
+        self.get_path(self.start_state_hash, state_hash)
+    }
+    fn get_path(&self, from_state_hash: u64, to_state_hash: u64) -> Option<Vec<(String, u64)>> {
+        match self.transitions.get(&from_state_hash) {
+            None => None,
+            Some(next_states) => {
+                match next_states
+                    .iter()
+                    .find(|(_, next_state_hash)| next_state_hash == &to_state_hash)
+                {
+                    None => {}
+                    Some(last_transition) => {
+                        return Some(vec![last_transition.clone()]);
+                    }
+                }
+                // Not found continue searching
+                for (flow_node_id, next_state) in next_states {
+                    match self.get_path(*next_state, to_state_hash) {
+                        None => {}
+                        Some(mut path) => {
+                            path.insert(0, (flow_node_id.clone(), *next_state));
+                            return Some(path);
+                        }
+                    };
+                }
+                None
+            }
+        }
+    }
 }
 
 #[derive(Debug, Hash, PartialEq)]

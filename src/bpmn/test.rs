@@ -228,7 +228,10 @@ mod tests {
         model_checking_result: &ModelCheckingResult,
         state_hash: u64,
     ) -> Vec<String> {
-        let path_to_unsafe = model_checking_result.get_path_to_state(state_hash).unwrap();
+        let path_to_unsafe = model_checking_result
+            .state_space
+            .get_path_to_state(state_hash)
+            .unwrap();
         get_flow_nodes_for_path(path_to_unsafe)
     }
 
@@ -477,7 +480,6 @@ mod tests {
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
                 problematic_state_hashes: vec![9775884300989159360],
-                counter_example: vec![]
             }
         );
     }
@@ -500,7 +502,6 @@ mod tests {
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
                 problematic_state_hashes: vec![9775884300989159360],
-                counter_example: vec![]
             }
         );
     }
@@ -523,7 +524,6 @@ mod tests {
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
                 problematic_state_hashes: vec![15747585000097647928],
-                counter_example: vec![]
             }
         );
     }
