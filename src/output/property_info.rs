@@ -54,7 +54,6 @@ fn print_result_unfulfilled_details(property_result: &PropertyResult, state_spac
             print_counter_example(property_result, state_space);
         }
         Property::OptionToComplete => {
-            println!();
             print_counter_example(property_result, state_space);
         }
         Property::ProperCompletion => {
