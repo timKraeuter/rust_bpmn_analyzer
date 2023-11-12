@@ -1,8 +1,8 @@
 use crate::states::state_space::{State, StateSpace};
-use clap::ValueEnum;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-#[derive(Debug, PartialEq, Clone, ValueEnum)]
+#[derive(Debug, PartialEq, Clone, Deserialize, Serialize)]
 pub enum Property {
     Safeness,
     OptionToComplete,

@@ -1,10 +1,10 @@
 mod bpmn;
 mod model_checking;
 mod output;
-mod states;
+pub mod states;
 use clap::Parser;
 
-use crate::bpmn::reader::read_bpmn_file;
+use crate::bpmn::reader::read_bpmn_string;
 pub use crate::model_checking::properties::{ModelCheckingResult, Property};
 use crate::output::property_info::output_property_results;
 use crate::output::state_space_info::output_state_information;
@@ -17,27 +17,24 @@ use std::time::{Duration, Instant};
 pub struct Config {
     /// File path to the BPMN file.
     #[arg(short, long, required = true)]
-    pub file_path: String,
-
-    /// BPMN properties to be checked.
-    #[arg(short, long, value_enum, value_delimiter = ',')]
-    pub properties: Vec<Property>,
-
-    /// File path for results.
-    #[arg(short, long, default_value = "./bpmn-analysis-results.json")]
-    pub result_path: Option<String>,
+    pub port: u16,
 }
 
-pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
-    let collaboration = read_bpmn_file(&config.file_path);
+pub fn run(
+    bpmn_file_content: &str,
+    properties: Vec<Property>,
+    output: bool,
+) -> Result<ModelCheckingResult, Box<dyn Error>> {
+    let collaboration = read_bpmn_string(bpmn_file_content, "123".to_string());
 
     let start = collaboration.create_start_state();
-
     let start_time = Instant::now();
-    let result: ModelCheckingResult = collaboration.explore_state_space(start, config.properties);
+    let result: ModelCheckingResult = collaboration.explore_state_space(start, properties);
     let runtime = start_time.elapsed();
 
-    output_result(&result, runtime);
+    if output {
+        output_result(&result, runtime);
+    }
 
     Ok(result)
 }
