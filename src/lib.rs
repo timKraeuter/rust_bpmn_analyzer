@@ -15,7 +15,7 @@ use std::time::{Duration, Instant};
 #[derive(Parser, Debug)]
 #[command(version, author, about, long_about = None)]
 pub struct Config {
-    /// File path to the BPMN file.
+    /// Port to serve the web app. port + 1 is used for the CheckBPMN service.
     #[arg(short, long, required = true)]
     pub port: u16,
 }
