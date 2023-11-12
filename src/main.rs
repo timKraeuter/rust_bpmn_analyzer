@@ -4,25 +4,33 @@ use bpmnanalyzer::{run, Config, ModelCheckingResult, Property};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
+use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() {
     let config = Config::parse();
-    // initialize tracing
     tracing_subscriber::fmt::init();
 
-    // build our application with a route
     let app = Router::new().route("/check_bpmn", post(check_bpmn));
 
-    // run our app with hyper
-    let addr = SocketAddr::from(([127, 0, 0, 1], config.port));
+    tokio::join!(
+        serve(app, config.port),
+        serve(using_serve_dir(), config.port + 1),
+    );
+}
+async fn serve(app: Router, port: u16) {
+    let addr = SocketAddr::from(([127, 0, 0, 1], port));
     tracing::debug!("Listening on {}", addr);
     println!("Listening on {}", addr);
-
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .unwrap();
+}
+
+fn using_serve_dir() -> Router {
+    // serve the file in the "assets" directory under `/assets`
+    Router::new().nest_service("/", ServeDir::new("public"))
 }
 
 async fn check_bpmn(
