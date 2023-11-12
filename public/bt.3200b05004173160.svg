@@ -1,0 +1,18 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata>Copyright (C) 2023 by original authors @ fontello.com</metadata>
+<defs>
+<font id="bt" horiz-adv-x="1000" >
+<font-face font-family="bt" font-weight="400" font-stretch="normal" units-per-em="1000" ascent="850" descent="-150" />
+<missing-glyph horiz-adv-x="1000" />
+<glyph glyph-name="token" unicode="&#xe800;" d="M500 838a488 488 0 0 1-488-488 488 488 0 0 1 488-488 488 488 0 0 1 488 488 488 488 0 0 1-488 488z m71-854h-86v571q-31-31-81-62-50-31-90-46v86q72 35 126 86 53 50 76 97h55z" horiz-adv-x="1000" />
+
+<glyph glyph-name="process" unicode="&#xe801;" d="M500 838a488 488 0 0 1-488-488 488 488 0 0 1 488-488 488 488 0 0 1 488 488 488 488 0 0 1-488 488z" horiz-adv-x="1000" />
+
+<glyph glyph-name="no-token" unicode="&#xe802;" d="M135 838l-123-115 369-372-369-366 115-123 372 369 366-369 123 115-368 372 368 366-115 123-372-368-366 368z" horiz-adv-x="1000" />
+
+<glyph glyph-name="color" unicode="&#xe803;" d="M568 600l14 18 164 164c22 23 59 23 77 0l45-46c23-18 23-54 0-77l-163-163-19-10v-9c0-63 28-91 46-122v-28l-77-72c-9-9-19-9-28 0l-295 295a18 18 0 0 0 0 27l14 14 22 23 37 36c9 9 18 5 27 0 41-23 68-50 136-50z m-450-273l191 191 287-286-191-191c-14-14-41-14-55 0l-36 36-41 37-105 132" horiz-adv-x="1000" />
+</font>
+</defs>
+</svg>
