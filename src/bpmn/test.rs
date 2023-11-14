@@ -395,6 +395,8 @@ mod tests {
             "tests/resources/no_dead_activities/dead-activities.bpmn",
         ));
 
+        println!("{:?}", collaboration);
+
         let start = collaboration.create_start_state();
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
@@ -407,7 +409,8 @@ mod tests {
                 problematic_elements: vec![
                     String::from("Dead_1"),
                     String::from("Dead_2"),
-                    String::from("Dead_3")
+                    String::from("Dead_3"),
+                    String::from("Dead_4")
                 ],
                 ..Default::default()
             }]
