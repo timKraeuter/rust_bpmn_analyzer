@@ -12,6 +12,19 @@ body,
   left: 20px;
 }
 
+.top-right-buttons {
+  background-color: #f8f8f8;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: bold;
+  border: solid 1px #cdcdcd;
+
+  top: 55px;
+  right: 15px;
+  padding: 5px;
+  position: fixed;
+}
+
 .bottom-buttons a:hover {
   color: #555;
 }
@@ -63,6 +76,42 @@ body,
 
 .icon-resize-full::before {
   content: "\e801";
+  display: inline-block;
+}
+
+.icon-question {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1.2em;
+}
+
+.icon-question::before {
+  content: '\e805';
+  display: inline-block;
+}
+
+.icon-check {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1.2em;
+}
+
+.icon-check::before {
+  content: '\e804';
+  display: inline-block;
+}
+
+.icon-xmark {
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1.2em;
+}
+
+.icon-xmark::before {
+  content: '\e800';
   display: inline-block;
 }
 
@@ -131,8 +180,7 @@ a:hover {
 .pjs-buttons > ul {
   display: block;
   padding: 0;
-  margin: 0;
-  margin-top: 10px;
+  margin: 10px 0 0;
   list-style: none;
 }
 
@@ -456,4 +504,12 @@ textarea {
   min-height: 16px;
   width: 60px;
   text-align: center;
+}
+
+.green {
+  color: green;
+}
+
+.red {
+  color: red;
 }
