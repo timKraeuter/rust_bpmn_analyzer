@@ -11,11 +11,11 @@ async fn main() {
     let config = Config::parse();
     tracing_subscriber::fmt::init();
 
-    let app = Router::new().route("/check_bpmn", post(check_bpmn));
+    let checker = Router::new().route("/check_bpmn", post(check_bpmn));
 
     tokio::join!(
-        serve(app, config.port),
-        serve(using_serve_dir(), config.port + 1),
+        serve(using_serve_dir(), config.port),
+        serve(checker, config.port + 1),
     );
 }
 async fn serve(app: Router, port: u16) {
