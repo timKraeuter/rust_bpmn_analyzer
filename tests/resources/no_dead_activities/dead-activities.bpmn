@@ -40,6 +40,7 @@
       <bpmn:incoming>Flow_06ojpth</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:sequenceFlow id="Flow_06ojpth" sourceRef="Dead_3" targetRef="Event_15hi6sl" />
+    <bpmn:task id="Dead_4" name="Dead_4" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_82d322af-6312-46f0-949a-654f941c5888">
@@ -72,6 +73,10 @@
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Event_15hi6sl_di" bpmnElement="Event_15hi6sl">
         <dc:Bounds x="642" y="312" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0izn2nz_di" bpmnElement="Dead_4">
+        <dc:Bounds x="470" y="420" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_03nzbeu_di" bpmnElement="Flow_03nzbeu">
         <di:waypoint x="186" y="118" />

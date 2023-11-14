@@ -50,6 +50,8 @@ pub fn read_bpmn_file(file_path: &String) -> Collaboration {
             },
             Ok(Event::Empty(e)) => match e.name().as_ref() {
                 b"sequenceFlow" | b"bpmn:sequenceFlow" => sfs.push(e),
+
+                b"task" | b"bpmn:task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
                 _ => (),
             },
             Ok(Event::Eof) => break,
@@ -126,7 +128,7 @@ fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
     match e.try_get_attribute(key) {
         Ok(attribute) => match attribute {
             None => {
-                panic!("Attribute value for key \"{}\" not found.", key)
+                panic!("Attribute value for key \"{}\" not found in {:?}.", key, e)
             }
             Some(x) => match String::from_utf8(x.value.into_owned()) {
                 Ok(value) => value,
