@@ -19,7 +19,7 @@ body,
   font-weight: bold;
   border: solid 1px #cdcdcd;
 
-  top: 55px;
+  top: 60px;
   right: 15px;
   padding: 5px;
   position: fixed;
@@ -31,7 +31,7 @@ body,
 
 .bottom-buttons a.active {
   opacity: 1;
-  box-shadow: 0px 2px 2px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* screen interaction helpers & modal */
@@ -43,8 +43,8 @@ body,
 #io-editing-tools-buttons {
   display: block;
   position: fixed;
-  top: 0px;
-  right: 0px;
+  top: 0;
+  right: 0;
   list-style: none;
   padding: 5px;
   margin: 0;
@@ -221,7 +221,7 @@ a:hover {
 .pjs-buttons a.pjs-buttons-active,
 .pjs-buttons button.pjs-buttons-active {
   opacity: 1;
-  box-shadow: 0px 2px 2px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
 }
 
 /* tool tip */
@@ -240,7 +240,6 @@ a:hover {
   color: #fff;
   text-align: center;
   border-radius: 6px;
-  padding: 5px 0;
   padding: 20px;
   position: absolute;
   z-index: 1;
@@ -291,7 +290,7 @@ a:hover {
 }
 
 .pjs-general-icon {
-  font-family: "Font Awesome 5 Free Solid";
+  font-family: "Font Awesome 5 Free Solid", serif;
   line-height: 1.2em;
 }
 
@@ -431,7 +430,6 @@ textarea {
   left: 50%;
   margin-left: -300px;
   top: 100px;
-  background: white;
   padding: 10px 30px 20px 30px;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   border-radius: 2px;
@@ -443,7 +441,7 @@ textarea {
 }
 
 .pjs-io-dialog-section.pjs-first {
-  padding-top: 0px;
+  padding-top: 0;
 }
 
 .pjs-io-dialog-local {
