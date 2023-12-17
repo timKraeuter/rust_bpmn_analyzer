@@ -470,14 +470,13 @@ textarea {
 
 .pjs-buttons.pjs-image-selection-submit-wrapper button:active {
   opacity: 1;
-  box-shadow: 0px 2px 2px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
 }
 
 .small-note {
-  background-color: rgba(255, 76, 48, 1);
   color: White;
   border-radius: 5px;
-  font-family: Arial;
+  font-family: Arial, serif;
   font-size: 12px;
   padding: 5px;
   min-height: 16px;
@@ -485,11 +484,20 @@ textarea {
   text-align: center;
 }
 
-.big-note {
+.property-note {
   background-color: rgba(255, 76, 48, 1);
+}
+
+.quick-fix-note {
+  background-color: green;
+  width: 25px;
+  cursor: pointer;
+}
+
+.big-note {
   color: White;
   border-radius: 5px;
-  font-family: Arial;
+  font-family: Arial, serif;
   font-size: 12px;
   padding: 5px;
   min-height: 16px;
@@ -503,4 +511,29 @@ textarea {
 
 .red {
   color: red;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 100px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  top: -15px;
+  left: 105%;
+  position: absolute;
+  z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
 }
