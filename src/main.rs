@@ -1,5 +1,5 @@
 use axum::{http::StatusCode, routing::post, Json, Router};
-use bpmnanalyzer::states::state_space::StateSpace;
+use bpmnanalyzer::states::state_space::{State, StateSpace};
 use bpmnanalyzer::{run, Config, ModelCheckingResult, Property};
 use clap::Parser;
 use serde::{Deserialize, Serialize};
@@ -95,10 +95,9 @@ struct MinimalPropertyResult {
 }
 #[derive(Serialize)]
 struct CounterExample {
-    start_state: String,
+    start_state: State,
     transitions: Vec<Transition>,
 }
-
 impl CounterExample {
     fn new(problematic_state_hashes: Vec<u64>, state_space: &StateSpace) -> Option<CounterExample> {
         match problematic_state_hashes.first() {
@@ -110,13 +109,11 @@ impl CounterExample {
                         .into_iter()
                         .map(|(label, state_hash)| Transition {
                             label,
-                            next_state: state_space.get_state(&state_hash).to_string(),
+                            next_state: state_space.get_state(&state_hash).clone(),
                         })
                         .collect();
                     Some(CounterExample {
-                        start_state: state_space
-                            .get_state(&state_space.start_state_hash)
-                            .to_string(),
+                        start_state: state_space.get_state(&state_space.start_state_hash).clone(),
                         transitions,
                     })
                 }
@@ -128,5 +125,5 @@ impl CounterExample {
 #[derive(Serialize)]
 struct Transition {
     label: String, // label is the executed flow node id
-    next_state: String,
+    next_state: State,
 }

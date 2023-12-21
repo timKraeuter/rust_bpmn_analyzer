@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
 use std::hash::{Hash, Hasher};
@@ -60,7 +61,7 @@ impl StateSpace {
     }
 }
 
-#[derive(Debug, Hash, PartialEq)]
+#[derive(Debug, Hash, PartialEq, Serialize, Clone)]
 pub struct State {
     pub snapshots: Vec<ProcessSnapshot>,
     pub executed_end_event_counter: BTreeMap<String, u16>,
@@ -100,7 +101,7 @@ impl State {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq, Hash, Serialize)]
 pub struct ProcessSnapshot {
     pub id: String,
     pub tokens: BTreeMap<String, u16>,
