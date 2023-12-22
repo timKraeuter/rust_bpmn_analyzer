@@ -1,3 +1,14 @@
+label {
+  font-family: "IBM Plex Sans", sans-serif;
+  font-size: 1rem;
+  padding-right: 5px;
+}
+
+select {
+  font-size: 0.9rem;
+  padding: 2px 5px;
+}
+
 html,
 body,
 #canvas {
@@ -213,6 +224,11 @@ a:hover {
 
 .pjs-buttons a.pjs-buttons-active,
 .pjs-buttons button.pjs-buttons-active {
+  opacity: 1;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.example-select {
   opacity: 1;
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
 }

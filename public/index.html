@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="bpmn-js.css" />
     <link rel="stylesheet" href="bpmn-font/css/bpmn-embedded.css" />
     <link rel="stylesheet" href="properties-panel.css" />
-    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="./favicon.ico" type="image/x-icon" />
   </head>
   <body>
     <div
@@ -70,6 +70,19 @@
 
     <div id="io-editing-tools-buttons" class="pjs-buttons">
       <ul class="pjs-horizontal">
+        <li>
+          <label for="example-select">Change example:</label>
+          <select id="example-select" class="example-select">
+            <option value="taskSplit" selected="selected">
+              Unsafe implicit parallel gateway
+            </option>
+            <option value="stuck">Cannot terminate</option>
+            <option value="unsafeGateways">Unsafe exclusive gateway</option>
+            <option value="taskMerge">Unsafe implicit exclusive gateway</option>
+            <option value="reusedEndEvent">Reused end event</option>
+            <option value="showcase">Showcase</option>
+          </select>
+        </li>
         <li>
           <button
             id="js-toggle-keyboard-help"
