@@ -95,7 +95,7 @@ impl FlowNode {
         }
     }
     fn try_execute_task(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        let mut new_states: Vec<State> = vec![];
+        let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
@@ -124,7 +124,7 @@ impl FlowNode {
         self.try_execute_task(snapshot, current_state)
     }
     fn try_execute_exg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        let mut new_states: Vec<State> = vec![];
+        let mut new_states: Vec<State> = vec![]; // Could set capacity to number of outgoing flows.
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
@@ -165,7 +165,7 @@ impl FlowNode {
         snapshot: &ProcessSnapshot,
         current_state: &State,
     ) -> Vec<State> {
-        let mut new_states: Vec<State> = vec![];
+        let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
