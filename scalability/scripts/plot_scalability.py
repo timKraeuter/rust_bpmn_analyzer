@@ -20,21 +20,10 @@ blocks = list(range(1, 301))
 
 plt.plot(blocks, all_means, label="average runtime")
 
-# Linear regression
-slope, intercept, r, p, std_err = stats.linregress(blocks, all_means)
-
-
-def myfunc(x):
-    return slope * x + intercept
-
-
-mymodel = list(map(myfunc, blocks))
-plt.plot(blocks, mymodel, label="linear regression")
-
 # plt.title("HOT scalability")
 plt.xlabel("Blocks per BPMN model")
 plt.ylabel("Average runtime in ms")
 plt.legend()
-plt.savefig('scalability.pdf')
+plt.savefig('scalability.svg')
 plt.show()
 
