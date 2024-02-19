@@ -177,7 +177,7 @@ impl Collaboration {
     fn record_executed_activities(
         not_executed_activities: &mut HashMap<String, bool>,
         flow_node: &FlowNode,
-        new_states: &Vec<State>,
+        new_states: &[State],
     ) {
         if flow_node.flow_node_type == FlowNodeType::Task
             && !new_states.is_empty()

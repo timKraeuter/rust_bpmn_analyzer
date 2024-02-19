@@ -152,7 +152,7 @@ pub fn check_if_stuck(
     current_state_hash: u64,
     state: &State,
     results: &mut Vec<PropertyResult>,
-    next_state_hashes: &Vec<(String, u64)>,
+    next_state_hashes: &[(String, u64)],
 ) {
     if next_state_hashes.is_empty() && !state.is_terminated() {
         record_option_to_complete(current_state_hash, results);
