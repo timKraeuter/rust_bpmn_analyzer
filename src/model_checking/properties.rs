@@ -133,7 +133,7 @@ pub fn check_on_the_fly_properties(
     state: &State,
     properties: &[Property],
     results: &mut Vec<PropertyResult>,
-    next_state_hashes: &Vec<(String, u64)>,
+    next_state_hashes: &[(String, u64)],
 ) {
     for property in properties.iter() {
         match property {
