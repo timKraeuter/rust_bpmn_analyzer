@@ -22,10 +22,6 @@ pub struct Config {
     /// BPMN properties to be checked.
     #[arg(short, long, value_enum, value_delimiter = ',')]
     pub properties: Vec<Property>,
-
-    /// File path for results.
-    #[arg(short, long, default_value = "./bpmn-analysis-results.json")]
-    pub result_path: Option<String>,
 }
 
 pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
