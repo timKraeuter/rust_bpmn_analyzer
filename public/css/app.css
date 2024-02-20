@@ -1,3 +1,7 @@
+.quick-fixes-hide .djs-overlays .quick-fix-note {
+  display: none;
+}
+
 :root {
   --color-button-hover: #fbdbc0;
   --color-property--fulfilled: #008000ff;
@@ -17,6 +21,11 @@ body,
   height: 100%;
   padding: 0;
   margin: 0;
+}
+
+#canvas {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
 }
 
 .bottom-buttons {
@@ -214,6 +223,10 @@ button {
   color: var(--color-property--violated);
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 .tooltip {
   position: relative;
   display: inline-block;
@@ -229,8 +242,9 @@ button {
   padding: 5px 0;
 
   /* Position the tooltip */
-  top: -15px;
+  top: 50%;
   left: 105%;
+  transform: translateY(-50%);
   position: absolute;
   z-index: 1;
 }
