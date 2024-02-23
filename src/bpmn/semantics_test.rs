@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod test {
     use crate::bpmn::collaboration::Collaboration;
     use crate::bpmn::flow_node::FlowNode;
     use crate::bpmn::process::Process;
