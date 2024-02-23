@@ -124,12 +124,8 @@ fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
             None => {
                 panic!("Attribute value for key \"{}\" not found in {:?}.", key, e)
             }
-            Some(x) => match String::from_utf8(x.value.into_owned()) {
-                Ok(value) => value,
-                Err(e) => {
-                    panic!("UTF8 Error. {}", e)
-                }
-            },
+            Some(x) => String::from_utf8(x.value.into_owned())
+                .unwrap_or_else(|e| panic!("UTF8 Error. {}", e)),
         },
         Err(e) => {
             panic!("Could not get attribute! {}", e)
