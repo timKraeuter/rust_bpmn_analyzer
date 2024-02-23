@@ -1,45 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.16.0" camunda:diagramRelationId="9a996f6a-c945-4726-ad4c-f928331d1021">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.20.0" camunda:diagramRelationId="9a996f6a-c945-4726-ad4c-f928331d1021">
   <bpmn:process id="Process_82d322af-6312-46f0-949a-654f941c5888" isExecutable="true">
     <bpmn:startEvent id="StartEvent_1">
       <bpmn:outgoing>Flow_03nzbeu</bpmn:outgoing>
     </bpmn:startEvent>
-    <bpmn:sequenceFlow id="Flow_03nzbeu" sourceRef="StartEvent_1" targetRef="Gateway_1t0loe1" />
-    <bpmn:sequenceFlow id="Flow_03o99g2" sourceRef="Gateway_1t0loe1" targetRef="Gateway_14bg7p6" />
+    <bpmn:sequenceFlow id="Flow_03nzbeu" sourceRef="StartEvent_1" targetRef="EG_1" />
+    <bpmn:sequenceFlow id="Flow_03o99g2" sourceRef="EG_1" targetRef="PG_1" />
     <bpmn:task id="Dead_1" name="Dead_1">
       <bpmn:incoming>Flow_0hq3ybe</bpmn:incoming>
       <bpmn:outgoing>Flow_0gggjp0</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:sequenceFlow id="Flow_0hq3ybe" sourceRef="Gateway_14bg7p6" targetRef="Dead_1" />
-    <bpmn:endEvent id="Event_0ytj7ky">
+    <bpmn:sequenceFlow id="Flow_0hq3ybe" sourceRef="PG_1" targetRef="Dead_1" />
+    <bpmn:endEvent id="End_Event1">
       <bpmn:incoming>Flow_0gggjp0</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_0gggjp0" sourceRef="Dead_1" targetRef="Event_0ytj7ky" />
-    <bpmn:exclusiveGateway id="Gateway_1t0loe1">
+    <bpmn:sequenceFlow id="Flow_0gggjp0" sourceRef="Dead_1" targetRef="End_Event1" />
+    <bpmn:exclusiveGateway id="EG_1">
       <bpmn:incoming>Flow_03nzbeu</bpmn:incoming>
       <bpmn:outgoing>Flow_03o99g2</bpmn:outgoing>
       <bpmn:outgoing>Flow_1dwook6</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:parallelGateway id="Gateway_14bg7p6">
+    <bpmn:parallelGateway id="PG_1">
       <bpmn:incoming>Flow_03o99g2</bpmn:incoming>
       <bpmn:incoming>Flow_1dwook6</bpmn:incoming>
       <bpmn:outgoing>Flow_0hq3ybe</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:sequenceFlow id="Flow_1dwook6" sourceRef="Gateway_1t0loe1" targetRef="Gateway_14bg7p6" />
+    <bpmn:sequenceFlow id="Flow_1dwook6" sourceRef="EG_1" targetRef="PG_1" />
     <bpmn:task id="Dead_2" name="Dead_2">
       <bpmn:outgoing>Flow_0bcsco3</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:endEvent id="Event_1ji9iqh">
+    <bpmn:endEvent id="End_Event2">
       <bpmn:incoming>Flow_0bcsco3</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_0bcsco3" sourceRef="Dead_2" targetRef="Event_1ji9iqh" />
+    <bpmn:sequenceFlow id="Flow_0bcsco3" sourceRef="Dead_2" targetRef="End_Event2" />
     <bpmn:task id="Dead_3" name="Dead_3">
       <bpmn:outgoing>Flow_06ojpth</bpmn:outgoing>
     </bpmn:task>
-    <bpmn:endEvent id="Event_15hi6sl">
+    <bpmn:endEvent id="End_Event3">
       <bpmn:incoming>Flow_06ojpth</bpmn:incoming>
     </bpmn:endEvent>
-    <bpmn:sequenceFlow id="Flow_06ojpth" sourceRef="Dead_3" targetRef="Event_15hi6sl" />
+    <bpmn:sequenceFlow id="Flow_06ojpth" sourceRef="Dead_3" targetRef="End_Event3" />
     <bpmn:task id="Dead_4" name="Dead_4" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
@@ -51,27 +51,27 @@
         <dc:Bounds x="470" y="78" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0ytj7ky_di" bpmnElement="Event_0ytj7ky">
+      <bpmndi:BPMNShape id="Event_0ytj7ky_di" bpmnElement="End_Event1">
         <dc:Bounds x="642" y="100" width="36" height="36" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1fppt5s_di" bpmnElement="Gateway_1t0loe1" isMarkerVisible="true">
+      <bpmndi:BPMNShape id="Gateway_1fppt5s_di" bpmnElement="EG_1" isMarkerVisible="true">
         <dc:Bounds x="245" y="93" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0ebaiwx_di" bpmnElement="Gateway_14bg7p6">
+      <bpmndi:BPMNShape id="Gateway_0ebaiwx_di" bpmnElement="PG_1">
         <dc:Bounds x="355" y="93" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_02q86ev_di" bpmnElement="Dead_2">
         <dc:Bounds x="470" y="180" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_1ji9iqh_di" bpmnElement="Event_1ji9iqh">
+      <bpmndi:BPMNShape id="Event_1ji9iqh_di" bpmnElement="End_Event2">
         <dc:Bounds x="642" y="202" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1v1rgke_di" bpmnElement="Dead_3">
         <dc:Bounds x="470" y="290" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_15hi6sl_di" bpmnElement="Event_15hi6sl">
+      <bpmndi:BPMNShape id="Event_15hi6sl_di" bpmnElement="End_Event3">
         <dc:Bounds x="642" y="312" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0izn2nz_di" bpmnElement="Dead_4">

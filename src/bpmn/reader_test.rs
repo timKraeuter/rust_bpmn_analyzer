@@ -82,6 +82,14 @@ mod tests {
 
         assert_eq!("bpmn-prefix.bpmn", result2.name);
         let first_participant = result2.participants.first().unwrap();
+        println!(
+            "{:?}",
+            first_participant
+                .flow_nodes
+                .iter()
+                .map(|x| x.id.clone())
+                .collect::<Vec<String>>()
+        );
         assert_eq!(10, first_participant.flow_nodes.len());
 
         let result3 = read_bpmn_file(&String::from(
