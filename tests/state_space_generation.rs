@@ -1,4 +1,5 @@
 use bpmnanalyzer::{Config, Property};
+
 const PATH: &str = "tests/resources/integration/";
 
 #[test]
@@ -17,6 +18,7 @@ fn test_stable_state_space1() {
     assert_eq!(7, result.state_space.transitions.len());
     assert_eq!(4, result.property_results.len());
 }
+
 #[test]
 fn test_stable_state_space2() {
     let config = Config {
