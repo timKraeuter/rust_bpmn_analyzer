@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.4.7", features = ["derive"] }
 colored = "2.0.4"
-quick-xml = { version = "0.31.0", features = ["async-tokio"] }
+quick-xml = { version = "0.31.0"}

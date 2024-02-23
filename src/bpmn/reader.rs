@@ -2,9 +2,7 @@ use crate::bpmn::collaboration::Collaboration;
 use crate::bpmn::flow_node::{FlowNode, FlowNodeType, SequenceFlow};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
-use quick_xml::name::Namespace;
-use quick_xml::name::ResolveResult::Bound;
-use quick_xml::NsReader;
+use quick_xml::reader::Reader;
 use std::fs;
 use std::path::Path;
 
@@ -12,10 +10,8 @@ pub fn read_bpmn_file(file_path: &String) -> Collaboration {
     // TODO: Read directly from file (less peak memory usage).
     // TODO: Use serde to map to structs.
     let (contents, file_name) = read_file_and_get_name(file_path);
-    let mut reader = NsReader::from_str(&contents);
+    let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
-
-    println!("Reading file: {:?}", file_name.clone());
 
     let mut collaboration = Collaboration {
         name: file_name,
@@ -23,39 +19,37 @@ pub fn read_bpmn_file(file_path: &String) -> Collaboration {
     };
 
     let mut sfs = Vec::new();
-    loop {
-        match reader.read_resolved_event().unwrap() {
-            (Bound(Namespace(b"http://www.omg.org/spec/BPMN/20100524/MODEL")), Event::Start(e)) => {
-                match e.local_name().as_ref() {
-                    b"process" => {
-                        add_participant(&mut collaboration, e);
-                    }
-                    b"startEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::StartEvent),
-                    b"serviceTask" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
-                    b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
-                    b"intermediateThrowEvent" => {
-                        add_flow_node(&mut collaboration, e, FlowNodeType::IntermediateThrowEvent)
-                    }
-                    b"parallelGateway" => {
-                        add_flow_node(&mut collaboration, e, FlowNodeType::ParallelGateway)
-                    }
-                    b"exclusiveGateway" => {
-                        add_flow_node(&mut collaboration, e, FlowNodeType::ExclusiveGateway)
-                    }
-                    b"endEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::EndEvent),
-                    b"sequenceFlow" => sfs.push(e),
-                    _ => (),
-                }
-            }
-            (Bound(Namespace(b"http://www.omg.org/spec/BPMN/20100524/MODEL")), Event::Empty(e)) => {
-                match e.local_name().as_ref() {
-                    b"sequenceFlow" => sfs.push(e),
 
-                    b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
-                    _ => (),
+    loop {
+        match reader.read_event() {
+            Ok(Event::Start(e)) => match e.local_name().as_ref() {
+                b"process" => {
+                    add_participant(&mut collaboration, e);
                 }
-            }
-            (_, Event::Eof) => break,
+                b"startEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::StartEvent),
+                b"serviceTask" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                b"intermediateThrowEvent" => {
+                    add_flow_node(&mut collaboration, e, FlowNodeType::IntermediateThrowEvent)
+                }
+                b"parallelGateway" => {
+                    add_flow_node(&mut collaboration, e, FlowNodeType::ParallelGateway)
+                }
+                b"exclusiveGateway" => {
+                    add_flow_node(&mut collaboration, e, FlowNodeType::ExclusiveGateway)
+                }
+                b"endEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::EndEvent),
+                b"sequenceFlow" => sfs.push(e),
+                _ => (),
+            },
+            Ok(Event::Empty(e)) => match e.local_name().as_ref() {
+                b"sequenceFlow" => sfs.push(e),
+
+                b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                _ => (),
+            },
+            Ok(Event::Eof) => break,
+            Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (),
         }
     }
@@ -130,8 +124,12 @@ fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
             None => {
                 panic!("Attribute value for key \"{}\" not found in {:?}.", key, e)
             }
-            Some(x) => String::from_utf8(x.value.into_owned())
-                .unwrap_or_else(|e| panic!("UTF8 Error. {}", e)),
+            Some(x) => match String::from_utf8(x.value.into_owned()) {
+                Ok(value) => value,
+                Err(e) => {
+                    panic!("UTF8 Error. {}", e)
+                }
+            },
         },
         Err(e) => {
             panic!("Could not get attribute! {}", e)
