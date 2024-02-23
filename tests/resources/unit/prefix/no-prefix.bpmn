@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" id="definitions_c3351e85-298e-4966-b7a9-35b9e5ea6c2d" targetNamespace="http://www.omg.org/spec/BPMN/20100524/MODEL" exporter="Camunda Modeler" exporterVersion="5.7.0" camunda:diagramRelationId="bbae2a80-0600-4f84-9458-77e1a7109e1a">
+  <process id="process" isExecutable="false">
+    <startEvent id="Event_0s1q8sg">
+      <outgoing>Flow_0b7cnte</outgoing>
+    </startEvent>
+    <sequenceFlow id="Flow_0b7cnte" sourceRef="Event_0s1q8sg" targetRef="Gateway_0wc9tmn" />
+    <parallelGateway id="Gateway_0wc9tmn">
+      <incoming>Flow_0b7cnte</incoming>
+      <outgoing>Flow_1hy377v</outgoing>
+      <outgoing>Flow_1epepxb</outgoing>
+    </parallelGateway>
+    <exclusiveGateway id="Gateway_0re1nqe">
+      <incoming>Flow_1hy377v</incoming>
+      <incoming>Flow_1epepxb</incoming>
+      <outgoing>Unsafe1</outgoing>
+    </exclusiveGateway>
+    <sequenceFlow id="Flow_1hy377v" sourceRef="Gateway_0wc9tmn" targetRef="Gateway_0re1nqe" />
+    <sequenceFlow id="Flow_1epepxb" sourceRef="Gateway_0wc9tmn" targetRef="Gateway_0re1nqe" />
+    <endEvent id="Event_1rq5yj0">
+      <incoming>Unsafe2</incoming>
+    </endEvent>
+    <sequenceFlow id="Unsafe1" name="Unsafe1" sourceRef="Gateway_0re1nqe" targetRef="Activity_1li6fef" />
+    <task id="Activity_1li6fef">
+      <incoming>Unsafe1</incoming>
+      <outgoing>Unsafe2</outgoing>
+    </task>
+    <sequenceFlow id="Unsafe2" name="Unsafe2" sourceRef="Activity_1li6fef" targetRef="Event_1rq5yj0" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_70313b3b-e835-411c-bc0d-83d760865280">
+    <bpmndi:BPMNPlane id="BPMNPlane_56630787-2eba-489f-98c8-0130ce0e0bd8" bpmnElement="process">
+      <bpmndi:BPMNShape id="Event_0s1q8sg_di" bpmnElement="Event_0s1q8sg">
+        <dc:Bounds x="152" y="92" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1vwllfr_di" bpmnElement="Gateway_0wc9tmn">
+        <dc:Bounds x="245" y="85" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0re1nqe_di" bpmnElement="Gateway_0re1nqe" isMarkerVisible="true">
+        <dc:Bounds x="355" y="85" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1rq5yj0_di" bpmnElement="Event_1rq5yj0">
+        <dc:Bounds x="722" y="92" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1li6fef_di" bpmnElement="Activity_1li6fef">
+        <dc:Bounds x="520" y="70" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0b7cnte_di" bpmnElement="Flow_0b7cnte">
+        <di:waypoint x="188" y="110" />
+        <di:waypoint x="245" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1hy377v_di" bpmnElement="Flow_1hy377v">
+        <di:waypoint x="295" y="110" />
+        <di:waypoint x="355" y="110" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1epepxb_di" bpmnElement="Flow_1epepxb">
+        <di:waypoint x="270" y="135" />
+        <di:waypoint x="270" y="160" />
+        <di:waypoint x="380" y="160" />
+        <di:waypoint x="380" y="135" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11ztqzd_di" bpmnElement="Unsafe1">
+        <di:waypoint x="405" y="110" />
+        <di:waypoint x="520" y="110" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="439" y="92" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1mh5n9l_di" bpmnElement="Unsafe2">
+        <di:waypoint x="620" y="110" />
+        <di:waypoint x="722" y="110" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="651" y="92" width="41" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>

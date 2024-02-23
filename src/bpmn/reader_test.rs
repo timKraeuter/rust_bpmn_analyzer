@@ -6,6 +6,8 @@ mod tests {
     use crate::bpmn::process::Process;
     use crate::bpmn::reader::read_bpmn_file;
 
+    const PATH: &str = "tests/resources/unit/";
+
     #[test]
     fn read_task_and_gateways() {
         let mut expected = Collaboration {
@@ -61,10 +63,33 @@ mod tests {
         expected.add_participant(process);
 
         // When
-        let result = read_bpmn_file(&String::from(
-            "tests/resources/unit/semantics/task-and-gateways.bpmn",
-        ));
+        let result = read_bpmn_file(&(PATH.to_string() + "semantics/task-and-gateways.bpmn"));
 
         assert_eq!(expected, result);
+    }
+
+    #[test]
+    fn read_different_prefixes() {
+        let result1 = read_bpmn_file(&String::from(&(PATH.to_string() + "prefix/no-prefix.bpmn")));
+
+        assert_eq!("no-prefix.bpmn", result1.name);
+        let first_participant = result1.participants.first().unwrap();
+        assert_eq!(5, first_participant.flow_nodes.len());
+
+        let result2 = read_bpmn_file(&String::from(
+            &(PATH.to_string() + "prefix/bpmn-prefix.bpmn"),
+        ));
+
+        assert_eq!("bpmn-prefix.bpmn", result2.name);
+        let first_participant = result2.participants.first().unwrap();
+        assert_eq!(10, first_participant.flow_nodes.len());
+
+        let result3 = read_bpmn_file(&String::from(
+            &(PATH.to_string() + "prefix/wurst-prefix.bpmn"),
+        ));
+
+        assert_eq!("wurst-prefix.bpmn", result3.name);
+        let first_participant = result3.participants.first().unwrap();
+        assert_eq!(10, first_participant.flow_nodes.len());
     }
 }
