@@ -8,6 +8,13 @@ mod tests {
 
     const PATH: &str = "tests/resources/unit/";
 
+    fn read_bpmn_and_unwrap(path: &String) -> Collaboration {
+        match read_bpmn_file(path) {
+            Ok(collaboration) => collaboration,
+            Err(err) => panic!("Error reading the file {:?}. {}", path, err),
+        }
+    }
+
     #[test]
     fn read_task_and_gateways() {
         let mut expected = Collaboration {
@@ -63,20 +70,21 @@ mod tests {
         expected.add_participant(process);
 
         // When
-        let result = read_bpmn_file(&(PATH.to_string() + "semantics/task-and-gateways.bpmn"));
+        let result = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/task-and-gateways.bpmn"));
 
         assert_eq!(expected, result);
     }
 
     #[test]
-    fn read_different_prefixes() {
-        let result1 = read_bpmn_file(&String::from(&(PATH.to_string() + "prefix/no-prefix.bpmn")));
+    fn read_different_namespace_prefixes() {
+        let result1 =
+            read_bpmn_and_unwrap(&String::from(&(PATH.to_string() + "prefix/no-prefix.bpmn")));
 
         assert_eq!("no-prefix.bpmn", result1.name);
         let first_participant = result1.participants.first().unwrap();
         assert_eq!(5, first_participant.flow_nodes.len());
 
-        let result2 = read_bpmn_file(&String::from(
+        let result2 = read_bpmn_and_unwrap(&String::from(
             &(PATH.to_string() + "prefix/bpmn-prefix.bpmn"),
         ));
 
@@ -94,10 +102,18 @@ mod tests {
 
         let result3 = read_bpmn_file(&String::from(
             &(PATH.to_string() + "prefix/wurst-prefix.bpmn"),
-        ));
+        ))
+        .unwrap();
 
         assert_eq!("wurst-prefix.bpmn", result3.name);
         let first_participant = result3.participants.first().unwrap();
         assert_eq!(10, first_participant.flow_nodes.len());
+    }
+
+    #[test]
+    fn read_all_possible_tasks() {
+        let _result1 = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/tasks.bpmn")));
+
+        // TODO: Add custom error and check it.
     }
 }

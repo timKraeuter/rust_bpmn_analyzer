@@ -11,9 +11,16 @@ mod test {
 
     const PATH: &str = "tests/resources/unit/";
 
+    fn read_bpmn_and_unwrap(path: &String) -> Collaboration {
+        match read_bpmn_file(path) {
+            Ok(collaboration) => collaboration,
+            Err(err) => panic!("Error reading the file {:?}. {}", path, err),
+        }
+    }
+
     #[test]
     fn create_start_state() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/start.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/start.bpmn"));
         let start_state = collaboration.create_start_state();
 
         assert_eq!(
@@ -30,7 +37,7 @@ mod test {
 
     #[test]
     fn try_execute_task() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/task.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/task.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -64,7 +71,7 @@ mod test {
 
     #[test]
     fn try_execute_exg_choice() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/exg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -84,7 +91,7 @@ mod test {
 
     #[test]
     fn try_execute_exg_merge() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/exg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -113,7 +120,7 @@ mod test {
 
     #[test]
     fn try_execute_pg_split() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -133,7 +140,7 @@ mod test {
 
     #[test]
     fn try_execute_pg_sync() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -156,7 +163,7 @@ mod test {
 
     #[test]
     fn try_execute_end_event() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/end.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/end.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
@@ -191,7 +198,7 @@ mod test {
     #[test]
     fn try_execute_intermediate_throw_event() {
         let collaboration =
-            read_bpmn_file(&(PATH.to_string() + "semantics/intermediate_event.bpmn"));
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/intermediate_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Intermediate"));
@@ -245,7 +252,8 @@ mod test {
 
     #[test]
     fn safeness_unfulfilled() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "properties/safeness/unsafe.bpmn"));
+        let collaboration =
+            read_bpmn_and_unwrap(&(PATH.to_string() + "properties/safeness/unsafe.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -286,7 +294,7 @@ mod test {
 
     #[test]
     fn safeness_fulfilled() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -300,7 +308,7 @@ mod test {
 
     #[test]
     fn option_to_complete_unfulfilled_1() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-1.bpmn"),
         );
 
@@ -342,7 +350,7 @@ mod test {
 
     #[test]
     fn option_to_complete_unfulfilled_2() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-2.bpmn"),
         );
 
@@ -377,7 +385,7 @@ mod test {
 
     #[test]
     fn option_to_complete_fulfilled() {
-        let collaboration = read_bpmn_file(&(PATH.to_string() + "semantics/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -391,7 +399,7 @@ mod test {
 
     #[test]
     fn no_dead_activities_unfulfilled() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/no_dead_activities/dead-activities.bpmn"),
         );
 
@@ -419,7 +427,7 @@ mod test {
 
     #[test]
     fn no_dead_activities_fulfilled() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/no_dead_activities/no-dead-activities.bpmn"),
         );
 
@@ -435,7 +443,7 @@ mod test {
 
     #[test]
     fn proper_completion_fulfilled_1() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/proper-completion-1.bpmn"),
         );
 
@@ -451,7 +459,7 @@ mod test {
 
     #[test]
     fn proper_completion_fulfilled_2() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/proper-completion-2.bpmn"),
         );
 
@@ -467,7 +475,7 @@ mod test {
 
     #[test]
     fn proper_completion_unfulfilled_1() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-1.bpmn"),
         );
 
@@ -489,7 +497,7 @@ mod test {
 
     #[test]
     fn proper_completion_unfulfilled_2() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-2.bpmn"),
         );
 
@@ -511,7 +519,7 @@ mod test {
 
     #[test]
     fn proper_completion_unfulfilled_3() {
-        let collaboration = read_bpmn_file(
+        let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-3-unsafe.bpmn"),
         );
 

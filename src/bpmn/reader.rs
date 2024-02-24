@@ -4,9 +4,10 @@ use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
 use std::fs;
+use std::io::Error;
 use std::path::Path;
 
-pub fn read_bpmn_file(file_path: &String) -> Collaboration {
+pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, Error> {
     // TODO: Read directly from file (less peak memory usage).
     // TODO: Use serde to map to structs.
     let (contents, file_name) = read_file_and_get_name(file_path);
@@ -57,7 +58,7 @@ pub fn read_bpmn_file(file_path: &String) -> Collaboration {
     for sf in sfs.iter() {
         add_sf_to_last_participant(&mut collaboration, sf);
     }
-    collaboration
+    Ok(collaboration)
 }
 
 fn read_file_and_get_name(path: &String) -> (String, String) {

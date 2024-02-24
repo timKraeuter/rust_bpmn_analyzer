@@ -25,7 +25,7 @@ pub struct Config {
 }
 
 pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
-    let collaboration = read_bpmn_file(&config.file_path);
+    let collaboration = read_bpmn_file(&config.file_path)?;
 
     let start = collaboration.create_start_state();
 
