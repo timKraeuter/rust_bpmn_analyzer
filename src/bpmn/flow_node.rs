@@ -34,12 +34,15 @@ impl FlowNode {
                 vec![]
             }
             FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
-            FlowNodeType::IntermediateThrowEvent => {
+            FlowNodeType::IntermediateThrowEvent(_) => {
                 self.try_intermediate_throw_event(snapshot, current_state)
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
-            FlowNodeType::EndEvent => self.try_execute_end_event(snapshot, current_state),
+            FlowNodeType::EndEvent(_) => self.try_execute_end_event(snapshot, current_state),
+            FlowNodeType::IntermediateCatchEvent(_) => {
+                todo!()
+            }
         }
     }
 
@@ -201,9 +204,17 @@ impl FlowNode {
 #[derive(Debug, PartialEq)]
 pub enum FlowNodeType {
     StartEvent,
-    IntermediateThrowEvent,
+    IntermediateThrowEvent(EventType),
+    IntermediateCatchEvent(EventType),
     Task,
     ExclusiveGateway,
     ParallelGateway,
-    EndEvent,
+    EndEvent(EventType),
+}
+
+#[derive(Debug, PartialEq)]
+pub enum EventType {
+    None,
+    Message,
+    Unsupported,
 }

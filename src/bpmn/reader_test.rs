@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::bpmn::collaboration::Collaboration;
-    use crate::bpmn::flow_node::FlowNode;
+    use crate::bpmn::flow_node::{EventType, FlowNode};
     use crate::bpmn::flow_node::{FlowNodeType, SequenceFlow};
     use crate::bpmn::process::Process;
     use crate::bpmn::reader::read_bpmn_file;
@@ -41,7 +41,10 @@ mod tests {
             String::from("pg"),
             FlowNodeType::ParallelGateway,
         ));
-        process.add_flow_node(FlowNode::new(String::from("end"), FlowNodeType::EndEvent));
+        process.add_flow_node(FlowNode::new(
+            String::from("end"),
+            FlowNodeType::EndEvent(EventType::None),
+        ));
         process.add_sf(
             SequenceFlow {
                 id: String::from("sf_1"),
@@ -93,14 +96,6 @@ mod tests {
 
         assert_eq!("bpmn-prefix.bpmn", result2.name);
         let first_participant = result2.participants.first().unwrap();
-        println!(
-            "{:?}",
-            first_participant
-                .flow_nodes
-                .iter()
-                .map(|x| x.id.clone())
-                .collect::<Vec<String>>()
-        );
         assert_eq!(10, first_participant.flow_nodes.len());
 
         let result3 = read_bpmn_file(&String::from(
@@ -126,7 +121,7 @@ mod tests {
                     vec![
                         "sendTask".to_string(),
                         "receiveTask".to_string(),
-                        "callActivity".to_string()
+                        "call_activity".to_string()
                     ],
                     err.unsupported_elements
                 );
@@ -137,7 +132,6 @@ mod tests {
     #[test]
     fn read_all_possible_events() {
         let result = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/events.bpmn")));
-        // TODO: Read events on close and remember the last event definition?
 
         match result {
             Ok(_) => {
@@ -145,7 +139,20 @@ mod tests {
             }
             Err(err) => {
                 assert_eq!(
-                    vec!["messageStart".to_string(), "signalStart".to_string(),],
+                    vec![
+                        "signalEnd".to_string(),
+                        "terminateEnd".to_string(),
+                        "linkCEvent".to_string(),
+                        "linkTEvent".to_string(),
+                        "signalCEvent".to_string(),
+                        "signalTEvent".to_string(),
+                        "timerCEvent".to_string(),
+                        "errorEnd".to_string(),
+                        "escalationEnd".to_string(),
+                        "escalationTEvent".to_string(),
+                        "compensationTEvent".to_string(),
+                        "compensationEnd".to_string(),
+                    ],
                     err.unsupported_elements
                 );
             }

@@ -406,8 +406,6 @@ mod test {
             &(PATH.to_string() + "properties/no_dead_activities/dead-activities.bpmn"),
         );
 
-        println!("{:?}", collaboration);
-
         let start = collaboration.create_start_state();
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
