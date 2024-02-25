@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wurst:definitions xmlns:wurst="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.16.0" camunda:diagramRelationId="9a996f6a-c945-4726-ad4c-f928331d1021">
+  <wurst:process id="Process_82d322af-6312-46f0-949a-654f941c5888" isExecutable="true">
+    <wurst:startEvent id="StartEvent_1">
+      <wurst:outgoing>Flow_03nzbeu</wurst:outgoing>
+    </wurst:startEvent>
+    <wurst:sequenceFlow id="Flow_03nzbeu" sourceRef="StartEvent_1" targetRef="Gateway_1t0loe1" />
+    <wurst:sequenceFlow id="Flow_03o99g2" sourceRef="Gateway_1t0loe1" targetRef="Gateway_14bg7p6" />
+    <wurst:task id="Dead_1" name="Dead_1">
+      <wurst:incoming>Flow_0hq3ybe</wurst:incoming>
+      <wurst:outgoing>Flow_0gggjp0</wurst:outgoing>
+    </wurst:task>
+    <wurst:sequenceFlow id="Flow_0hq3ybe" sourceRef="Gateway_14bg7p6" targetRef="Dead_1" />
+    <wurst:endEvent id="Event_0ytj7ky">
+      <wurst:incoming>Flow_0gggjp0</wurst:incoming>
+    </wurst:endEvent>
+    <wurst:sequenceFlow id="Flow_0gggjp0" sourceRef="Dead_1" targetRef="Event_0ytj7ky" />
+    <wurst:exclusiveGateway id="Gateway_1t0loe1">
+      <wurst:incoming>Flow_03nzbeu</wurst:incoming>
+      <wurst:outgoing>Flow_03o99g2</wurst:outgoing>
+      <wurst:outgoing>Flow_1dwook6</wurst:outgoing>
+    </wurst:exclusiveGateway>
+    <wurst:parallelGateway id="Gateway_14bg7p6">
+      <wurst:incoming>Flow_03o99g2</wurst:incoming>
+      <wurst:incoming>Flow_1dwook6</wurst:incoming>
+      <wurst:outgoing>Flow_0hq3ybe</wurst:outgoing>
+    </wurst:parallelGateway>
+    <wurst:sequenceFlow id="Flow_1dwook6" sourceRef="Gateway_1t0loe1" targetRef="Gateway_14bg7p6" />
+    <wurst:task id="Dead_2" name="Dead_2">
+      <wurst:outgoing>Flow_0bcsco3</wurst:outgoing>
+    </wurst:task>
+    <wurst:endEvent id="Event_1ji9iqh">
+      <wurst:incoming>Flow_0bcsco3</wurst:incoming>
+    </wurst:endEvent>
+    <wurst:sequenceFlow id="Flow_0bcsco3" sourceRef="Dead_2" targetRef="Event_1ji9iqh" />
+    <wurst:task id="Dead_3" name="Dead_3">
+      <wurst:outgoing>Flow_06ojpth</wurst:outgoing>
+    </wurst:task>
+    <wurst:endEvent id="Event_15hi6sl">
+      <wurst:incoming>Flow_06ojpth</wurst:incoming>
+    </wurst:endEvent>
+    <wurst:sequenceFlow id="Flow_06ojpth" sourceRef="Dead_3" targetRef="Event_15hi6sl" />
+    <wurst:task id="Dead_4" name="Dead_4" />
+  </wurst:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_82d322af-6312-46f0-949a-654f941c5888">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="150" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ghwlgx_di" bpmnElement="Dead_1">
+        <dc:Bounds x="470" y="78" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ytj7ky_di" bpmnElement="Event_0ytj7ky">
+        <dc:Bounds x="642" y="100" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1fppt5s_di" bpmnElement="Gateway_1t0loe1" isMarkerVisible="true">
+        <dc:Bounds x="245" y="93" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0ebaiwx_di" bpmnElement="Gateway_14bg7p6">
+        <dc:Bounds x="355" y="93" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02q86ev_di" bpmnElement="Dead_2">
+        <dc:Bounds x="470" y="180" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1ji9iqh_di" bpmnElement="Event_1ji9iqh">
+        <dc:Bounds x="642" y="202" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1v1rgke_di" bpmnElement="Dead_3">
+        <dc:Bounds x="470" y="290" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_15hi6sl_di" bpmnElement="Event_15hi6sl">
+        <dc:Bounds x="642" y="312" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0izn2nz_di" bpmnElement="Dead_4">
+        <dc:Bounds x="470" y="420" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_03nzbeu_di" bpmnElement="Flow_03nzbeu">
+        <di:waypoint x="186" y="118" />
+        <di:waypoint x="245" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_03o99g2_di" bpmnElement="Flow_03o99g2">
+        <di:waypoint x="295" y="118" />
+        <di:waypoint x="355" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0hq3ybe_di" bpmnElement="Flow_0hq3ybe">
+        <di:waypoint x="405" y="118" />
+        <di:waypoint x="470" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0gggjp0_di" bpmnElement="Flow_0gggjp0">
+        <di:waypoint x="570" y="118" />
+        <di:waypoint x="642" y="118" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1dwook6_di" bpmnElement="Flow_1dwook6">
+        <di:waypoint x="270" y="143" />
+        <di:waypoint x="270" y="190" />
+        <di:waypoint x="380" y="190" />
+        <di:waypoint x="380" y="143" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bcsco3_di" bpmnElement="Flow_0bcsco3">
+        <di:waypoint x="570" y="220" />
+        <di:waypoint x="642" y="220" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06ojpth_di" bpmnElement="Flow_06ojpth">
+        <di:waypoint x="570" y="330" />
+        <di:waypoint x="642" y="330" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</wurst:definitions>

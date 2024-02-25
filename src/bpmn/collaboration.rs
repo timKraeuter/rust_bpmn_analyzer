@@ -1,4 +1,4 @@
-use crate::bpmn::flow_node::{FlowNode, FlowNodeType};
+use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType};
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
@@ -121,7 +121,7 @@ impl Collaboration {
                 tokens: BTreeMap::new(),
             };
             for flow_node in &process.flow_nodes {
-                if flow_node.flow_node_type == FlowNodeType::StartEvent {
+                if flow_node.flow_node_type == FlowNodeType::StartEvent(EventType::None) {
                     for out_sf in flow_node.outgoing_flows.iter() {
                         // Cloning the string here could be done differently.
                         let position = out_sf.id.clone();
@@ -177,7 +177,7 @@ impl Collaboration {
     fn record_executed_activities(
         not_executed_activities: &mut HashMap<String, bool>,
         flow_node: &FlowNode,
-        new_states: &Vec<State>,
+        new_states: &[State],
     ) {
         if flow_node.flow_node_type == FlowNodeType::Task
             && !new_states.is_empty()

@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod test {
     use crate::bpmn::collaboration::Collaboration;
     use crate::bpmn::flow_node::FlowNode;
     use crate::bpmn::process::Process;
@@ -9,10 +9,21 @@ mod tests {
     use crate::Property;
     use std::collections::BTreeMap;
 
+    const PATH: &str = "tests/resources/unit/";
+
+    fn read_bpmn_and_unwrap(path: &String) -> Collaboration {
+        match read_bpmn_file(path) {
+            Ok(collaboration) => collaboration,
+            Err(err) => panic!(
+                "Error reading the file {:?}. Unsupported elements found: {:?}",
+                path, err.unsupported_elements
+            ),
+        }
+    }
+
     #[test]
     fn create_start_state() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/start.bpmn"));
-
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/start.bpmn"));
         let start_state = collaboration.create_start_state();
 
         assert_eq!(
@@ -20,16 +31,16 @@ mod tests {
             State {
                 snapshots: vec![ProcessSnapshot::new(
                     String::from("process"),
-                    vec![String::from("Flow_1"), String::from("Flow_2")]
+                    vec![String::from("Flow_1"), String::from("Flow_2")],
                 )],
-                executed_end_event_counter: BTreeMap::new()
+                executed_end_event_counter: BTreeMap::new(),
             }
         );
     }
 
     #[test]
     fn try_execute_task() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/task.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/task.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -46,16 +57,16 @@ mod tests {
                     vec![
                         String::from("Flow_2"),
                         String::from("Flow_3"),
-                        String::from("Flow_4")
-                    ]
+                        String::from("Flow_4"),
+                    ],
                 ),
                 State::new(
                     String::from("process"),
                     vec![
                         String::from("Flow_1"),
                         String::from("Flow_3"),
-                        String::from("Flow_4")
-                    ]
+                        String::from("Flow_4"),
+                    ],
                 ),
             ]
         )
@@ -63,7 +74,7 @@ mod tests {
 
     #[test]
     fn try_execute_exg_choice() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/exg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -83,7 +94,7 @@ mod tests {
 
     #[test]
     fn try_execute_exg_merge() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/exg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -100,11 +111,11 @@ mod tests {
             vec![
                 State::new(
                     String::from("process"),
-                    vec![String::from("Flow_3"), String::from("Flow_4")]
+                    vec![String::from("Flow_3"), String::from("Flow_4")],
                 ),
                 State::new(
                     String::from("process"),
-                    vec![String::from("Flow_2"), String::from("Flow_4")]
+                    vec![String::from("Flow_2"), String::from("Flow_4")],
                 ),
             ]
         );
@@ -112,7 +123,7 @@ mod tests {
 
     #[test]
     fn try_execute_pg_split() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -125,14 +136,14 @@ mod tests {
             next_states,
             vec![State::new(
                 String::from("process"),
-                vec![String::from("Flow_2"), String::from("Flow_3")]
+                vec![String::from("Flow_2"), String::from("Flow_3")],
             ),]
         )
     }
 
     #[test]
     fn try_execute_pg_sync() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
@@ -148,14 +159,14 @@ mod tests {
             next_states,
             vec![State::new(
                 String::from("process"),
-                vec![String::from("Flow_4")]
+                vec![String::from("Flow_4")],
             ),]
         );
     }
 
     #[test]
     fn try_execute_end_event() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/end.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/end.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
@@ -184,13 +195,13 @@ mod tests {
         state2
             .executed_end_event_counter
             .insert("End".to_string(), 1);
-        assert_eq!(next_states, vec![state1, state2,]);
+        assert_eq!(next_states, vec![state1, state2]);
     }
 
     #[test]
     fn try_execute_intermediate_throw_event() {
         let collaboration =
-            read_bpmn_file(&String::from("tests/resources/intermediate_event.bpmn"));
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/intermediate_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Intermediate"));
@@ -209,16 +220,16 @@ mod tests {
                     vec![
                         String::from("Flow_2"),
                         String::from("Flow_3"),
-                        String::from("Flow_4")
-                    ]
+                        String::from("Flow_4"),
+                    ],
                 ),
                 State::new(
                     String::from("process"),
                     vec![
                         String::from("Flow_1"),
                         String::from("Flow_3"),
-                        String::from("Flow_4")
-                    ]
+                        String::from("Flow_4"),
+                    ],
                 ),
             ]
         );
@@ -244,7 +255,8 @@ mod tests {
 
     #[test]
     fn safeness_unfulfilled() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/unsafe.bpmn"));
+        let collaboration =
+            read_bpmn_and_unwrap(&(PATH.to_string() + "properties/safeness/unsafe.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -258,8 +270,7 @@ mod tests {
                 property: Property::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe2"), String::from("Unsafe1")],
-                problematic_state_hashes: vec![13741427997559944324, unsafe_state_hash],
-                ..Default::default()
+                problematic_state_hashes: vec![13741427997559944324, unsafe_state_hash]
             }]
         );
 
@@ -271,7 +282,7 @@ mod tests {
                     id: String::from("process"),
                     tokens: BTreeMap::from([(String::from("Unsafe1"), 2u16)]),
                 }],
-                executed_end_event_counter: BTreeMap::new()
+                executed_end_event_counter: BTreeMap::new(),
             }
         );
 
@@ -286,7 +297,7 @@ mod tests {
 
     #[test]
     fn safeness_fulfilled() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -300,9 +311,9 @@ mod tests {
 
     #[test]
     fn option_to_complete_unfulfilled_1() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/option_to_complete/no-option-to-complete-1.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-1.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -317,7 +328,7 @@ mod tests {
                 fulfilled: false,
                 problematic_state_hashes: vec![
                     not_terminated_state_hash_1,
-                    not_terminated_state_hash_2
+                    not_terminated_state_hash_2,
                 ],
                 ..Default::default()
             }]
@@ -342,9 +353,9 @@ mod tests {
 
     #[test]
     fn option_to_complete_unfulfilled_2() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/option_to_complete/no-option-to-complete-2.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-2.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -370,14 +381,14 @@ mod tests {
                     id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
                     tokens: BTreeMap::from([(String::from("stuck"), 1u16)]),
                 }],
-                executed_end_event_counter: BTreeMap::new()
+                executed_end_event_counter: BTreeMap::new(),
             }
         );
     }
 
     #[test]
     fn option_to_complete_fulfilled() {
-        let collaboration = read_bpmn_file(&String::from("tests/resources/pg.bpmn"));
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -391,11 +402,9 @@ mod tests {
 
     #[test]
     fn no_dead_activities_unfulfilled() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/no_dead_activities/dead-activities.bpmn",
-        ));
-
-        println!("{:?}", collaboration);
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/no_dead_activities/dead-activities.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -410,7 +419,7 @@ mod tests {
                     String::from("Dead_1"),
                     String::from("Dead_2"),
                     String::from("Dead_3"),
-                    String::from("Dead_4")
+                    String::from("Dead_4"),
                 ],
                 ..Default::default()
             }]
@@ -419,9 +428,9 @@ mod tests {
 
     #[test]
     fn no_dead_activities_fulfilled() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/no_dead_activities/no-dead-activities.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/no_dead_activities/no-dead-activities.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -435,9 +444,9 @@ mod tests {
 
     #[test]
     fn proper_completion_fulfilled_1() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/proper_completion/proper-completion-1.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/proper_completion/proper-completion-1.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -451,9 +460,9 @@ mod tests {
 
     #[test]
     fn proper_completion_fulfilled_2() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/proper_completion/proper-completion-2.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/proper_completion/proper-completion-2.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
@@ -467,15 +476,15 @@ mod tests {
 
     #[test]
     fn proper_completion_unfulfilled_1() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/proper_completion/no-proper-completion-1.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/proper_completion/no-proper-completion-1.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
-        let result = model_checking_result.property_results.get(0).unwrap();
+        let result = model_checking_result.property_results.first().unwrap();
         assert_eq!(
             result,
             &PropertyResult {
@@ -489,15 +498,15 @@ mod tests {
 
     #[test]
     fn proper_completion_unfulfilled_2() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/proper_completion/no-proper-completion-2.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/proper_completion/no-proper-completion-2.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
 
-        let result = model_checking_result.property_results.get(0).unwrap();
+        let result = model_checking_result.property_results.first().unwrap();
         assert_eq!(
             result,
             &PropertyResult {
@@ -511,9 +520,9 @@ mod tests {
 
     #[test]
     fn proper_completion_unfulfilled_3() {
-        let collaboration = read_bpmn_file(&String::from(
-            "tests/resources/proper_completion/no-proper-completion-3-unsafe.bpmn",
-        ));
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "properties/proper_completion/no-proper-completion-3-unsafe.bpmn"),
+        );
 
         let start = collaboration.create_start_state();
         let model_checking_result = collaboration
@@ -532,12 +541,12 @@ mod tests {
     }
 
     fn get_first_process(collaboration: &Collaboration) -> &Process {
-        let process = collaboration.participants.get(0).unwrap();
+        let process = collaboration.participants.first().unwrap();
         process
     }
 
     fn get_first_snapshot(start_state: &State) -> &ProcessSnapshot {
-        let snapshot = start_state.snapshots.get(0).unwrap();
+        let snapshot = start_state.snapshots.first().unwrap();
         snapshot
     }
 
