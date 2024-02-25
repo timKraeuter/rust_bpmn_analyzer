@@ -115,9 +115,9 @@ mod tests {
 
     #[test]
     fn read_all_possible_tasks() {
-        let result1 = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/tasks.bpmn")));
+        let result = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/tasks.bpmn")));
 
-        match result1 {
+        match result {
             Ok(_) => {
                 panic!("This should be an error")
             }
@@ -128,6 +128,24 @@ mod tests {
                         "receiveTask".to_string(),
                         "callActivity".to_string()
                     ],
+                    err.unsupported_elements
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn read_all_possible_events() {
+        let result = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/events.bpmn")));
+        // TODO: Read events on close and remember the last event definition?
+
+        match result {
+            Ok(_) => {
+                panic!("This should be an error")
+            }
+            Err(err) => {
+                assert_eq!(
+                    vec!["messageStart".to_string(), "signalStart".to_string(),],
                     err.unsupported_elements
                 );
             }

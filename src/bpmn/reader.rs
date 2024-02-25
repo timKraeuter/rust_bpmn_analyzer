@@ -61,7 +61,10 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 }
                 b"endEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::EndEvent),
                 b"sequenceFlow" => sfs.push(e),
-                b"sendTask" | b"receiveTask" | b"callActivity" => unsupported_elements.push(e),
+                b"sendTask" | b"receiveTask" | b"callActivity" | b"intermediateCatchEvent" => {
+                    // TODO: intermediateCatchEvent must be analyzed further
+                    unsupported_elements.push(e)
+                }
                 _ => (),
             },
             Ok(Event::Empty(e)) => match e.local_name().as_ref() {
