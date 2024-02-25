@@ -6,6 +6,7 @@
   --color-button-hover: #fbdbc0;
   --color-property--fulfilled: #008000ff;
   --color-property--violated: #ff0000ff;
+  --color-warning: #ffae00;
 }
 
 select {
@@ -202,6 +203,11 @@ button {
   background-color: var(--color-property--fulfilled);
   width: 25px;
   cursor: pointer;
+}
+
+.warning-note {
+  background-color: var(--color-warning);
+  width: 25px;
 }
 
 .big-note {
