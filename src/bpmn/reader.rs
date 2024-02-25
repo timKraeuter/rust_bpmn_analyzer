@@ -3,11 +3,27 @@ use crate::bpmn::flow_node::{FlowNode, FlowNodeType, SequenceFlow};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
-use std::fs;
-use std::io::Error;
 use std::path::Path;
+use std::{fmt, fs};
 
-pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, Error> {
+#[derive(Debug, PartialEq)]
+pub struct UnsupportedBpmnElementsError {
+    pub unsupported_elements: Vec<String>,
+}
+
+impl fmt::Display for UnsupportedBpmnElementsError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Unsupported BPMN elements found: {:?}",
+            self.unsupported_elements
+        )
+    }
+}
+
+impl std::error::Error for UnsupportedBpmnElementsError {}
+
+pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBpmnElementsError> {
     // TODO: Read directly from file (less peak memory usage).
     // TODO: Use serde to map to structs.
     let (contents, file_name) = read_file_and_get_name(file_path);
@@ -16,10 +32,11 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, Error> {
 
     let mut collaboration = Collaboration {
         name: file_name,
-        participants: Vec::new(),
+        participants: vec![],
     };
 
-    let mut sfs = Vec::new();
+    let mut sfs = vec![];
+    let mut unsupported_elements = vec![];
 
     loop {
         match reader.read_event() {
@@ -28,7 +45,10 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, Error> {
                     add_participant(&mut collaboration, e);
                 }
                 b"startEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::StartEvent),
-                b"serviceTask" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                b"serviceTask" | b"userTask" | b"manualTask" | b"subProcess"
+                | b"businessRuleTask" | b"scriptTask" => {
+                    add_flow_node(&mut collaboration, e, FlowNodeType::Task)
+                }
                 b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
                 b"intermediateThrowEvent" => {
                     add_flow_node(&mut collaboration, e, FlowNodeType::IntermediateThrowEvent)
@@ -41,6 +61,7 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, Error> {
                 }
                 b"endEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::EndEvent),
                 b"sequenceFlow" => sfs.push(e),
+                b"sendTask" | b"receiveTask" | b"callActivity" => unsupported_elements.push(e),
                 _ => (),
             },
             Ok(Event::Empty(e)) => match e.local_name().as_ref() {
@@ -53,6 +74,16 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, Error> {
             Err(e) => panic!("Error at position {}: {:?}", reader.buffer_position(), e),
             _ => (),
         }
+    }
+    if !unsupported_elements.is_empty() {
+        let unsupported_elements: Vec<String> = unsupported_elements
+            .iter()
+            // TODO: Maybe this can be improved.
+            .map(|e| String::from_utf8(Vec::from(e.local_name().into_inner())).unwrap())
+            .collect();
+        return Err(UnsupportedBpmnElementsError {
+            unsupported_elements,
+        });
     }
     // Read sfs at the end.
     for sf in sfs.iter() {

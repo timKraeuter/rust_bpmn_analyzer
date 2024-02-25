@@ -4,14 +4,17 @@ mod tests {
     use crate::bpmn::flow_node::FlowNode;
     use crate::bpmn::flow_node::{FlowNodeType, SequenceFlow};
     use crate::bpmn::process::Process;
-    use crate::bpmn::reader::read_bpmn_file;
+    use crate::bpmn::reader::{read_bpmn_file, UnsupportedBpmnElementsError};
 
     const PATH: &str = "tests/resources/unit/";
 
     fn read_bpmn_and_unwrap(path: &String) -> Collaboration {
         match read_bpmn_file(path) {
             Ok(collaboration) => collaboration,
-            Err(err) => panic!("Error reading the file {:?}. {}", path, err),
+            Err(err) => panic!(
+                "Error reading the file {:?}. Unsupported elements found: {:?}",
+                path, err.unsupported_elements
+            ),
         }
     }
 
@@ -112,8 +115,24 @@ mod tests {
 
     #[test]
     fn read_all_possible_tasks() {
-        let _result1 = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/tasks.bpmn")));
+        let result1 = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/tasks.bpmn")));
 
-        // TODO: Add custom error and check it.
+        match result1 {
+            Ok(_) => {
+                panic!("This should be an error")
+            }
+            Err(err) => {
+                assert_eq!(
+                    UnsupportedBpmnElementsError {
+                        unsupported_elements: vec![
+                            "sendTask".to_string(),
+                            "receiveTask".to_string(),
+                            "callActivity".to_string()
+                        ]
+                    },
+                    err
+                );
+            }
+        }
     }
 }

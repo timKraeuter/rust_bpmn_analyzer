@@ -14,7 +14,10 @@ mod test {
     fn read_bpmn_and_unwrap(path: &String) -> Collaboration {
         match read_bpmn_file(path) {
             Ok(collaboration) => collaboration,
-            Err(err) => panic!("Error reading the file {:?}. {}", path, err),
+            Err(err) => panic!(
+                "Error reading the file {:?}. Unsupported elements found: {:?}",
+                path, err.unsupported_elements
+            ),
         }
     }
 
