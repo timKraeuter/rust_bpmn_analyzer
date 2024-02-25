@@ -30,7 +30,7 @@ mod tests {
         };
         process.add_flow_node(FlowNode::new(
             String::from("start"),
-            FlowNodeType::StartEvent,
+            FlowNodeType::StartEvent(EventType::None),
         ));
         process.add_flow_node(FlowNode::new(String::from("task"), FlowNodeType::Task));
         process.add_flow_node(FlowNode::new(
@@ -140,8 +140,7 @@ mod tests {
             Err(err) => {
                 assert_eq!(
                     vec![
-                        // TODO: Conditional events are not supported yet. Or just intermediate?
-                        // TODO: Start events!
+                        "signalStart".to_string(),
                         "signalEnd".to_string(),
                         "terminateEnd".to_string(),
                         "linkCEvent".to_string(),
@@ -154,6 +153,7 @@ mod tests {
                         "escalationTEvent".to_string(),
                         "compensationTEvent".to_string(),
                         "compensationEnd".to_string(),
+                        "timerStart".to_string(),
                     ],
                     err.unsupported_elements
                 );

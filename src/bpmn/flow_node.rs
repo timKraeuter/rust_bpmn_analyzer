@@ -30,7 +30,7 @@ impl FlowNode {
     }
     pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         match self.flow_node_type {
-            FlowNodeType::StartEvent => {
+            FlowNodeType::StartEvent(_) => {
                 vec![]
             }
             FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
@@ -203,7 +203,7 @@ impl FlowNode {
 
 #[derive(Debug, PartialEq)]
 pub enum FlowNodeType {
-    StartEvent,
+    StartEvent(EventType),
     IntermediateThrowEvent(EventType),
     IntermediateCatchEvent(EventType),
     Task,

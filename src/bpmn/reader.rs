@@ -46,14 +46,16 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 b"process" => {
                     add_participant(&mut collaboration, e);
                 }
-                b"startEvent" => add_flow_node(&mut collaboration, e, FlowNodeType::StartEvent),
                 b"serviceTask" | b"userTask" | b"manualTask" | b"subProcess"
                 | b"businessRuleTask" | b"scriptTask" => {
                     add_flow_node(&mut collaboration, e, FlowNodeType::Task)
                 }
                 b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
-                b"intermediateThrowEvent" | b"intermediateCatchEvent" | b"endEvent" => {
-                    last_event_start_bytes = Some(e); // TODO: StartEvent must also be here soon.
+                b"startEvent"
+                | b"intermediateThrowEvent"
+                | b"intermediateCatchEvent"
+                | b"endEvent" => {
+                    last_event_start_bytes = Some(e);
                 }
                 b"parallelGateway" => {
                     add_flow_node(&mut collaboration, e, FlowNodeType::ParallelGateway)
@@ -67,10 +69,22 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
                 b"startEvent" => {
+                    // TODO: Refactor this to a function together with the next cases.
+                    let last_event_bytes = last_event_start_bytes.unwrap();
+                    let event_type = last_event_type.unwrap_or(EventType::None);
+                    if event_type == EventType::Unsupported {
+                        unsupported_elements.push(last_event_bytes);
+                    } else {
+                        add_flow_node(
+                            &mut collaboration,
+                            last_event_bytes,
+                            FlowNodeType::StartEvent(event_type),
+                        );
+                    }
+                    last_event_start_bytes = None;
                     last_event_type = None;
                 }
                 b"endEvent" => {
-                    // TODO: Refactor this to a function together with the next cases.
                     let last_event_bytes = last_event_start_bytes.unwrap();
                     let event_type = last_event_type.unwrap_or(EventType::None);
                     if event_type == EventType::Unsupported {
