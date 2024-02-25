@@ -3,9 +3,11 @@ name: Rust compile, lint & test
 on:
   workflow_dispatch:
   push:
-    branches: [ "master" ]
+    branches:
+      - "*"
   pull_request:
-    branches: [ "master" ]
+    branches:
+      - "*"
 
 env:
   CARGO_TERM_COLOR: always
