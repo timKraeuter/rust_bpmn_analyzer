@@ -4,11 +4,10 @@ mod output;
 pub mod states;
 use clap::Parser;
 
-use crate::bpmn::reader::read_bpmn_string;
+use crate::bpmn::reader::{read_bpmn_string, UnsupportedBpmnElementsError};
 pub use crate::model_checking::properties::{ModelCheckingResult, Property};
 use crate::output::property_info::output_property_results;
 use crate::output::state_space_info::output_state_information;
-use std::error::Error;
 use std::time::{Duration, Instant};
 
 /// CLI BPMN Analyzer written in Rust
@@ -24,8 +23,8 @@ pub fn run(
     bpmn_file_content: &str,
     properties: Vec<Property>,
     output: bool,
-) -> Result<ModelCheckingResult, Box<dyn Error>> {
-    let collaboration = read_bpmn_string(bpmn_file_content, "123".to_string());
+) -> Result<ModelCheckingResult, UnsupportedBpmnElementsError> {
+    let collaboration = read_bpmn_string(bpmn_file_content, "123".to_string())?;
 
     let start = collaboration.create_start_state();
     let start_time = Instant::now();

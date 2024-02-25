@@ -9,6 +9,11 @@ use tower_http::services::ServeDir;
 #[tokio::main]
 async fn main() {
     let config = Config::parse();
+    if cfg!(debug_assertions) {
+        std::env::set_var("RUST_LOG", "info");
+    } else {
+        std::env::set_var("RUST_LOG", "warn");
+    }
     tracing_subscriber::fmt::init();
 
     let checker = Router::new().route("/check_bpmn", post(check_bpmn));
@@ -42,13 +47,17 @@ async fn check_bpmn(
         false,
     );
     let response = match model_checking_result {
-        Ok(model_checking_result) => map_result_to_response(model_checking_result),
+        Ok(model_checking_result) => {
+            tracing::info!("{:?}", "Model checking successful");
+            map_result_to_response(model_checking_result)
+        }
         Err(error) => {
-            tracing::error!("{}", error);
+            tracing::warn!("{:?}", error);
             return (
-                StatusCode::INTERNAL_SERVER_ERROR,
+                StatusCode::BAD_REQUEST,
                 Json(CheckBPMNResponse {
                     property_results: vec![],
+                    unsupported_elements: error.unsupported_elements,
                 }),
             );
         }
@@ -72,7 +81,10 @@ fn map_result_to_response(model_checking_result: ModelCheckingResult) -> CheckBP
         })
         .collect();
 
-    CheckBPMNResponse { property_results }
+    CheckBPMNResponse {
+        property_results,
+        unsupported_elements: vec![],
+    }
 }
 
 #[derive(Deserialize)]
@@ -84,6 +96,7 @@ struct CheckBPMNRequest {
 #[derive(Serialize)]
 struct CheckBPMNResponse {
     property_results: Vec<MinimalPropertyResult>,
+    unsupported_elements: Vec<String>,
 }
 
 #[derive(Serialize)]

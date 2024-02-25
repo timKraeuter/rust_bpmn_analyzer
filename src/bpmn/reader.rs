@@ -3,9 +3,13 @@ use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, SequenceFlow};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
+use std::fmt;
 
-pub fn read_bpmn_string(contents: &str, file_name: String) -> Collaboration {
-    let mut reader = Reader::from_str(contents);
+#[derive(Debug)]
+pub struct UnsupportedBpmnElementsError {
+    pub unsupported_elements: Vec<String>,
+}
+
 impl fmt::Display for UnsupportedBpmnElementsError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
@@ -18,11 +22,11 @@ impl fmt::Display for UnsupportedBpmnElementsError {
 
 impl std::error::Error for UnsupportedBpmnElementsError {}
 
-pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBpmnElementsError> {
-    // TODO: Read directly from file (less peak memory usage).
-    // TODO: Use serde to map to structs.
-    let (contents, file_name) = read_file_and_get_name(file_path);
-    let mut reader = Reader::from_str(&contents);
+pub fn read_bpmn_string(
+    contents: &str,
+    file_name: String,
+) -> Result<Collaboration, UnsupportedBpmnElementsError> {
+    let mut reader = Reader::from_str(contents);
     reader.trim_text(true);
 
     let mut collaboration = Collaboration {
