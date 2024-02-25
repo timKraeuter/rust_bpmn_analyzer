@@ -160,4 +160,26 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn read_all_possible_gateways() {
+        let result = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/gateways.bpmn")));
+
+        match result {
+            Ok(_) => {
+                panic!("This should be an error")
+            }
+            Err(err) => {
+                assert_eq!(
+                    vec![
+                        "event_gateway".to_string(),
+                        "inclusive_gateway".to_string(),
+                        "instantiate_event_gateway".to_string(),
+                        "complex_gateway".to_string(),
+                    ],
+                    err.unsupported_elements
+                );
+            }
+        }
+    }
 }

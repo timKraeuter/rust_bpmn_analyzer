@@ -64,7 +64,8 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                     add_flow_node(&mut collaboration, e, FlowNodeType::ExclusiveGateway)
                 }
                 b"sequenceFlow" => sfs.push(e),
-                b"sendTask" | b"receiveTask" | b"callActivity" => unsupported_elements.push(e),
+                b"sendTask" | b"receiveTask" | b"callActivity" | b"eventBasedGateway"
+                | b"inclusiveGateway" | b"complexGateway" => unsupported_elements.push(e),
                 _ => (),
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
@@ -99,6 +100,8 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                     last_event_type = Some(EventType::Unsupported);
                 }
                 b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
+                b"sendTask" | b"receiveTask" | b"callActivity" | b"eventBasedGateway"
+                | b"inclusiveGateway" | b"complexGateway" => unsupported_elements.push(e),
                 _ => (),
             },
             Ok(Event::Eof) => break,
