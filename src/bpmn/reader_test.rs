@@ -140,6 +140,8 @@ mod tests {
             Err(err) => {
                 assert_eq!(
                     vec![
+                        // TODO: Conditional events are not supported yet. Or just intermediate?
+                        // TODO: Start events!
                         "signalEnd".to_string(),
                         "terminateEnd".to_string(),
                         "linkCEvent".to_string(),
