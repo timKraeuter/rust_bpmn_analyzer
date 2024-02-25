@@ -6,7 +6,7 @@ use quick_xml::reader::Reader;
 use std::path::Path;
 use std::{fmt, fs};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct UnsupportedBpmnElementsError {
     pub unsupported_elements: Vec<String>,
 }

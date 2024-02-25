@@ -4,7 +4,7 @@ mod tests {
     use crate::bpmn::flow_node::FlowNode;
     use crate::bpmn::flow_node::{FlowNodeType, SequenceFlow};
     use crate::bpmn::process::Process;
-    use crate::bpmn::reader::{read_bpmn_file, UnsupportedBpmnElementsError};
+    use crate::bpmn::reader::read_bpmn_file;
 
     const PATH: &str = "tests/resources/unit/";
 
@@ -123,14 +123,12 @@ mod tests {
             }
             Err(err) => {
                 assert_eq!(
-                    UnsupportedBpmnElementsError {
-                        unsupported_elements: vec![
-                            "sendTask".to_string(),
-                            "receiveTask".to_string(),
-                            "callActivity".to_string()
-                        ]
-                    },
-                    err
+                    vec![
+                        "sendTask".to_string(),
+                        "receiveTask".to_string(),
+                        "callActivity".to_string()
+                    ],
+                    err.unsupported_elements
                 );
             }
         }
