@@ -52,8 +52,8 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 }
                 b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
                 b"startEvent"
-                | b"intermediateThrowEvent"
                 | b"intermediateCatchEvent"
+                | b"intermediateThrowEvent"
                 | b"endEvent" => {
                     last_event_start_bytes = Some(e);
                 }
@@ -68,63 +68,16 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 _ => (),
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
-                b"startEvent" => {
-                    // TODO: Refactor this to a function together with the next cases.
+                b"startEvent"
+                | b"intermediateCatchEvent"
+                | b"intermediateThrowEvent"
+                | b"endEvent" => {
                     let last_event_bytes = last_event_start_bytes.unwrap();
                     let event_type = last_event_type.unwrap_or(EventType::None);
                     if event_type == EventType::Unsupported {
                         unsupported_elements.push(last_event_bytes);
                     } else {
-                        add_flow_node(
-                            &mut collaboration,
-                            last_event_bytes,
-                            FlowNodeType::StartEvent(event_type),
-                        );
-                    }
-                    last_event_start_bytes = None;
-                    last_event_type = None;
-                }
-                b"endEvent" => {
-                    let last_event_bytes = last_event_start_bytes.unwrap();
-                    let event_type = last_event_type.unwrap_or(EventType::None);
-                    if event_type == EventType::Unsupported {
-                        unsupported_elements.push(last_event_bytes);
-                    } else {
-                        add_flow_node(
-                            &mut collaboration,
-                            last_event_bytes,
-                            FlowNodeType::EndEvent(event_type),
-                        );
-                    }
-                    last_event_start_bytes = None;
-                    last_event_type = None;
-                }
-                b"intermediateThrowEvent" => {
-                    let last_event_bytes = last_event_start_bytes.unwrap();
-                    let event_type = last_event_type.unwrap_or(EventType::None);
-                    if event_type == EventType::Unsupported {
-                        unsupported_elements.push(last_event_bytes);
-                    } else {
-                        add_flow_node(
-                            &mut collaboration,
-                            last_event_bytes,
-                            FlowNodeType::IntermediateThrowEvent(event_type),
-                        );
-                    }
-                    last_event_start_bytes = None;
-                    last_event_type = None;
-                }
-                b"intermediateCatchEvent" => {
-                    let last_event_bytes = last_event_start_bytes.unwrap();
-                    let event_type = last_event_type.unwrap_or(EventType::None);
-                    if event_type == EventType::Unsupported {
-                        unsupported_elements.push(last_event_bytes);
-                    } else {
-                        add_flow_node(
-                            &mut collaboration,
-                            last_event_bytes,
-                            FlowNodeType::IntermediateCatchEvent(event_type),
-                        );
+                        add_event(&mut collaboration, last_event_bytes, event_type);
                     }
                     last_event_start_bytes = None;
                     last_event_type = None;
@@ -191,6 +144,21 @@ fn add_participant(collaboration: &mut Collaboration, p_bytes: BytesStart) {
         id,
         flow_nodes: Vec::new(),
     });
+}
+
+fn add_event(
+    collaboration: &mut Collaboration,
+    flow_node_bytes: BytesStart,
+    event_type: EventType,
+) {
+    let event_type = match flow_node_bytes.local_name().as_ref() {
+        b"startEvent" => FlowNodeType::StartEvent(event_type),
+        b"intermediateCatchEvent" => FlowNodeType::IntermediateCatchEvent(event_type),
+        b"intermediateThrowEvent" => FlowNodeType::IntermediateThrowEvent(event_type),
+        b"endEvent" => FlowNodeType::EndEvent(event_type),
+        _ => panic!("Should not happen!"),
+    };
+    add_flow_node(collaboration, flow_node_bytes, event_type);
 }
 
 fn add_flow_node(
