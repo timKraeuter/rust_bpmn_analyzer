@@ -48,7 +48,12 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 }
                 b"serviceTask" | b"userTask" | b"manualTask" | b"subProcess"
                 | b"businessRuleTask" | b"scriptTask" => {
-                    add_flow_node(&mut collaboration, e, FlowNodeType::Task)
+                    if has_true_attribute_value(&e, "triggeredByEvent") {
+                        // Event subprocesses not supported.
+                        unsupported_elements.push(e);
+                    } else {
+                        add_flow_node(&mut collaboration, e, FlowNodeType::Task)
+                    }
                 }
                 b"task" => add_flow_node(&mut collaboration, e, FlowNodeType::Task),
                 b"startEvent"
@@ -210,5 +215,15 @@ fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
         Err(e) => {
             panic!("Could not get attribute! {}", e)
         }
+    }
+}
+
+fn has_true_attribute_value(e: &BytesStart, key: &str) -> bool {
+    match e.try_get_attribute(key) {
+        Ok(attribute) => match attribute {
+            None => false,
+            Some(x) => x.value.as_ref() == b"true",
+        },
+        Err(_) => false,
     }
 }

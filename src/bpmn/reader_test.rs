@@ -182,4 +182,31 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn read_event_subprocess() {
+        let result = read_bpmn_file(&String::from(
+            &(PATH.to_string() + "reader/event-subprocesses.bpmn"),
+        ));
+
+        match result {
+            Ok(_) => {
+                panic!("This should be an error")
+            }
+            Err(err) => {
+                assert_eq!(
+                    vec![
+                        "Event_subprocess1".to_string(),
+                        "signalNon".to_string(),
+                        "signal".to_string(),
+                        "Event_subprocess2".to_string(),
+                        "esc".to_string(),
+                        "escNon".to_string(),
+                        "error".to_string(),
+                    ],
+                    err.unsupported_elements
+                );
+            }
+        }
+    }
 }
