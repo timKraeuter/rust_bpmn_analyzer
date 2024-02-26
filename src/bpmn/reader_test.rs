@@ -4,7 +4,7 @@ mod tests {
     use crate::bpmn::flow_node::{EventType, FlowNode};
     use crate::bpmn::flow_node::{FlowNodeType, SequenceFlow};
     use crate::bpmn::process::Process;
-    use crate::bpmn::reader::read_bpmn_file;
+    use crate::bpmn::test_utils::read_bpmn_file;
 
     const PATH: &str = "tests/resources/unit/";
 

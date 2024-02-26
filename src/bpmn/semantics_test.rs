@@ -3,7 +3,7 @@ mod test {
     use crate::bpmn::collaboration::Collaboration;
     use crate::bpmn::flow_node::FlowNode;
     use crate::bpmn::process::Process;
-    use crate::bpmn::reader::read_bpmn_file;
+    use crate::bpmn::test_utils::read_bpmn_file;
     use crate::model_checking::properties::{ModelCheckingResult, PropertyResult};
     use crate::states::state_space::{ProcessSnapshot, State};
     use crate::Property;
