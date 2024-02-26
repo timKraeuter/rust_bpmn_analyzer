@@ -53,13 +53,10 @@ async fn check_bpmn(
         }
         Err(error) => {
             tracing::warn!("{:?}", error);
-            return (
-                StatusCode::BAD_REQUEST,
-                Json(CheckBPMNResponse {
-                    property_results: vec![],
-                    unsupported_elements: error.unsupported_elements,
-                }),
-            );
+            CheckBPMNResponse {
+                property_results: vec![],
+                unsupported_elements: error.unsupported_elements,
+            }
         }
     };
 
