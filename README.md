@@ -9,3 +9,11 @@ BPMN models.
 ```bash
 cd ./target/release && bpmnanalyzer.exe -p 3001
 ```
+
+# Build release for the current platform
+
+```bash
+cargo build --release
+```
+
+Use WSL to build for linux on windows.
