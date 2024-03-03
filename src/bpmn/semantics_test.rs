@@ -22,7 +22,7 @@ mod test {
     }
 
     #[test]
-    fn create_start_state() {
+    fn create_start_state_one_participant() {
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/start.bpmn"));
         let start_state = collaboration.create_start_state();
 
@@ -33,6 +33,30 @@ mod test {
                     String::from("process"),
                     vec![String::from("Flow_1"), String::from("Flow_2")],
                 )],
+                executed_end_event_counter: BTreeMap::new(),
+            }
+        );
+    }
+
+    #[test]
+    fn create_start_state_multiple_participants() {
+        let collaboration =
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/multiple_participants.bpmn"));
+        let start_state = collaboration.create_start_state();
+
+        assert_eq!(
+            start_state,
+            State {
+                snapshots: vec![
+                    ProcessSnapshot::new(
+                        String::from("p1_process"),
+                        vec![String::from("Flow_04pas1n")],
+                    ),
+                    ProcessSnapshot::new(
+                        String::from("p3_process"),
+                        vec![String::from("Flow_0gz2791")],
+                    )
+                ],
                 executed_end_event_counter: BTreeMap::new(),
             }
         );

@@ -131,10 +131,18 @@ mod tests {
         );
         // Check message flows
         let send_event = find_flow_node_by_id(first_participant, "sendEvent");
+        assert_eq!(
+            FlowNodeType::IntermediateThrowEvent(EventType::Message),
+            send_event.flow_node_type
+        );
         assert_eq!(1, send_event.outgoing_message_flows.len());
         let send_task = find_flow_node_by_id(first_participant, "SendTask");
         assert_eq!(1, send_task.outgoing_message_flows.len());
         let end_event = find_flow_node_by_id(first_participant, "endP1");
+        assert_eq!(
+            FlowNodeType::EndEvent(EventType::Message),
+            end_event.flow_node_type
+        );
         assert_eq!(1, end_event.outgoing_message_flows.len());
 
         let second_participant = collaboration
@@ -150,8 +158,16 @@ mod tests {
         );
         // Check message flows
         let start_event = find_flow_node_by_id(second_participant, "startP2");
+        assert_eq!(
+            FlowNodeType::StartEvent(EventType::Message),
+            start_event.flow_node_type
+        );
         assert_eq!(1, start_event.incoming_message_flows.len());
         let receive_event = find_flow_node_by_id(second_participant, "receiveEvent");
+        assert_eq!(
+            FlowNodeType::IntermediateCatchEvent(EventType::Message),
+            receive_event.flow_node_type
+        );
         assert_eq!(1, receive_event.incoming_message_flows.len());
         let receive_task = find_flow_node_by_id(second_participant, "ReceiveTask");
         assert_eq!(1, receive_task.incoming_message_flows.len());

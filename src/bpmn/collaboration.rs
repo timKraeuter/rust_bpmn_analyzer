@@ -129,21 +129,23 @@ impl Collaboration {
             executed_end_event_counter: BTreeMap::new(),
         };
         for process in &self.participants {
-            let mut snapshot = ProcessSnapshot {
-                // Cloning the string here could be done differently.
-                id: process.id.clone(),
-                tokens: BTreeMap::new(),
-            };
+            let mut tokens = BTreeMap::new();
             for flow_node in &process.flow_nodes {
                 if flow_node.flow_node_type == FlowNodeType::StartEvent(EventType::None) {
                     for out_sf in flow_node.outgoing_flows.iter() {
                         // Cloning the string here could be done differently.
                         let position = out_sf.id.clone();
-                        snapshot.add_token(position);
+                        tokens.insert(position, 1);
                     }
                 }
             }
-            start.snapshots.push(snapshot);
+            if !tokens.is_empty() {
+                start.snapshots.push(ProcessSnapshot {
+                    // Cloning the string here could be done differently.
+                    id: process.id.clone(),
+                    tokens,
+                });
+            }
         }
         start
     }
