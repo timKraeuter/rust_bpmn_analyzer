@@ -98,14 +98,53 @@ mod tests {
         let first_participant = result2.participants.first().unwrap();
         assert_eq!(10, first_participant.flow_nodes.len());
 
-        let result3 = read_bpmn_file(&String::from(
+        let result3 = read_bpmn_and_unwrap(&String::from(
             &(PATH.to_string() + "prefix/wurst-prefix.bpmn"),
-        ))
-        .unwrap();
+        ));
 
         assert_eq!("wurst-prefix.bpmn", result3.name);
         let first_participant = result3.participants.first().unwrap();
         assert_eq!(10, first_participant.flow_nodes.len());
+    }
+
+    #[test]
+    fn read_pools_and_messages() {
+        let collaboration = read_bpmn_and_unwrap(&String::from(
+            &(PATH.to_string() + "reader/pools-message-flows.bpmn"),
+        ));
+
+        assert_eq!("pools-message-flows.bpmn", collaboration.name);
+        let first_participant = collaboration
+            .participants
+            .iter()
+            .find(|p| p.id == "p1_process")
+            .unwrap();
+        assert_eq!(4, first_participant.flow_nodes.len());
+        let flow_node_ids = first_participant
+            .flow_nodes
+            .iter()
+            .map(|f| f.id.clone())
+            .collect::<Vec<String>>();
+        assert_eq!(
+            vec!["startP1", "sendEvent", "SendTask", "endP1"],
+            flow_node_ids
+        );
+
+        let second_participant = collaboration
+            .participants
+            .iter()
+            .find(|p| p.id == "p2_process")
+            .unwrap();
+        assert_eq!(4, second_participant.flow_nodes.len());
+        let flow_node_ids = second_participant
+            .flow_nodes
+            .iter()
+            .map(|f| f.id.clone())
+            .collect::<Vec<String>>();
+        assert_eq!(
+            vec!["startP2", "receiveEvent", "ReceiveTask", "endP2"],
+            flow_node_ids
+        );
     }
 
     #[test]
@@ -117,14 +156,7 @@ mod tests {
                 panic!("This should be an error")
             }
             Err(err) => {
-                assert_eq!(
-                    vec![
-                        "sendTask".to_string(),
-                        "receiveTask".to_string(),
-                        "call_activity".to_string()
-                    ],
-                    err.unsupported_elements
-                );
+                assert_eq!(vec!["call_activity".to_string()], err.unsupported_elements);
             }
         }
     }
