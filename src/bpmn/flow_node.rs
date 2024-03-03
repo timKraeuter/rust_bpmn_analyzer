@@ -6,11 +6,18 @@ pub struct SequenceFlow {
 }
 
 #[derive(Debug, PartialEq)]
+pub struct MessageFlow {
+    pub id: String,
+}
+
+#[derive(Debug, PartialEq)]
 pub struct FlowNode {
     pub id: String,
     pub flow_node_type: FlowNodeType,
     pub incoming_flows: Vec<SequenceFlow>,
     pub outgoing_flows: Vec<SequenceFlow>,
+    pub incoming_message_flows: Vec<MessageFlow>,
+    pub outgoing_message_flows: Vec<MessageFlow>,
 }
 
 impl FlowNode {
@@ -20,6 +27,8 @@ impl FlowNode {
             flow_node_type,
             incoming_flows: vec![],
             outgoing_flows: vec![],
+            incoming_message_flows: vec![],
+            outgoing_message_flows: vec![],
         }
     }
     pub fn add_outgoing_flow(&mut self, sf: SequenceFlow) {
@@ -27,6 +36,12 @@ impl FlowNode {
     }
     pub fn add_incoming_flow(&mut self, sf: SequenceFlow) {
         self.incoming_flows.push(sf);
+    }
+    pub fn add_outgoing_message_flow(&mut self, mf: MessageFlow) {
+        self.outgoing_message_flows.push(mf);
+    }
+    pub fn add_incoming_message_flow(&mut self, mf: MessageFlow) {
+        self.incoming_message_flows.push(mf);
     }
     pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         match self.flow_node_type {

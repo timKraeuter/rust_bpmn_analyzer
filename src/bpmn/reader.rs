@@ -36,6 +36,7 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
     };
 
     let mut sfs = vec![];
+    let mut mfs = vec![];
     let mut unsupported_elements = vec![];
     let mut last_event_start_bytes: Option<BytesStart> = None;
     let mut last_event_type: Option<EventType> = None;
@@ -77,6 +78,9 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 b"sequenceFlow" => {
                     sfs.push(e);
                 }
+                b"messageFlow" => {
+                    mfs.push(e);
+                }
                 b"callActivity" | b"eventBasedGateway" | b"inclusiveGateway"
                 | b"complexGateway" => unsupported_elements.push(e),
                 _ => (),
@@ -115,6 +119,9 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 b"sequenceFlow" => {
                     sfs.push(e);
                 }
+                b"messageFlow" => {
+                    mfs.push(e);
+                }
                 b"messageEventDefinition" => {
                     last_event_type = Some(EventType::Message);
                 }
@@ -145,6 +152,13 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
         return Err(UnsupportedBpmnElementsError {
             unsupported_elements,
         });
+    }
+    for mf in mfs.into_iter() {
+        collaboration.add_message_flow(
+            get_attribute_value_or_panic(&mf, &String::from("id")),
+            get_attribute_value_or_panic(&mf, &String::from("sourceRef")),
+            get_attribute_value_or_panic(&mf, &String::from("targetRef")),
+        );
     }
     Ok(collaboration)
 }

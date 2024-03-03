@@ -1,4 +1,4 @@
-use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType};
+use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow};
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
@@ -13,6 +13,20 @@ pub struct Collaboration {
 }
 
 impl Collaboration {
+    pub fn add_message_flow(&mut self, mf_id: String, mf_source: String, mf_target: String) {
+        // Could be optimized by stopping if source and target were added.
+        self.participants.iter_mut().for_each(|process| {
+            for flow_node in process.flow_nodes.iter_mut() {
+                if flow_node.id == mf_source {
+                    flow_node.add_outgoing_message_flow(MessageFlow { id: mf_id.clone() });
+                    continue;
+                }
+                if flow_node.id == mf_target {
+                    flow_node.add_incoming_message_flow(MessageFlow { id: mf_id.clone() });
+                }
+            }
+        });
+    }
     pub fn add_participant(&mut self, participant: Process) {
         self.participants.push(participant);
     }
