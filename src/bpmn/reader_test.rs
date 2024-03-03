@@ -18,6 +18,10 @@ mod tests {
         }
     }
 
+    fn get_flow_node_ids(process: &Process) -> Vec<String> {
+        process.flow_nodes.iter().map(|f| f.id.clone()).collect()
+    }
+
     #[test]
     fn read_task_and_gateways() {
         let mut expected = Collaboration {
@@ -120,11 +124,7 @@ mod tests {
             .find(|p| p.id == "p1_process")
             .unwrap();
         assert_eq!(4, first_participant.flow_nodes.len());
-        let flow_node_ids = first_participant
-            .flow_nodes
-            .iter()
-            .map(|f| f.id.clone())
-            .collect::<Vec<String>>();
+        let flow_node_ids = get_flow_node_ids(first_participant);
         assert_eq!(
             vec!["startP1", "sendEvent", "SendTask", "endP1"],
             flow_node_ids
@@ -136,11 +136,7 @@ mod tests {
             .find(|p| p.id == "p2_process")
             .unwrap();
         assert_eq!(4, second_participant.flow_nodes.len());
-        let flow_node_ids = second_participant
-            .flow_nodes
-            .iter()
-            .map(|f| f.id.clone())
-            .collect::<Vec<String>>();
+        let flow_node_ids = get_flow_node_ids(second_participant);
         assert_eq!(
             vec!["startP2", "receiveEvent", "ReceiveTask", "endP2"],
             flow_node_ids
