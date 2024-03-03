@@ -3,7 +3,6 @@ use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, SequenceFlow};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
-use std::collections::HashMap;
 use std::path::Path;
 use std::{fmt, fs};
 
@@ -40,7 +39,6 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
     let mut unsupported_elements = vec![];
     let mut last_event_start_bytes: Option<BytesStart> = None;
     let mut last_event_type: Option<EventType> = None;
-    let mut sf_to_participant = HashMap::new();
     let mut current_participant = None;
 
     loop {
@@ -77,10 +75,6 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                     add_flow_node(&mut collaboration, &e, FlowNodeType::ExclusiveGateway)
                 }
                 b"sequenceFlow" => {
-                    sf_to_participant.insert(
-                        get_attribute_value_or_panic(&e, &String::from("id")),
-                        current_participant.clone().unwrap(),
-                    );
                     sfs.push(e);
                 }
                 b"callActivity" | b"eventBasedGateway" | b"inclusiveGateway"
@@ -88,6 +82,19 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 _ => (),
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
+                b"process" => {
+                    if unsupported_elements.is_empty() {
+                        sfs.iter().for_each(|sf| match &current_participant {
+                            None => {
+                                panic!("Sequence flow found but no BPMN process! Malformed XML?")
+                            }
+                            Some(current_participant) => {
+                                add_sf_to_participant(&mut collaboration, sf, current_participant)
+                            }
+                        });
+                    }
+                    sfs = vec![];
+                }
                 b"startEvent"
                 | b"intermediateCatchEvent"
                 | b"intermediateThrowEvent"
@@ -106,10 +113,6 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
             },
             Ok(Event::Empty(e)) => match e.local_name().as_ref() {
                 b"sequenceFlow" => {
-                    sf_to_participant.insert(
-                        get_attribute_value_or_panic(&e, &String::from("id")),
-                        current_participant.clone().unwrap(),
-                    );
                     sfs.push(e);
                 }
                 b"messageEventDefinition" => {
@@ -142,10 +145,6 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
         return Err(UnsupportedBpmnElementsError {
             unsupported_elements,
         });
-    }
-    // Read sfs at the end.
-    for sf in sfs.iter() {
-        add_sf_to_participant(&mut collaboration, sf, &sf_to_participant);
     }
     Ok(collaboration)
 }
@@ -209,20 +208,19 @@ fn add_flow_node(
 fn add_sf_to_participant(
     collaboration: &mut Collaboration,
     sf_bytes: &BytesStart,
-    sf_to_participant: &HashMap<String, String>,
+    participant_id: &String,
 ) {
     let id = get_attribute_value_or_panic(sf_bytes, &String::from("id"));
     let source_ref = get_attribute_value_or_panic(sf_bytes, &String::from("sourceRef"));
     let target_ref = get_attribute_value_or_panic(sf_bytes, &String::from("targetRef"));
 
-    let participant = sf_to_participant.get(&id).unwrap();
     let sf = SequenceFlow { id };
 
-    let option = collaboration
+    let process = collaboration
         .participants
         .iter_mut()
-        .find(|p| p.id == *participant);
-    match option {
+        .find(|p| p.id == *participant_id);
+    match process {
         None => {
             panic!("Sequence flow found but no BPMN process! Malformed XML?")
         }
