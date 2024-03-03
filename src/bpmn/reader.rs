@@ -167,7 +167,7 @@ fn get_file_name(path: &String) -> String {
 }
 
 fn add_participant(collaboration: &mut Collaboration, p_bytes: &BytesStart) {
-    let id = get_attribute_value_or_panic(&p_bytes, &String::from("id"));
+    let id = get_attribute_value_or_panic(p_bytes, &String::from("id"));
     collaboration.add_participant(Process {
         id,
         flow_nodes: Vec::new(),
@@ -194,7 +194,7 @@ fn add_flow_node(
     flow_node_bytes: &BytesStart,
     flow_node_type: FlowNodeType,
 ) {
-    let id = get_attribute_value_or_panic(&flow_node_bytes, &String::from("id"));
+    let id = get_attribute_value_or_panic(flow_node_bytes, &String::from("id"));
     let last_participant = collaboration.participants.last_mut();
     match last_participant {
         None => {
