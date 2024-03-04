@@ -197,8 +197,8 @@ impl Collaboration {
         new_states: &[State],
     ) {
         if flow_node.flow_node_type == FlowNodeType::Task
+            && not_executed_activities.get(&flow_node.id).is_some()
             && !new_states.is_empty()
-            && !not_executed_activities.is_empty()
         {
             not_executed_activities.remove(&flow_node.id);
         }
