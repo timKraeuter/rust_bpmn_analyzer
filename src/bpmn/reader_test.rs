@@ -237,9 +237,7 @@ mod tests {
             Err(err) => {
                 assert_eq!(
                     vec![
-                        "event_gateway".to_string(),
                         "inclusive_gateway".to_string(),
-                        "instantiate_event_gateway".to_string(),
                         "complex_gateway".to_string(),
                     ],
                     err.unsupported_elements

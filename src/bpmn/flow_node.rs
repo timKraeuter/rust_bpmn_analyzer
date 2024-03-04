@@ -54,6 +54,7 @@ impl FlowNode {
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
+            FlowNodeType::EventBasedGateway => vec![], // TODO: Implement
             FlowNodeType::EndEvent(_) => self.try_execute_end_event(snapshot, current_state),
             FlowNodeType::IntermediateCatchEvent(_) => {
                 self.try_execute_intermediate_catch_event(snapshot, current_state)
@@ -328,6 +329,7 @@ pub enum FlowNodeType {
     Task,
     ExclusiveGateway,
     ParallelGateway,
+    EventBasedGateway,
     EndEvent(EventType),
 }
 

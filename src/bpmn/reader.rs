@@ -75,14 +75,18 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 b"exclusiveGateway" => {
                     add_flow_node(&mut collaboration, &e, FlowNodeType::ExclusiveGateway)
                 }
+                b"eventBasedGateway" => {
+                    add_flow_node(&mut collaboration, &e, FlowNodeType::EventBasedGateway)
+                }
                 b"sequenceFlow" => {
                     sfs.push(e);
                 }
                 b"messageFlow" => {
                     mfs.push(e);
                 }
-                b"callActivity" | b"eventBasedGateway" | b"inclusiveGateway"
-                | b"complexGateway" => unsupported_elements.push(e),
+                b"callActivity" | b"inclusiveGateway" | b"complexGateway" => {
+                    unsupported_elements.push(e)
+                }
                 _ => (),
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
