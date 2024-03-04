@@ -119,8 +119,13 @@ impl FlowNode {
     }
     fn try_execute_task(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
+
+        if !self.incoming_message_flows.is_empty()
+            && self.no_message_flow_has_a_message(current_state)
+        {
+            return vec![];
+        }
         for inc_flow in self.incoming_flows.iter() {
-            // TODO: Possibly consume incoming messages!
             match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
                 Some(_) => {

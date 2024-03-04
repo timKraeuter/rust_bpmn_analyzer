@@ -49,8 +49,8 @@ mod test {
             start_state,
             State {
                 snapshots: vec![
-                    ProcessSnapshot::new(String::from("p1_process"), vec!["Flow_04pas1n"],),
-                    ProcessSnapshot::new(String::from("p3_process"), vec!["Flow_0gz2791"],)
+                    ProcessSnapshot::new(String::from("p1_process"), vec!["Flow_04pas1n"]),
+                    ProcessSnapshot::new(String::from("p3_process"), vec!["Flow_0gz2791"])
                 ],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
@@ -72,10 +72,88 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",],),
-                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",],),
+                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",]),
+                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",])
             ]
         )
+    }
+
+    #[test]
+    fn try_execute_receive_task() {
+        let collaboration =
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/receive_task.bpmn"));
+
+        let process = get_process_by_id(&collaboration, "p1_process");
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("ReceiveTask"));
+        let state_without_message = State {
+            snapshots: vec![ProcessSnapshot::new(
+                String::from("p1_process"),
+                vec!["pre_receive_task"],
+            )],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&state_without_message),
+            &state_without_message,
+        );
+
+        assert_eq!(next_states, vec![]);
+
+        let mut state_with_message = state_without_message;
+        state_with_message.messages.insert(String::from("mf"), 1u16);
+
+        let next_states =
+            flow_node.try_execute(get_first_snapshot(&state_with_message), &state_with_message);
+
+        assert_eq!(
+            next_states,
+            vec![State::new(
+                String::from("p1_process"),
+                vec!["post_receive_task"]
+            ),]
+        );
+    }
+
+    #[test]
+    fn try_execute_send_task() {
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/send_task.bpmn"));
+
+        let process = get_process_by_id(&collaboration, "p1_process");
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("SendTask"));
+        let state = State {
+            snapshots: vec![ProcessSnapshot::new(
+                String::from("p1_process"),
+                vec!["pre_send_task"],
+            )],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+
+        let next_states = flow_node.try_execute(get_first_snapshot(&state), &state);
+
+        assert_eq!(
+            next_states,
+            vec![State {
+                snapshots: vec![ProcessSnapshot::new(
+                    String::from("p1_process"),
+                    vec!["post_send_task"],
+                )],
+                executed_end_event_counter: BTreeMap::new(),
+                messages: BTreeMap::from([(String::from("mf"), 1u16)]),
+            }]
+        );
+    }
+
+    fn get_process_by_id<'a>(collaboration: &'a Collaboration, process_id: &str) -> &'a Process {
+        collaboration
+            .participants
+            .iter()
+            .find(|p| p.id == process_id)
+            .unwrap()
     }
 
     #[test]
@@ -532,8 +610,7 @@ mod test {
     }
 
     fn get_first_process(collaboration: &Collaboration) -> &Process {
-        let process = collaboration.participants.first().unwrap();
-        process
+        collaboration.participants.first().unwrap()
     }
 
     fn get_first_snapshot(start_state: &State) -> &ProcessSnapshot {

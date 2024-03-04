@@ -32,7 +32,7 @@ mod tests {
     #[test]
     fn read_task_and_gateways() {
         let mut expected = Collaboration {
-            name: String::from("task-and-gateways.bpmn"),
+            name: String::from("task_and_gateways.bpmn"),
             participants: Vec::new(),
         };
         let mut process = Process {
@@ -87,7 +87,7 @@ mod tests {
         expected.add_participant(process);
 
         // When
-        let result = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/task-and-gateways.bpmn"));
+        let result = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/task_and_gateways.bpmn"));
 
         assert_eq!(expected, result);
     }
