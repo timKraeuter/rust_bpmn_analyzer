@@ -118,6 +118,43 @@ mod test {
     }
 
     #[test]
+    fn try_execute_message_intermediate_catch_event() {
+        let collaboration = read_bpmn_and_unwrap(
+            &(PATH.to_string() + "semantics/message_intermediate_catch_event.bpmn"),
+        );
+
+        let process = get_process_by_id(&collaboration, "p1_process");
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("mice"));
+        let state_without_message = State {
+            snapshots: vec![ProcessSnapshot::new(
+                String::from("p1_process"),
+                vec!["pre_mice"],
+            )],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&state_without_message),
+            &state_without_message,
+        );
+
+        assert_eq!(next_states, vec![]);
+
+        let mut state_with_message = state_without_message;
+        state_with_message.messages.insert(String::from("mf"), 1u16);
+
+        let next_states =
+            flow_node.try_execute(get_first_snapshot(&state_with_message), &state_with_message);
+
+        assert_eq!(
+            next_states,
+            vec![State::new(String::from("p1_process"), vec!["post_mice"]),]
+        );
+    }
+
+    #[test]
     fn try_execute_send_task() {
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/send_task.bpmn"));
 
@@ -146,14 +183,6 @@ mod test {
                 messages: BTreeMap::from([(String::from("mf"), 1u16)]),
             }]
         );
-    }
-
-    fn get_process_by_id<'a>(collaboration: &'a Collaboration, process_id: &str) -> &'a Process {
-        collaboration
-            .participants
-            .iter()
-            .find(|p| p.id == process_id)
-            .unwrap()
     }
 
     #[test]
@@ -277,7 +306,7 @@ mod test {
     #[test]
     fn try_execute_message_start() {
         let collaboration =
-            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/message_start.bpmn"));
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/message_start_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("start"));
@@ -611,6 +640,14 @@ mod test {
 
     fn get_first_process(collaboration: &Collaboration) -> &Process {
         collaboration.participants.first().unwrap()
+    }
+
+    fn get_process_by_id<'a>(collaboration: &'a Collaboration, process_id: &str) -> &'a Process {
+        collaboration
+            .participants
+            .iter()
+            .find(|p| p.id == process_id)
+            .unwrap()
     }
 
     fn get_first_snapshot(start_state: &State) -> &ProcessSnapshot {
