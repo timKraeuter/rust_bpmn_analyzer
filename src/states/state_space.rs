@@ -19,15 +19,12 @@ impl StateSpace {
     }
 
     pub fn get_state(&self, state_hash: &u64) -> &State {
-        match self.states.get(state_hash) {
-            None => {
-                panic!("State for {} not found!", state_hash)
-            }
-            Some(state) => state,
-        }
+        self.states
+            .get(state_hash)
+            .unwrap_or_else(|| panic!("State for {} not found!", state_hash))
     }
 
-    // TODO: This can loop and never end
+    // TODO: This can loop and never end: We should remember visited states.
     pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<(String, u64)>> {
         self.get_path(self.start_state_hash, state_hash)
     }
