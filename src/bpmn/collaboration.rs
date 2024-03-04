@@ -170,6 +170,7 @@ impl Collaboration {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
                 Some(process) => {
+                    // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages not all. But currently sfs are just ids.
                     for flow_node in process.flow_nodes.iter() {
                         let new_states = flow_node.try_execute(snapshot, state);
 
