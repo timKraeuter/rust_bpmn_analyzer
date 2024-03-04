@@ -114,18 +114,20 @@ fn print_counter_example(property_result: &PropertyResult, state_space: &StateSp
 
 impl Display for State {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", get_state_string(self))
+        write!(
+            f,
+            "messages: {:?}, snapshots: {{ {} }}",
+            self.messages,
+            get_state_string(self)
+        )
     }
 }
 
 fn get_state_string(state: &State) -> String {
-    if state.snapshots.len() < 2 {
-        match state.snapshots.first() {
-            None => {}
-            Some(snapshot) => {
-                return format!("{:?}", snapshot.tokens);
-            }
-        }
-    }
-    todo!()
+    state
+        .snapshots
+        .iter()
+        .map(|snapshot| format!("{}: {:?}", snapshot.id, snapshot.tokens))
+        .collect::<Vec<String>>()
+        .join(", ")
 }
