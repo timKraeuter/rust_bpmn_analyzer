@@ -39,7 +39,7 @@ fn test_stable_state_space_with_messages() {
         properties: vec![],
     };
     let result = bpmnanalyzer::run(config).unwrap();
-    assert_eq!(11, result.state_space.states.len());
-    assert_eq!(11, result.state_space.transitions.len());
-    assert_eq!(2, result.state_space.terminated_state_hashes.len());
+    assert_eq!(14, result.state_space.states.len());
+    assert_eq!(14, result.state_space.transitions.len());
+    assert_eq!(1, result.state_space.terminated_state_hashes.len());
 }
