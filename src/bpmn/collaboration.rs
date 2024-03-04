@@ -158,7 +158,6 @@ impl Collaboration {
         state: &State,
         not_executed_activities: &mut HashMap<String, bool>,
     ) -> Vec<(String, State)> {
-        // TODO: Message receivers might not be found in case of message start events, when they do not have a running process snapshot yet.
         let mut unexplored_states: Vec<(String, State)> = vec![];
         if !state.messages.is_empty() {
             self.try_trigger_message_start_events(state, &mut unexplored_states);
@@ -175,7 +174,7 @@ impl Collaboration {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
                 Some(process) => {
-                    // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages not all. But currently sfs are just ids.
+                    // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages. But currently sfs/mfs are just ids and we cannot find their targets easily.
                     for flow_node in process.flow_nodes.iter() {
                         let new_states = flow_node.try_execute(snapshot, state);
 
