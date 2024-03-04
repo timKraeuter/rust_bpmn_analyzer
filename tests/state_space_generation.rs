@@ -43,3 +43,15 @@ fn test_stable_state_space_with_messages() {
     assert_eq!(14, result.state_space.transitions.len());
     assert_eq!(1, result.state_space.terminated_state_hashes.len());
 }
+
+#[test]
+fn test_stable_state_space_with_e020() {
+    let config = Config {
+        file_path: PATH.to_string() + "e020.bpmn",
+        properties: vec![Property::OptionToComplete],
+    };
+    let result = bpmnanalyzer::run(config).unwrap();
+    assert_eq!(2112, result.state_space.states.len());
+    assert_eq!(2112, result.state_space.transitions.len());
+    assert_eq!(30, result.state_space.terminated_state_hashes.len());
+}
