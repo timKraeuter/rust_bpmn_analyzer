@@ -161,16 +161,16 @@ impl Collaboration {
         let mut unexplored_states: Vec<(String, State)> = vec![];
         for snapshot in &state.snapshots {
             // Find participant for snapshot, could also be hashmap but usually not a long list.
-            let option = self
+            let process = self
                 .participants
                 .iter()
                 .find(|process_snapshot| process_snapshot.id == snapshot.id);
-            match option {
+            match process {
                 None => {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
-                Some(matching_process) => {
-                    for flow_node in matching_process.flow_nodes.iter() {
+                Some(process) => {
+                    for flow_node in process.flow_nodes.iter() {
                         let new_states = flow_node.try_execute(snapshot, state);
 
                         Self::record_executed_activities(
