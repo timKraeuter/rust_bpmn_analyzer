@@ -196,6 +196,34 @@ mod test {
         );
     }
 
+    #[test]
+    fn try_execute_message_start() {
+        let collaboration =
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/message_start.bpmn"));
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("start"));
+        let start_state = State {
+            snapshots: vec![ProcessSnapshot::new(String::from("p1_process"), vec![])],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::from([(String::from("mf"), 1u16)]),
+        };
+
+        let next_states = flow_node.try_execute(get_first_snapshot(&start_state), &start_state);
+
+        assert_eq!(
+            next_states,
+            vec![State {
+                snapshots: vec![
+                    ProcessSnapshot::new(String::from("p1_process"), vec![],),
+                    ProcessSnapshot::new(String::from("p1_process"), vec!["start_out"])
+                ],
+                executed_end_event_counter: BTreeMap::new(),
+                messages: BTreeMap::new(),
+            }]
+        );
+    }
+
     fn get_flow_nodes_executed_to_reach(
         model_checking_result: &ModelCheckingResult,
         state_hash: u64,

@@ -157,6 +157,7 @@ impl Collaboration {
         state: &State,
         not_executed_activities: &mut HashMap<String, bool>,
     ) -> Vec<(String, State)> {
+        // TODO: Message receivers might not be found in case of message start events, when they do not have a running process snapshot yet.
         let mut unexplored_states: Vec<(String, State)> = vec![];
         for snapshot in &state.snapshots {
             // Find participant for snapshot, could also be hashmap but usually not a long list.
