@@ -60,10 +60,10 @@ impl Collaboration {
                     let potentially_unexplored_states =
                         self.explore_state(&current_state, &mut not_executed_activities);
 
-                    // Check if we know the state already
-                    let mut potentially_unexplored_states_hashes = vec![];
+                    let mut transitions = vec![];
                     for (flow_node_id, new_state) in potentially_unexplored_states {
                         let new_hash = new_state.calc_hash();
+                        // Check if we know the state already
                         match seen_state_hashes.get(&new_hash) {
                             None => {
                                 // State is new.
@@ -72,7 +72,8 @@ impl Collaboration {
                             }
                             Some(_) => {}
                         }
-                        potentially_unexplored_states_hashes.push((flow_node_id, new_hash));
+                        // Remember states to make transitions.
+                        transitions.push((flow_node_id, new_hash));
                     }
                     // Do stuff for model checking
                     check_on_the_fly_properties(
@@ -80,7 +81,7 @@ impl Collaboration {
                         &current_state,
                         &properties,
                         &mut property_results,
-                        &potentially_unexplored_states_hashes,
+                        &transitions,
                     );
                     state_space.mark_terminated_if_needed(&current_state, current_state_hash);
 
@@ -88,7 +89,7 @@ impl Collaboration {
                     state_space.states.insert(current_state_hash, current_state);
                     state_space
                         .transitions
-                        .insert(current_state_hash, potentially_unexplored_states_hashes);
+                        .insert(current_state_hash, transitions);
                 }
             };
         }

@@ -77,19 +77,19 @@ impl PropertyResult {
 
 pub fn determine_properties(
     properties: &[Property],
-    results: &mut Vec<PropertyResult>,
+    property_results: &mut Vec<PropertyResult>,
     never_executed_activities: HashMap<String, bool>,
     state_space: &StateSpace,
 ) {
     if properties.contains(&Property::Safeness)
-        && not_contains_property_result(results, Property::Safeness)
+        && not_contains_property_result(property_results, Property::Safeness)
     {
-        results.push(PropertyResult::safe());
+        property_results.push(PropertyResult::safe());
     }
     if properties.contains(&Property::OptionToComplete)
-        && not_contains_property_result(results, Property::OptionToComplete)
+        && not_contains_property_result(property_results, Property::OptionToComplete)
     {
-        results.push(PropertyResult::always_terminates())
+        property_results.push(PropertyResult::always_terminates())
     }
     if properties.contains(&Property::ProperCompletion) {
         state_space
@@ -99,12 +99,16 @@ pub fn determine_properties(
                 let state = state_space.states.get(terminated_state_hash).unwrap();
                 for (end_event, count) in state.executed_end_event_counter.iter() {
                     if count > &1u16 {
-                        record_proper_completion(*terminated_state_hash, results, end_event);
+                        record_proper_completion(
+                            *terminated_state_hash,
+                            property_results,
+                            end_event,
+                        );
                     }
                 }
             });
-        if not_contains_property_result(results, Property::ProperCompletion) {
-            results.push(PropertyResult::proper_completion())
+        if not_contains_property_result(property_results, Property::ProperCompletion) {
+            property_results.push(PropertyResult::proper_completion())
         }
     }
     if properties.contains(&Property::NoDeadActivities) {
@@ -112,37 +116,42 @@ pub fn determine_properties(
         let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
         if !dead_activities.is_empty() {
             dead_activities.sort();
-            results.push(PropertyResult {
+            property_results.push(PropertyResult {
                 property: Property::NoDeadActivities,
                 fulfilled: false,
                 problematic_elements: dead_activities,
                 ..Default::default()
             });
         } else {
-            results.push(PropertyResult::no_dead_activities());
+            property_results.push(PropertyResult::no_dead_activities());
         }
     }
 }
 
-fn not_contains_property_result(results: &[PropertyResult], property: Property) -> bool {
-    !results.iter().any(|result| result.property == property)
+fn not_contains_property_result(property_results: &[PropertyResult], property: Property) -> bool {
+    !property_results
+        .iter()
+        .any(|result| result.property == property)
 }
 
 pub fn check_on_the_fly_properties(
     current_state_hash: u64,
-    state: &State,
+    current_state: &State,
     properties: &[Property],
-    results: &mut Vec<PropertyResult>,
-    next_state_hashes: &[(String, u64)],
+    property_results: &mut Vec<PropertyResult>,
+    transitions: &[(String, u64)],
 ) {
     for property in properties.iter() {
         match property {
             Property::Safeness => {
-                check_if_unsafe(current_state_hash, state, results);
+                check_if_unsafe(current_state_hash, current_state, property_results);
             }
-            Property::OptionToComplete => {
-                check_if_stuck(current_state_hash, state, results, next_state_hashes)
-            }
+            Property::OptionToComplete => check_if_stuck(
+                current_state_hash,
+                current_state,
+                property_results,
+                transitions,
+            ),
             _ => {}
         }
     }
@@ -150,12 +159,12 @@ pub fn check_on_the_fly_properties(
 
 pub fn check_if_stuck(
     current_state_hash: u64,
-    state: &State,
-    results: &mut Vec<PropertyResult>,
-    next_state_hashes: &[(String, u64)],
+    current_state: &State,
+    property_results: &mut Vec<PropertyResult>,
+    transitions: &[(String, u64)],
 ) {
-    if next_state_hashes.is_empty() && !state.is_terminated() {
-        record_option_to_complete(current_state_hash, results);
+    if transitions.is_empty() && !current_state.is_terminated() {
+        record_option_to_complete(current_state_hash, property_results);
     }
 }
 
@@ -173,11 +182,11 @@ pub fn record_option_to_complete(current_state_hash: u64, results: &mut Vec<Prop
 
 fn record_proper_completion(
     current_state_hash: u64,
-    results: &mut Vec<PropertyResult>,
+    property_results: &mut Vec<PropertyResult>,
     end_event: &str,
 ) {
-    match find_property_result(results, Property::ProperCompletion) {
-        None => results.push(PropertyResult {
+    match find_property_result(property_results, Property::ProperCompletion) {
+        None => property_results.push(PropertyResult {
             property: Property::ProperCompletion,
             fulfilled: false,
             problematic_elements: vec![end_event.to_owned()],
@@ -191,19 +200,23 @@ fn record_proper_completion(
 }
 
 fn find_property_result(
-    results: &mut [PropertyResult],
+    property_results: &mut [PropertyResult],
     property: Property,
 ) -> Option<&mut PropertyResult> {
-    results
+    property_results
         .iter_mut()
         .find(|result| result.property == property)
 }
 
-fn check_if_unsafe(current_state_hash: u64, state: &State, results: &mut Vec<PropertyResult>) {
-    match state.get_unsafe_sf() {
+fn check_if_unsafe(
+    current_state_hash: u64,
+    current_state: &State,
+    property_results: &mut Vec<PropertyResult>,
+) {
+    match current_state.get_unsafe_sf() {
         None => {}
-        Some(unsafe_sf) => match find_property_result(results, Property::Safeness) {
-            None => results.push(PropertyResult {
+        Some(unsafe_sf) => match find_property_result(property_results, Property::Safeness) {
+            None => property_results.push(PropertyResult {
                 property: Property::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![unsafe_sf.clone()],
