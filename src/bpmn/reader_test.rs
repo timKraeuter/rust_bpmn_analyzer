@@ -22,6 +22,13 @@ mod tests {
         process.flow_nodes.iter().map(|f| f.id.clone()).collect()
     }
 
+    fn find_flow_node_by_id<'a>(p: &'a Process, id: &str) -> &'a FlowNode {
+        p.flow_nodes
+            .iter()
+            .find(|f| f.id == id)
+            .unwrap_or_else(|| panic!("Flow node with id {} not found", id))
+    }
+
     #[test]
     fn read_task_and_gateways() {
         let mut expected = Collaboration {
@@ -171,10 +178,6 @@ mod tests {
         assert_eq!(1, receive_event.incoming_message_flows.len());
         let receive_task = find_flow_node_by_id(second_participant, "ReceiveTask");
         assert_eq!(1, receive_task.incoming_message_flows.len());
-    }
-
-    fn find_flow_node_by_id<'a>(p: &'a Process, id: &str) -> &'a FlowNode {
-        p.flow_nodes.iter().find(|f| f.id == id).unwrap()
     }
 
     #[test]
