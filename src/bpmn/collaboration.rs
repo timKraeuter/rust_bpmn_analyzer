@@ -176,7 +176,7 @@ impl Collaboration {
                 Some(process) => {
                     // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages. But currently sfs/mfs are just ids and we cannot find their targets easily.
                     for flow_node in process.flow_nodes.iter() {
-                        let new_states = flow_node.try_execute(snapshot, state);
+                        let new_states = flow_node.try_execute(snapshot, state, self);
 
                         Self::record_executed_activities(
                             not_executed_activities,

@@ -1,3 +1,4 @@
+use crate::bpmn::collaboration::Collaboration;
 use crate::bpmn::process::Process;
 use crate::states::state_space::{ProcessSnapshot, State};
 use std::collections::BTreeMap;
@@ -45,7 +46,12 @@ impl FlowNode {
     pub fn add_incoming_message_flow(&mut self, mf: MessageFlow) {
         self.incoming_message_flows.push(mf);
     }
-    pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
+    pub fn try_execute(
+        &self,
+        snapshot: &ProcessSnapshot,
+        current_state: &State,
+        collaboration: &Collaboration,
+    ) -> Vec<State> {
         match self.flow_node_type {
             FlowNodeType::StartEvent(_) => vec![],
             FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
@@ -54,7 +60,9 @@ impl FlowNode {
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
-            FlowNodeType::EventBasedGateway => vec![], // TODO: Implement
+            FlowNodeType::EventBasedGateway => {
+                self.try_execute_evg(snapshot, current_state, collaboration)
+            }
             FlowNodeType::EndEvent(_) => self.try_execute_end_event(snapshot, current_state),
             FlowNodeType::IntermediateCatchEvent(_) => {
                 self.try_execute_intermediate_catch_event(snapshot, current_state)
@@ -318,6 +326,60 @@ impl FlowNode {
             }
         }
         next_states
+    }
+    fn try_execute_evg(
+        &self,
+        snapshot: &ProcessSnapshot,
+        current_state: &State,
+        collaboration: &Collaboration,
+    ) -> Vec<State> {
+        // Currently only messages can trigger evgs.
+        if current_state.messages.is_empty() {
+            return vec![];
+        }
+        let mut new_states: Vec<State> = Vec::with_capacity(1);
+        for inc_flow in self.incoming_flows.iter() {
+            match snapshot.tokens.get(&inc_flow.id) {
+                None => {}
+                Some(_) => {
+                    // Find next flow nodes after the EVG. Currently very annoying! to be improved.
+                    let next_flow_nodes = collaboration
+                        .participants
+                        .iter()
+                        .filter(|p| p.id == snapshot.id)
+                        .flat_map(|p| p.flow_nodes.iter())
+                        .filter(|f| {
+                            !f.incoming_message_flows.is_empty()
+                                && (f.flow_node_type
+                                    == FlowNodeType::IntermediateCatchEvent(EventType::Message)
+                                    || f.flow_node_type == FlowNodeType::Task)
+                                && f.incoming_flows
+                                    .iter()
+                                    .any(|sf| self.outgoing_flows.iter().any(|of| sf.id == of.id))
+                        })
+                        .collect::<Vec<&FlowNode>>();
+                    // Add outgoing tokens of the triggered event/receive task after the gateway.
+                    for flow_node in next_flow_nodes.iter() {
+                        if flow_node.no_message_flow_has_a_message(current_state) {
+                            continue;
+                        }
+                        // Consume incoming token
+                        let mut new_state =
+                            Self::create_new_state_without_snapshot(snapshot, current_state);
+                        let mut new_snapshot =
+                            Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+
+                        // Add outgoing tokens
+                        flow_node.add_outgoing_tokens(&mut new_snapshot);
+
+                        new_state.snapshots.push(new_snapshot);
+
+                        new_states.push(new_state);
+                    }
+                }
+            }
+        }
+        new_states
     }
 }
 
