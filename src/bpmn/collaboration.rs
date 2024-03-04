@@ -106,7 +106,7 @@ impl Collaboration {
         }
     }
 
-    pub(crate) fn get_all_flow_nodes_by_type(
+    pub fn get_all_flow_nodes_by_type(
         &self,
         flow_node_type: FlowNodeType,
     ) -> HashMap<String, bool> {
