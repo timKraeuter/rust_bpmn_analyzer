@@ -50,14 +50,13 @@ impl FlowNode {
             FlowNodeType::StartEvent(_) => vec![],
             FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
             FlowNodeType::IntermediateThrowEvent(_) => {
-                self.try_intermediate_throw_event(snapshot, current_state)
+                self.try_execute_intermediate_throw_event(snapshot, current_state)
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
             FlowNodeType::EndEvent(_) => self.try_execute_end_event(snapshot, current_state),
             FlowNodeType::IntermediateCatchEvent(_) => {
-                // TODO: Implement by consuming messages and tokens
-                vec![]
+                self.try_execute_intermediate_catch_event(snapshot, current_state)
             }
         }
     }
@@ -148,13 +147,13 @@ impl FlowNode {
             new_state.add_message(&out_mf.id);
         }
     }
-    fn try_intermediate_throw_event(
+    fn try_execute_intermediate_throw_event(
         &self,
         snapshot: &ProcessSnapshot,
         current_state: &State,
     ) -> Vec<State> {
         // Currently the same as task but event types will change this.
-        // Still fine since it consumes and creates messages just like tasks.
+        // Still fine since it creates messages just like tasks.
         self.try_execute_task(snapshot, current_state)
     }
     fn try_execute_exg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
@@ -209,7 +208,6 @@ impl FlowNode {
                         Self::create_new_state_without_snapshot(snapshot, current_state);
                     let new_snapshot =
                         Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
-                    // Add outgoing token
                     new_state.snapshots.push(new_snapshot);
                     self.record_end_event_execution(&mut new_state);
 
@@ -220,6 +218,52 @@ impl FlowNode {
             }
         }
         new_states
+    }
+    fn try_execute_intermediate_catch_event(
+        &self,
+        snapshot: &ProcessSnapshot,
+        current_state: &State,
+    ) -> Vec<State> {
+        match self.flow_node_type {
+            FlowNodeType::IntermediateCatchEvent(EventType::Message) => {
+                let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
+                if self.no_message_flow_has_a_message(current_state) {
+                    return vec![];
+                }
+                for inc_flow in self.incoming_flows.iter() {
+                    match snapshot.tokens.get(&inc_flow.id) {
+                        None => {}
+                        Some(_) => {
+                            // Consume incoming token
+                            let mut new_state =
+                                Self::create_new_state_without_snapshot(snapshot, current_state);
+                            let mut new_snapshot =
+                                Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+                            // Add outgoing tokens
+                            self.add_outgoing_tokens(&mut new_snapshot);
+
+                            new_state.snapshots.push(new_snapshot);
+
+                            new_states.push(new_state);
+                        }
+                    }
+                }
+                new_states
+            }
+            FlowNodeType::IntermediateCatchEvent(EventType::None) => {
+                self.try_execute_task(snapshot, current_state)
+            }
+            _ => {
+                vec![]
+            }
+        }
+    }
+
+    fn no_message_flow_has_a_message(&self, current_state: &State) -> bool {
+        !self
+            .incoming_message_flows
+            .iter()
+            .any(|inc_mf| current_state.messages.get(&inc_mf.id).is_some())
     }
 
     fn record_end_event_execution(&self, new_state: &mut State) {

@@ -184,7 +184,7 @@ impl Collaboration {
                             &new_states,
                         );
 
-                        // Would want to check if the state has been explored here not later to not take up unnecessary memory.
+                        // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
                         unexplored_states.append(
                             &mut new_states
                                 .into_iter()
@@ -211,6 +211,7 @@ impl Collaboration {
                 .for_each(|message_start_event| {
                     let new_states =
                         message_start_event.try_trigger_message_start_event(process, state);
+                    // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
                     unexplored_states.append(
                         &mut new_states
                             .into_iter()

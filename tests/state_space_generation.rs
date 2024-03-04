@@ -37,7 +37,7 @@ fn test_stable_state_space_with_messages() {
         properties: vec![],
     };
     let result = bpmnanalyzer::run(config).unwrap();
-    // TODO: Should be more than 7 states!
-    assert_eq!(7, result.state_space.states.len());
-    assert_eq!(7, result.state_space.transitions.len());
+    // TODO: Should be more than 15 states!
+    assert_eq!(15, result.state_space.states.len());
+    assert_eq!(15, result.state_space.transitions.len());
 }
