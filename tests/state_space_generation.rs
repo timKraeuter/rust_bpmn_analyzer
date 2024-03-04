@@ -29,3 +29,15 @@ fn test_stable_state_space2() {
     assert_eq!(134, result.state_space.states.len());
     assert_eq!(134, result.state_space.transitions.len());
 }
+
+#[test]
+fn test_stable_state_space_with_messages() {
+    let config = Config {
+        file_path: PATH.to_string() + "pools-message-flows.bpmn",
+        properties: vec![],
+    };
+    let result = bpmnanalyzer::run(config).unwrap();
+    // TODO: Should be more than 7 states!
+    assert_eq!(7, result.state_space.states.len());
+    assert_eq!(7, result.state_space.transitions.len());
+}

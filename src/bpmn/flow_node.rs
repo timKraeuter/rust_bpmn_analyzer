@@ -1,3 +1,4 @@
+use crate::bpmn::process::Process;
 use crate::states::state_space::{ProcessSnapshot, State};
 use std::collections::BTreeMap;
 
@@ -45,10 +46,8 @@ impl FlowNode {
         self.incoming_message_flows.push(mf);
     }
     pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        match &self.flow_node_type {
-            FlowNodeType::StartEvent(start_event) => {
-                self.try_execute_start_event(snapshot, current_state, start_event)
-            }
+        match self.flow_node_type {
+            FlowNodeType::StartEvent(_) => vec![],
             FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
             FlowNodeType::IntermediateThrowEvent(_) => {
                 self.try_intermediate_throw_event(snapshot, current_state)
@@ -58,7 +57,7 @@ impl FlowNode {
             FlowNodeType::EndEvent(_) => self.try_execute_end_event(snapshot, current_state),
             FlowNodeType::IntermediateCatchEvent(_) => {
                 // TODO: Implement by consuming messages and tokens
-                todo!()
+                vec![]
             }
         }
     }
@@ -233,54 +232,42 @@ impl FlowNode {
                 .insert(self.id.clone(), count + 1),
         };
     }
-    fn try_execute_start_event(
+    pub fn try_trigger_message_start_event(
         &self,
-        snapshot: &ProcessSnapshot,
+        process: &Process,
         current_state: &State,
-        start_event: &EventType,
     ) -> Vec<State> {
-        match start_event {
-            EventType::Message => {
-                let mut next_states = vec![];
-                if current_state.messages.is_empty() {
-                    return next_states;
-                }
-                for inc_mf in self.incoming_message_flows.iter() {
-                    let message_count = current_state.messages.get(&inc_mf.id);
-                    match message_count {
-                        None => {}
-                        Some(count) => {
-                            if *count > 0 {
-                                let mut new_state = State {
-                                    snapshots: current_state.snapshots.clone(),
-                                    executed_end_event_counter: current_state
-                                        .executed_end_event_counter
-                                        .clone(),
-                                    messages: BTreeMap::new(),
-                                };
-                                // Create a new snapshot.
-                                let mut new_snapshot = ProcessSnapshot {
-                                    id: snapshot.id.clone(),
-                                    tokens: BTreeMap::new(),
-                                };
-                                // Add outgoing tokens
-                                self.add_outgoing_tokens(&mut new_snapshot);
-                                new_state.snapshots.push(new_snapshot);
-                                next_states.push(new_state);
-                            }
-                        }
+        let mut next_states = vec![];
+        if current_state.messages.is_empty() {
+            return next_states;
+        }
+        for inc_mf in self.incoming_message_flows.iter() {
+            let message_count = current_state.messages.get(&inc_mf.id);
+            match message_count {
+                None => {}
+                Some(count) => {
+                    if *count > 0 {
+                        let mut new_state = State {
+                            snapshots: current_state.snapshots.clone(),
+                            executed_end_event_counter: current_state
+                                .executed_end_event_counter
+                                .clone(),
+                            messages: BTreeMap::new(),
+                        };
+                        // Create a new snapshot.
+                        let mut new_snapshot = ProcessSnapshot {
+                            id: process.id.clone(),
+                            tokens: BTreeMap::new(),
+                        };
+                        // Add outgoing tokens
+                        self.add_outgoing_tokens(&mut new_snapshot);
+                        new_state.snapshots.push(new_snapshot);
+                        next_states.push(new_state);
                     }
                 }
-                next_states
-            }
-            EventType::None => {
-                vec![]
-            }
-            // TODO: Unsupported is ugly here and should never happen.
-            EventType::Unsupported => {
-                panic!("Trying to execute an unsupported start event")
             }
         }
+        next_states
     }
 }
 

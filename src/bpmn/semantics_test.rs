@@ -204,20 +204,20 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("start"));
         let start_state = State {
-            snapshots: vec![ProcessSnapshot::new(String::from("p1_process"), vec![])],
+            snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::from([(String::from("mf"), 1u16)]),
         };
 
-        let next_states = flow_node.try_execute(get_first_snapshot(&start_state), &start_state);
+        let next_states = flow_node.try_trigger_message_start_event(process, &start_state);
 
         assert_eq!(
             next_states,
             vec![State {
-                snapshots: vec![
-                    ProcessSnapshot::new(String::from("p1_process"), vec![],),
-                    ProcessSnapshot::new(String::from("p1_process"), vec!["start_out"])
-                ],
+                snapshots: vec![ProcessSnapshot::new(
+                    String::from("p1_process"),
+                    vec!["start_out"]
+                )],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
             }]

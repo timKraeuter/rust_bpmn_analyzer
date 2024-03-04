@@ -1,3 +1,4 @@
+use crate::bpmn::flow_node::FlowNodeType::StartEvent;
 use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow};
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
@@ -159,6 +160,10 @@ impl Collaboration {
     ) -> Vec<(String, State)> {
         // TODO: Message receivers might not be found in case of message start events, when they do not have a running process snapshot yet.
         let mut unexplored_states: Vec<(String, State)> = vec![];
+        if !state.messages.is_empty() {
+            self.try_trigger_message_start_events(state, &mut unexplored_states);
+        }
+
         for snapshot in &state.snapshots {
             // Find participant for snapshot, could also be hashmap but usually not a long list.
             let process = self
@@ -192,6 +197,29 @@ impl Collaboration {
             }
         }
         unexplored_states
+    }
+
+    fn try_trigger_message_start_events(
+        &self,
+        state: &State,
+        unexplored_states: &mut Vec<(String, State)>,
+    ) {
+        self.participants.iter().for_each(|process| {
+            process
+                .flow_nodes
+                .iter()
+                .filter(|flow_node| flow_node.flow_node_type == StartEvent(EventType::Message))
+                .for_each(|message_start_event| {
+                    let new_states =
+                        message_start_event.try_trigger_message_start_event(process, state);
+                    unexplored_states.append(
+                        &mut new_states
+                            .into_iter()
+                            .map(|state| (message_start_event.id.clone(), state))
+                            .collect(),
+                    );
+                })
+        });
     }
 
     fn record_executed_activities(
