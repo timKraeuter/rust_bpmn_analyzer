@@ -31,9 +31,10 @@ mod test {
             State {
                 snapshots: vec![ProcessSnapshot::new(
                     String::from("process"),
-                    vec![String::from("Flow_1"), String::from("Flow_2")],
+                    vec!["Flow_1", "Flow_2"],
                 )],
                 executed_end_event_counter: BTreeMap::new(),
+                messages: BTreeMap::new(),
             }
         );
     }
@@ -48,16 +49,11 @@ mod test {
             start_state,
             State {
                 snapshots: vec![
-                    ProcessSnapshot::new(
-                        String::from("p1_process"),
-                        vec![String::from("Flow_04pas1n")],
-                    ),
-                    ProcessSnapshot::new(
-                        String::from("p3_process"),
-                        vec![String::from("Flow_0gz2791")],
-                    )
+                    ProcessSnapshot::new(String::from("p1_process"), vec!["Flow_04pas1n"],),
+                    ProcessSnapshot::new(String::from("p3_process"), vec!["Flow_0gz2791"],)
                 ],
                 executed_end_event_counter: BTreeMap::new(),
+                messages: BTreeMap::new(),
             }
         );
     }
@@ -76,22 +72,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(
-                    String::from("process"),
-                    vec![
-                        String::from("Flow_2"),
-                        String::from("Flow_3"),
-                        String::from("Flow_4"),
-                    ],
-                ),
-                State::new(
-                    String::from("process"),
-                    vec![
-                        String::from("Flow_1"),
-                        String::from("Flow_3"),
-                        String::from("Flow_4"),
-                    ],
-                ),
+                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",],),
+                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",],),
             ]
         )
     }
@@ -110,8 +92,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec![String::from("Flow_2")]),
-                State::new(String::from("process"), vec![String::from("Flow_3")]),
+                State::new(String::from("process"), vec!["Flow_2"]),
+                State::new(String::from("process"), vec!["Flow_3"]),
             ]
         )
     }
@@ -123,24 +105,15 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_2"));
-        let start_state = State::new(
-            String::from("process"),
-            vec![String::from("Flow_2"), String::from("Flow_3")],
-        );
+        let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(get_first_snapshot(&start_state), &start_state);
 
         assert_eq!(
             next_states,
             vec![
-                State::new(
-                    String::from("process"),
-                    vec![String::from("Flow_3"), String::from("Flow_4")],
-                ),
-                State::new(
-                    String::from("process"),
-                    vec![String::from("Flow_2"), String::from("Flow_4")],
-                ),
+                State::new(String::from("process"), vec!["Flow_3", "Flow_4"],),
+                State::new(String::from("process"), vec!["Flow_2", "Flow_4"],),
             ]
         );
     }
@@ -160,7 +133,7 @@ mod test {
             next_states,
             vec![State::new(
                 String::from("process"),
-                vec![String::from("Flow_2"), String::from("Flow_3")],
+                vec!["Flow_2", "Flow_3"],
             ),]
         )
     }
@@ -172,19 +145,13 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_2"));
-        let start_state = State::new(
-            String::from("process"),
-            vec![String::from("Flow_2"), String::from("Flow_3")],
-        );
+        let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(get_first_snapshot(&start_state), &start_state);
 
         assert_eq!(
             next_states,
-            vec![State::new(
-                String::from("process"),
-                vec![String::from("Flow_4")],
-            ),]
+            vec![State::new(String::from("process"), vec!["Flow_4"],),]
         );
     }
 
@@ -194,28 +161,15 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
-        let start_state = State::new(
-            String::from("process"),
-            vec![
-                String::from("Flow_1"),
-                String::from("Flow_1"),
-                String::from("Flow_2"),
-            ],
-        );
+        let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(get_first_snapshot(&start_state), &start_state);
 
-        let mut state1 = State::new(
-            String::from("process"),
-            vec![String::from("Flow_1"), String::from("Flow_2")],
-        );
+        let mut state1 = State::new(String::from("process"), vec!["Flow_1", "Flow_2"]);
         state1
             .executed_end_event_counter
             .insert("End".to_string(), 1);
-        let mut state2 = State::new(
-            String::from("process"),
-            vec![String::from("Flow_1"), String::from("Flow_1")],
-        );
+        let mut state2 = State::new(String::from("process"), vec!["Flow_1", "Flow_1"]);
         state2
             .executed_end_event_counter
             .insert("End".to_string(), 1);
@@ -229,32 +183,15 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Intermediate"));
-        let start_state = State::new(
-            String::from("process"),
-            vec![String::from("Flow_1"), String::from("Flow_2")],
-        );
+        let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(get_first_snapshot(&start_state), &start_state);
 
         assert_eq!(
             next_states,
             vec![
-                State::new(
-                    String::from("process"),
-                    vec![
-                        String::from("Flow_2"),
-                        String::from("Flow_3"),
-                        String::from("Flow_4"),
-                    ],
-                ),
-                State::new(
-                    String::from("process"),
-                    vec![
-                        String::from("Flow_1"),
-                        String::from("Flow_3"),
-                        String::from("Flow_4"),
-                    ],
-                ),
+                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",],),
+                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",],),
             ]
         );
     }
@@ -286,7 +223,7 @@ mod test {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::Safeness]);
 
-        let unsafe_state_hash: u64 = 5036971803133640392;
+        let unsafe_state_hash: u64 = 3842228032089975966;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -294,7 +231,7 @@ mod test {
                 property: Property::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe2"), String::from("Unsafe1")],
-                problematic_state_hashes: vec![13741427997559944324, unsafe_state_hash]
+                problematic_state_hashes: vec![10963063677454573590, unsafe_state_hash]
             }]
         );
 
@@ -307,6 +244,7 @@ mod test {
                     tokens: BTreeMap::from([(String::from("Unsafe1"), 2u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),
+                messages: BTreeMap::new(),
             }
         );
 
@@ -343,8 +281,8 @@ mod test {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
 
-        let not_terminated_state_hash_1 = 576705523175660082;
-        let not_terminated_state_hash_2 = 16736083492202242885;
+        let not_terminated_state_hash_1 = 6735018309777973944;
+        let not_terminated_state_hash_2 = 9452229757242377755;
         assert_eq!(
             model_checking_result.property_results,
             vec![PropertyResult {
@@ -385,7 +323,7 @@ mod test {
         let model_checking_result =
             collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
 
-        let expected_hash: u64 = 7328816658838297303;
+        let expected_hash: u64 = 12581154331755844142;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -406,6 +344,7 @@ mod test {
                     tokens: BTreeMap::from([(String::from("stuck"), 1u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),
+                messages: BTreeMap::new(),
             }
         );
     }
@@ -515,7 +454,7 @@ mod test {
                 property: Property::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
-                problematic_state_hashes: vec![9775884300989159360],
+                problematic_state_hashes: vec![12782631182175227902],
             }
         );
     }
@@ -537,7 +476,7 @@ mod test {
                 property: Property::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
-                problematic_state_hashes: vec![9775884300989159360],
+                problematic_state_hashes: vec![12782631182175227902],
             }
         );
     }
@@ -559,7 +498,7 @@ mod test {
                 property: Property::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
-                problematic_state_hashes: vec![15747585000097647928],
+                problematic_state_hashes: vec![5271536939354034460],
             }
         );
     }

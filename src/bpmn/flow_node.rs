@@ -1,4 +1,5 @@
 use crate::states::state_space::{ProcessSnapshot, State};
+use std::collections::BTreeMap;
 
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
@@ -44,9 +45,9 @@ impl FlowNode {
         self.incoming_message_flows.push(mf);
     }
     pub fn try_execute(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
-        match self.flow_node_type {
-            FlowNodeType::StartEvent(_) => {
-                vec![]
+        match &self.flow_node_type {
+            FlowNodeType::StartEvent(start_event) => {
+                self.try_execute_start_event(snapshot, current_state, start_event)
             }
             FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
             FlowNodeType::IntermediateThrowEvent(_) => {
@@ -56,6 +57,7 @@ impl FlowNode {
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
             FlowNodeType::EndEvent(_) => self.try_execute_end_event(snapshot, current_state),
             FlowNodeType::IntermediateCatchEvent(_) => {
+                // TODO: Implement by consuming messages and tokens
                 todo!()
             }
         }
@@ -73,7 +75,7 @@ impl FlowNode {
         };
         // Remove incoming tokens
         for in_sf in self.incoming_flows.iter() {
-            new_snapshot.delete_token(in_sf.id.clone());
+            new_snapshot.delete_token(&in_sf.id);
         }
         // Add outgoing tokens
         self.add_outgoing_tokens(&mut new_snapshot);
@@ -92,29 +94,35 @@ impl FlowNode {
         snapshot: &ProcessSnapshot,
         current_state: &State,
     ) -> State {
-        // Clone should be avoided.
-        let mut snapshots = current_state.snapshots.clone();
-        // Remove the snapshot
-        let index = snapshots
+        // Clone all but the defined one.
+        let snapshots = current_state
+            .snapshots
             .iter()
-            .position(|sp| snapshot.id == sp.id)
-            .expect("Snapshot not found!");
-        snapshots.swap_remove(index);
+            .filter_map(|sp| {
+                if sp.id == snapshot.id {
+                    None
+                } else {
+                    Some(sp.clone())
+                }
+            })
+            .collect();
 
         State {
             snapshots,
             executed_end_event_counter: current_state.executed_end_event_counter.clone(),
+            messages: BTreeMap::new(),
         }
     }
 
     fn add_outgoing_tokens(&self, snapshot: &mut ProcessSnapshot) {
         for out_flow in self.outgoing_flows.iter() {
-            snapshot.add_token(out_flow.id.clone());
+            snapshot.add_token(&out_flow.id);
         }
     }
     fn try_execute_task(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
         for inc_flow in self.incoming_flows.iter() {
+            // TODO: Possibly consume incoming messages!
             match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
                 Some(_) => {
@@ -123,9 +131,11 @@ impl FlowNode {
                         Self::create_new_state_without_snapshot(snapshot, current_state);
                     let mut new_snapshot =
                         Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
-                    // Add outgoing tokens
+
                     self.add_outgoing_tokens(&mut new_snapshot);
                     new_state.snapshots.push(new_snapshot);
+
+                    self.add_outgoing_messages(&mut new_state);
 
                     new_states.push(new_state);
                 }
@@ -133,12 +143,19 @@ impl FlowNode {
         }
         new_states
     }
+
+    fn add_outgoing_messages(&self, new_state: &mut State) {
+        for out_mf in self.outgoing_message_flows.iter() {
+            new_state.add_message(&out_mf.id);
+        }
+    }
     fn try_intermediate_throw_event(
         &self,
         snapshot: &ProcessSnapshot,
         current_state: &State,
     ) -> Vec<State> {
         // Currently the same as task but event types will change this.
+        // Still fine since it consumes and creates messages just like tasks.
         self.try_execute_task(snapshot, current_state)
     }
     fn try_execute_exg(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
@@ -155,7 +172,7 @@ impl FlowNode {
                         let mut new_snapshot =
                             Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
                         // Add outgoing token
-                        new_snapshot.add_token(out_flow.id.clone());
+                        new_snapshot.add_token(&out_flow.id);
                         new_state.snapshots.push(new_snapshot);
 
                         new_states.push(new_state);
@@ -175,7 +192,7 @@ impl FlowNode {
             // Remove incoming token
             tokens: snapshot.tokens.clone(),
         };
-        snapshot.delete_token(token.to_string());
+        snapshot.delete_token(token);
         snapshot
     }
     fn try_execute_end_event(
@@ -197,6 +214,8 @@ impl FlowNode {
                     new_state.snapshots.push(new_snapshot);
                     self.record_end_event_execution(&mut new_state);
 
+                    self.add_outgoing_messages(&mut new_state);
+
                     new_states.push(new_state);
                 }
             }
@@ -213,6 +232,55 @@ impl FlowNode {
                 .executed_end_event_counter
                 .insert(self.id.clone(), count + 1),
         };
+    }
+    fn try_execute_start_event(
+        &self,
+        snapshot: &ProcessSnapshot,
+        current_state: &State,
+        start_event: &EventType,
+    ) -> Vec<State> {
+        match start_event {
+            EventType::Message => {
+                let mut next_states = vec![];
+                if current_state.messages.is_empty() {
+                    return next_states;
+                }
+                for inc_mf in self.incoming_message_flows.iter() {
+                    let message_count = current_state.messages.get(&inc_mf.id);
+                    match message_count {
+                        None => {}
+                        Some(count) => {
+                            if *count > 0 {
+                                let mut new_state = State {
+                                    snapshots: current_state.snapshots.clone(),
+                                    executed_end_event_counter: current_state
+                                        .executed_end_event_counter
+                                        .clone(),
+                                    messages: BTreeMap::new(),
+                                };
+                                // Create a new snapshot.
+                                let mut new_snapshot = ProcessSnapshot {
+                                    id: snapshot.id.clone(),
+                                    tokens: BTreeMap::new(),
+                                };
+                                // Add outgoing tokens
+                                self.add_outgoing_tokens(&mut new_snapshot);
+                                new_state.snapshots.push(new_snapshot);
+                                next_states.push(new_state);
+                            }
+                        }
+                    }
+                }
+                next_states
+            }
+            EventType::None => {
+                vec![]
+            }
+            // TODO: Unsupported is ugly here and should never happen.
+            EventType::Unsupported => {
+                panic!("Trying to execute an unsupported start event")
+            }
+        }
     }
 }
 

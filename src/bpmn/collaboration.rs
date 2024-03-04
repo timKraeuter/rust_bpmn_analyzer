@@ -128,6 +128,7 @@ impl Collaboration {
         let mut start = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
         };
         for process in &self.participants {
             let mut tokens = BTreeMap::new();
