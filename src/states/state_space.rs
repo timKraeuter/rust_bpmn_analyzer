@@ -86,17 +86,18 @@ impl State {
             .all(|snapshot| snapshot.tokens.is_empty())
     }
 
-    pub fn get_unsafe_sf(&self) -> Option<&String> {
-        const TWO: u16 = 2;
-        for snapshot in self.snapshots.iter() {
-            match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
-                None => {}
-                Some((sf, _)) => {
-                    return Some(sf);
-                }
-            }
-        }
-        None
+    pub fn try_find_unsafe_sf_id(&self) -> Option<&String> {
+        self.snapshots.iter().find_map(|snapshot| {
+            snapshot.tokens.iter().find_map(
+                |(sf_id, amount)| {
+                    if *amount >= 2u16 {
+                        Some(sf_id)
+                    } else {
+                        None
+                    }
+                },
+            )
+        })
     }
 
     pub fn add_message(&mut self, position: &str) {

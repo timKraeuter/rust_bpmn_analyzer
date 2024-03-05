@@ -213,7 +213,7 @@ fn check_if_unsafe(
     current_state: &State,
     property_results: &mut Vec<PropertyResult>,
 ) {
-    match current_state.get_unsafe_sf() {
+    match current_state.try_find_unsafe_sf_id() {
         None => {}
         Some(unsafe_sf) => match find_property_result(property_results, Property::Safeness) {
             None => property_results.push(PropertyResult {
