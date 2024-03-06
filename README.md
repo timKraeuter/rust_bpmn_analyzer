@@ -10,7 +10,7 @@ BPMN models.
 cd ./target/release && bpmnanalyzer.exe -p 3001
 ```
 
-# Build & Deploy
+# Docker build
 
 Build with the correct target for alpine, which is used in the Docker image.
 ```bash
@@ -35,3 +35,28 @@ Run the application image:
 ```bash
 docker run -p 8080:8080 rust-bpmnanalyzer
 ```
+
+## Deployment to Azure
+
+1. Build the container (see Docker section).
+
+2. Tag container image
+
+```bash
+docker tag rust-bpmnanalyzer tg2022.azurecr.io/rust-bpmnanalyzer:v1
+```
+
+3. Login to the Container Registry. Environment variables `APP_ID` and `AZURE_PW` are expected to be
+   set (export APP_ID=<app-id> etc.).
+
+```bash
+docker login tg2022.azurecr.io --username $APP_ID --password $AZURE_PW
+```
+
+4. Push the image to the Container Registry
+
+```bash
+docker push tg2022.azurecr.io/rust-bpmnanalyzer:v1
+```
+
+5. Create a new container app revision in the GUI.
