@@ -24,7 +24,12 @@ async fn main() {
     serve(app, config.port).await;
 }
 async fn serve(app: Router, port: u16) {
-    let addr = SocketAddr::from(([127, 0, 0, 1], port));
+    // Different address for docker. Maybe also wrongly applies on normal linux?
+    let addr = if cfg!(target_env = "musl") {
+        SocketAddr::from(([0, 0, 0, 0], port))
+    } else {
+        SocketAddr::from(([127, 0, 0, 1], port))
+    };
     tracing::debug!("Listening on {}", addr);
     println!("Listening on {}", addr);
     axum::Server::bind(&addr)

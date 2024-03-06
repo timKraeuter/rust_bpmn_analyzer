@@ -10,10 +10,28 @@ BPMN models.
 cd ./target/release && bpmnanalyzer.exe -p 3001
 ```
 
-# Build release for the current platform
+# Build & Deploy
 
+Build with the correct target for alpine, which is used in the Docker image.
 ```bash
-cargo build --release
+cargo build --release --target x86_64-unknown-linux-musl
 ```
 
-Use WSL to build for linux on windows.
+Use WSL/Linux to build. If needed add the target:
+
+```bash
+rustup target add x86_64-unknown-linux-musl
+```
+
+
+Build the application image:
+
+```bash
+docker build -t rust-bpmnanalyzer .
+```
+
+Run the application image:
+
+```bash
+docker run -p 8080:8080 rust-bpmnanalyzer
+```
