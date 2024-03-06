@@ -25,6 +25,9 @@ impl StateSpace {
     }
 
     pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<(String, u64)>> {
+        if self.start_state_hash == state_hash {
+            return Some(vec![]);
+        }
         self.get_path(self.start_state_hash, state_hash, &mut HashMap::new())
     }
     fn get_path(
