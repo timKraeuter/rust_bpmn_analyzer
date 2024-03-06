@@ -20,37 +20,38 @@ impl StateSpace {
     }
 
     pub fn get_state(&self, state_hash: &u64) -> &State {
-        match self.states.get(state_hash) {
-            None => {
-                panic!("State for {} not found!", state_hash)
-            }
-            Some(state) => state,
-        }
+        self.states
+            .get(state_hash)
+            .unwrap_or_else(|| panic!("State for {} not found!", state_hash))
     }
 
-    // TODO: This can loop and never end
     pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<(String, u64)>> {
-        self.get_path(self.start_state_hash, state_hash)
+        if self.start_state_hash == state_hash {
+            return Some(vec![]);
+        }
+        self.get_path(self.start_state_hash, state_hash, &mut HashMap::new())
     }
-    fn get_path(&self, from_state_hash: u64, to_state_hash: u64) -> Option<Vec<(String, u64)>> {
+    fn get_path(
+        &self,
+        from_state_hash: u64,
+        to_state_hash: u64,
+        seen_states: &mut HashMap<u64, bool>,
+    ) -> Option<Vec<(String, u64)>> {
         match self.transitions.get(&from_state_hash) {
             None => None,
             Some(next_states) => {
-                match next_states
-                    .iter()
-                    .find(|(_, next_state_hash)| next_state_hash == &to_state_hash)
-                {
-                    None => {}
-                    Some(last_transition) => {
-                        return Some(vec![last_transition.clone()]);
+                for (flow_node_id, next_state_hash) in next_states {
+                    if seen_states.contains_key(next_state_hash) {
+                        continue;
                     }
-                }
-                // Not found continue searching
-                for (flow_node_id, next_state) in next_states {
-                    match self.get_path(*next_state, to_state_hash) {
+                    if *next_state_hash == to_state_hash {
+                        return Some(vec![(flow_node_id.clone(), *next_state_hash)]);
+                    }
+                    seen_states.insert(*next_state_hash, true);
+                    match self.get_path(*next_state_hash, to_state_hash, seen_states) {
                         None => {}
                         Some(mut path) => {
-                            path.insert(0, (flow_node_id.clone(), *next_state));
+                            path.insert(0, (flow_node_id.clone(), *next_state_hash));
                             return Some(path);
                         }
                     };
@@ -64,14 +65,16 @@ impl StateSpace {
 #[derive(Debug, Hash, PartialEq, Serialize, Clone)]
 pub struct State {
     pub snapshots: Vec<ProcessSnapshot>,
+    pub messages: BTreeMap<String, u16>,
     pub executed_end_event_counter: BTreeMap<String, u16>,
 }
 
 impl State {
-    pub fn new(snapshot_id: String, tokens: Vec<String>) -> State {
+    pub fn new(snapshot_id: String, tokens: Vec<&str>) -> State {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, tokens)],
             executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
         }
     }
 
@@ -87,17 +90,43 @@ impl State {
             .all(|snapshot| snapshot.tokens.is_empty())
     }
 
-    pub fn get_unsafe_sf(&self) -> Option<&String> {
-        const TWO: u16 = 2;
-        for snapshot in self.snapshots.iter() {
-            match snapshot.tokens.iter().find(|(_, amount)| *amount >= &TWO) {
-                None => {}
-                Some((sf, _)) => {
-                    return Some(sf);
+    pub fn try_find_unsafe_sf_id(&self) -> Option<&String> {
+        self.snapshots.iter().find_map(|snapshot| {
+            snapshot.tokens.iter().find_map(
+                |(sf_id, amount)| {
+                    if *amount >= 2u16 {
+                        Some(sf_id)
+                    } else {
+                        None
+                    }
+                },
+            )
+        })
+    }
+
+    pub fn add_message(&mut self, position: &str) {
+        let count = self.messages.get_mut(position);
+        if let Some(count) = count {
+            *count += 1;
+        } else {
+            self.messages.insert(position.to_string(), 1);
+        }
+    }
+    pub fn delete_message(&mut self, position: &str) {
+        match self.messages.get_mut(position) {
+            None => {
+                panic!(
+                    "Message {} should be removed but was not present!",
+                    position
+                )
+            }
+            Some(amount) => {
+                *amount -= 1;
+                if *amount == 0 {
+                    self.messages.remove(position);
                 }
             }
         }
-        None
     }
 }
 
@@ -108,7 +137,7 @@ pub struct ProcessSnapshot {
 }
 
 impl ProcessSnapshot {
-    pub fn new(id: String, tokens: Vec<String>) -> ProcessSnapshot {
+    pub fn new(id: String, tokens: Vec<&str>) -> ProcessSnapshot {
         let mut snapshot = ProcessSnapshot {
             id,
             tokens: BTreeMap::new(),
@@ -119,23 +148,23 @@ impl ProcessSnapshot {
         snapshot
     }
 
-    pub fn add_token(&mut self, position: String) {
-        match self.tokens.get(&position) {
-            None => self.tokens.insert(position, 1),
-            Some(amount) => self.tokens.insert(position, amount + 1),
-        };
+    pub fn add_token(&mut self, position: &str) {
+        let count = self.tokens.get_mut(position);
+        if let Some(count) = count {
+            *count += 1;
+        } else {
+            self.tokens.insert(position.to_string(), 1);
+        }
     }
-    pub fn delete_token(&mut self, position: String) {
-        match self.tokens.get(&position) {
+    pub fn delete_token(&mut self, position: &str) {
+        match self.tokens.get_mut(position) {
             None => {
                 panic!("Token {} should be removed but was not present!", position)
             }
             Some(amount) => {
-                let new_amount = amount - 1;
-                if new_amount == 0 {
-                    self.tokens.remove(&position);
-                } else {
-                    self.tokens.insert(position, new_amount);
+                *amount -= 1;
+                if *amount == 0 {
+                    self.tokens.remove(position);
                 }
             }
         }

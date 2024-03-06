@@ -1,4 +1,5 @@
-use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType};
+use crate::bpmn::flow_node::FlowNodeType::StartEvent;
+use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow};
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
@@ -13,6 +14,20 @@ pub struct Collaboration {
 }
 
 impl Collaboration {
+    pub fn add_message_flow(&mut self, mf_id: String, mf_source: String, mf_target: String) {
+        // Could be optimized by stopping if source and target were added.
+        self.participants.iter_mut().for_each(|process| {
+            for flow_node in process.flow_nodes.iter_mut() {
+                if flow_node.id == mf_source {
+                    flow_node.add_outgoing_message_flow(MessageFlow { id: mf_id.clone() });
+                    continue;
+                }
+                if flow_node.id == mf_target {
+                    flow_node.add_incoming_message_flow(MessageFlow { id: mf_id.clone() });
+                }
+            }
+        });
+    }
     pub fn add_participant(&mut self, participant: Process) {
         self.participants.push(participant);
     }
@@ -46,10 +61,10 @@ impl Collaboration {
                     let potentially_unexplored_states =
                         self.explore_state(&current_state, &mut not_executed_activities);
 
-                    // Check if we know the state already
-                    let mut potentially_unexplored_states_hashes = vec![];
+                    let mut transitions = vec![];
                     for (flow_node_id, new_state) in potentially_unexplored_states {
                         let new_hash = new_state.calc_hash();
+                        // Check if we know the state already
                         match seen_state_hashes.get(&new_hash) {
                             None => {
                                 // State is new.
@@ -58,7 +73,8 @@ impl Collaboration {
                             }
                             Some(_) => {}
                         }
-                        potentially_unexplored_states_hashes.push((flow_node_id, new_hash));
+                        // Remember states to make transitions.
+                        transitions.push((flow_node_id, new_hash));
                     }
                     // Do stuff for model checking
                     check_on_the_fly_properties(
@@ -66,7 +82,7 @@ impl Collaboration {
                         &current_state,
                         &properties,
                         &mut property_results,
-                        &potentially_unexplored_states_hashes,
+                        &transitions,
                     );
                     state_space.mark_terminated_if_needed(&current_state, current_state_hash);
 
@@ -74,7 +90,7 @@ impl Collaboration {
                     state_space.states.insert(current_state_hash, current_state);
                     state_space
                         .transitions
-                        .insert(current_state_hash, potentially_unexplored_states_hashes);
+                        .insert(current_state_hash, transitions);
                 }
             };
         }
@@ -91,7 +107,7 @@ impl Collaboration {
         }
     }
 
-    pub(crate) fn get_all_flow_nodes_by_type(
+    pub fn get_all_flow_nodes_by_type(
         &self,
         flow_node_type: FlowNodeType,
     ) -> HashMap<String, bool> {
@@ -113,23 +129,26 @@ impl Collaboration {
         let mut start = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
         };
         for process in &self.participants {
-            let mut snapshot = ProcessSnapshot {
-                // Cloning the string here could be done differently.
-                id: process.id.clone(),
-                tokens: BTreeMap::new(),
-            };
+            let mut tokens = BTreeMap::new();
             for flow_node in &process.flow_nodes {
                 if flow_node.flow_node_type == FlowNodeType::StartEvent(EventType::None) {
                     for out_sf in flow_node.outgoing_flows.iter() {
                         // Cloning the string here could be done differently.
                         let position = out_sf.id.clone();
-                        snapshot.add_token(position);
+                        tokens.insert(position, 1);
                     }
                 }
             }
-            start.snapshots.push(snapshot);
+            if !tokens.is_empty() {
+                start.snapshots.push(ProcessSnapshot {
+                    // Cloning the string here could be done differently.
+                    id: process.id.clone(),
+                    tokens,
+                });
+            }
         }
         start
     }
@@ -140,19 +159,24 @@ impl Collaboration {
         not_executed_activities: &mut HashMap<String, bool>,
     ) -> Vec<(String, State)> {
         let mut unexplored_states: Vec<(String, State)> = vec![];
+        if !state.messages.is_empty() {
+            self.try_trigger_message_start_events(state, &mut unexplored_states);
+        }
+
         for snapshot in &state.snapshots {
             // Find participant for snapshot, could also be hashmap but usually not a long list.
-            let option = self
+            let process = self
                 .participants
                 .iter()
                 .find(|process_snapshot| process_snapshot.id == snapshot.id);
-            match option {
+            match process {
                 None => {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
-                Some(matching_process) => {
-                    for flow_node in matching_process.flow_nodes.iter() {
-                        let new_states = flow_node.try_execute(snapshot, state);
+                Some(process) => {
+                    // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages. But currently sfs/mfs are just ids and we cannot find their targets easily.
+                    for flow_node in process.flow_nodes.iter() {
+                        let new_states = flow_node.try_execute(snapshot, state, self);
 
                         Self::record_executed_activities(
                             not_executed_activities,
@@ -160,7 +184,7 @@ impl Collaboration {
                             &new_states,
                         );
 
-                        // Would want to check if the state has been explored here not later to not take up unnecessary memory.
+                        // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
                         unexplored_states.append(
                             &mut new_states
                                 .into_iter()
@@ -174,14 +198,38 @@ impl Collaboration {
         unexplored_states
     }
 
+    fn try_trigger_message_start_events(
+        &self,
+        state: &State,
+        unexplored_states: &mut Vec<(String, State)>,
+    ) {
+        self.participants.iter().for_each(|process| {
+            process
+                .flow_nodes
+                .iter()
+                .filter(|flow_node| flow_node.flow_node_type == StartEvent(EventType::Message))
+                .for_each(|message_start_event| {
+                    let new_states =
+                        message_start_event.try_trigger_message_start_event(process, state);
+                    // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
+                    unexplored_states.append(
+                        &mut new_states
+                            .into_iter()
+                            .map(|state| (message_start_event.id.clone(), state))
+                            .collect(),
+                    );
+                })
+        });
+    }
+
     fn record_executed_activities(
         not_executed_activities: &mut HashMap<String, bool>,
         flow_node: &FlowNode,
         new_states: &[State],
     ) {
         if flow_node.flow_node_type == FlowNodeType::Task
+            && not_executed_activities.get(&flow_node.id).is_some()
             && !new_states.is_empty()
-            && !not_executed_activities.is_empty()
         {
             not_executed_activities.remove(&flow_node.id);
         }
