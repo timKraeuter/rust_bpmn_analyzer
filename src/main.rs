@@ -17,11 +17,11 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let checker = Router::new().route("/check_bpmn", post(check_bpmn));
+    let webapp = using_serve_dir();
 
-    tokio::join!(
-        serve(using_serve_dir(), config.port),
-        serve(checker, config.port + 1),
-    );
+    let app = Router::new().nest("/", checker).nest("/", webapp);
+
+    serve(app, config.port).await;
 }
 async fn serve(app: Router, port: u16) {
     let addr = SocketAddr::from(([127, 0, 0, 1], port));
