@@ -85,6 +85,24 @@ fn test_stable_state_space_with_e020() {
     );
 }
 
+#[test]
+fn test_message_receive_prio() {
+    let config = Config {
+        file_path: PATH.to_string() + "message_receive_prio.bpmn",
+        properties: vec![
+            Property::Safeness,
+            Property::OptionToComplete,
+            Property::ProperCompletion,
+            Property::NoDeadActivities,
+        ],
+    };
+    let result = bpmnanalyzer::run(config).unwrap();
+    assert_eq!(11, result.state_space.states.len());
+    assert_eq!(11, result.state_space.transitions.len());
+    assert_eq!(2, result.state_space.terminated_state_hashes.len());
+    assert_eq!(0, get_unfulfilled_properties(result).len());
+}
+
 fn get_unfulfilled_properties(result: ModelCheckingResult) -> Vec<Property> {
     result
         .property_results
