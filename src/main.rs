@@ -72,8 +72,11 @@ fn map_result_to_response(model_checking_result: ModelCheckingResult) -> CheckBP
     let property_results = model_checking_result
         .property_results
         .into_iter()
-        .map(|result| {
+        .map(|mut result| {
             let state: &StateSpace = &model_checking_result.state_space;
+            // Might not be needed once problematic elements and state hashes are put together in tuples.
+            result.problematic_elements.sort();
+            result.problematic_elements.dedup();
             MinimalPropertyResult {
                 fulfilled: result.fulfilled,
                 property: result.property,
