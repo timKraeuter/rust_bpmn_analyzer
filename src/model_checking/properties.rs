@@ -223,6 +223,7 @@ fn check_if_unsafe(
                 problematic_state_hashes: vec![current_state_hash],
             }),
             Some(result) => {
+                // TODO: We can end up with the same unsafe element multiple times coming from different state hashes. Problematic state hashes should be a tuple which has a list of problematic elements.
                 result.problematic_elements.push(unsafe_sf.clone());
                 result.problematic_state_hashes.push(current_state_hash)
             }

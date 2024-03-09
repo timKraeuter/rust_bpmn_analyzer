@@ -64,7 +64,7 @@ mod test {
 
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Activity_A"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "Activity_A");
         let start_state = collaboration.create_start_state();
 
         let next_states = flow_node.try_execute(
@@ -89,7 +89,7 @@ mod test {
 
         let process = get_process_by_id(&collaboration, "p1_process");
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("ReceiveTask"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new(
                 String::from("p1_process"),
@@ -131,7 +131,7 @@ mod test {
 
         let process = get_process_by_id(&collaboration, "p1_process");
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("evg"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "evg");
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new(
                 String::from("p1_process"),
@@ -180,7 +180,7 @@ mod test {
 
         let process = get_process_by_id(&collaboration, "p1_process");
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("mice"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "mice");
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new(
                 String::from("p1_process"),
@@ -219,7 +219,7 @@ mod test {
 
         let process = get_process_by_id(&collaboration, "p1_process");
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("SendTask"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "SendTask");
         let state = State {
             snapshots: vec![ProcessSnapshot::new(
                 String::from("p1_process"),
@@ -250,7 +250,7 @@ mod test {
 
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_1"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_1");
         let start_state = collaboration.create_start_state();
 
         let next_states = flow_node.try_execute(
@@ -274,7 +274,7 @@ mod test {
 
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_2"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
         let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
@@ -298,7 +298,7 @@ mod test {
 
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_1"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_1");
         let start_state = collaboration.create_start_state();
 
         let next_states = flow_node.try_execute(
@@ -322,7 +322,7 @@ mod test {
 
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Gateway_2"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
         let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
@@ -342,7 +342,7 @@ mod test {
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/end.bpmn"));
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("End"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "End");
         let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
@@ -363,12 +363,41 @@ mod test {
     }
 
     #[test]
+    fn try_execute_terminate_end_event() {
+        let collaboration =
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/terminate_end.bpmn"));
+        let process = get_process_by_id(&collaboration, "p1_process");
+
+        let terminate_end_event: &FlowNode = get_flow_node_with_id(process, "end");
+        let start_state = collaboration.create_start_state();
+
+        let next_states = terminate_end_event.try_execute(
+            get_snapshot_by_id(&start_state, "p1_process"),
+            &start_state,
+            &collaboration,
+        );
+
+        let mut expected_state = State {
+            snapshots: vec![
+                ProcessSnapshot::new(String::from("p0_process"), vec!["flow3"]),
+                ProcessSnapshot::new(String::from("p1_process"), vec![]),
+            ],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+        expected_state
+            .executed_end_event_counter
+            .insert("end".to_string(), 1);
+        assert_eq!(next_states, vec![expected_state]);
+    }
+
+    #[test]
     fn try_execute_intermediate_throw_event() {
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/intermediate_event.bpmn"));
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("Intermediate"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "Intermediate");
         let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
@@ -392,7 +421,7 @@ mod test {
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/message_start_event.bpmn"));
         let process = get_first_process(&collaboration);
 
-        let flow_node: &FlowNode = get_flow_node_with_id(process, String::from("start"));
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "start");
         let start_state = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
@@ -738,7 +767,15 @@ mod test {
         snapshot
     }
 
-    fn get_flow_node_with_id(process: &Process, id: String) -> &FlowNode {
+    fn get_snapshot_by_id<'a>(start_state: &'a State, id: &str) -> &'a ProcessSnapshot {
+        start_state
+            .snapshots
+            .iter()
+            .find(|snapshot| snapshot.id == id)
+            .unwrap()
+    }
+
+    fn get_flow_node_with_id<'a>(process: &'a Process, id: &str) -> &'a FlowNode {
         process
             .flow_nodes
             .iter()

@@ -128,9 +128,11 @@ pub fn read_bpmn_string(
                 b"messageEventDefinition" => {
                     last_event_type = Some(EventType::Message);
                 }
+                b"terminateEventDefinition" => {
+                    last_event_type = Some(EventType::Terminate);
+                }
                 b"linkEventDefinition"
                 | b"signalEventDefinition"
-                | b"terminateEventDefinition"
                 | b"timerEventDefinition"
                 | b"escalationEventDefinition"
                 | b"errorEventDefinition"
