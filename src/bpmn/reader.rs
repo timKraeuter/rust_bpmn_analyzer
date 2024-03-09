@@ -129,9 +129,11 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 b"messageEventDefinition" => {
                     last_event_type = Some(EventType::Message);
                 }
+                b"terminateEventDefinition" => {
+                    last_event_type = Some(EventType::Terminate);
+                }
                 b"linkEventDefinition"
                 | b"signalEventDefinition"
-                | b"terminateEventDefinition"
                 | b"timerEventDefinition"
                 | b"escalationEventDefinition"
                 | b"errorEventDefinition"

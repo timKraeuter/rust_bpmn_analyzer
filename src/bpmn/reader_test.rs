@@ -207,7 +207,6 @@ mod tests {
                     vec![
                         "signalStart".to_string(),
                         "signalEnd".to_string(),
-                        "terminateEnd".to_string(),
                         "linkCEvent".to_string(),
                         "linkTEvent".to_string(),
                         "signalCEvent".to_string(),

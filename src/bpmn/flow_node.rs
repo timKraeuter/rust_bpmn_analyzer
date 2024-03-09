@@ -52,7 +52,7 @@ impl FlowNode {
         current_state: &State,
         collaboration: &Collaboration,
     ) -> Vec<State> {
-        match self.flow_node_type {
+        match &self.flow_node_type {
             FlowNodeType::StartEvent(_) => vec![],
             FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
             FlowNodeType::IntermediateThrowEvent(_) => {
@@ -63,7 +63,7 @@ impl FlowNode {
             FlowNodeType::EventBasedGateway => {
                 self.try_execute_evg(snapshot, current_state, collaboration)
             }
-            FlowNodeType::EndEvent(_) => self.try_execute_end_event(snapshot, current_state),
+            FlowNodeType::EndEvent(e) => self.try_execute_end_event(snapshot, current_state, e),
             FlowNodeType::IntermediateCatchEvent(_) => {
                 self.try_execute_intermediate_catch_event(snapshot, current_state)
             }
@@ -211,12 +211,17 @@ impl FlowNode {
         &self,
         snapshot: &ProcessSnapshot,
         current_state: &State,
+        event_type: &EventType,
     ) -> Vec<State> {
         let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(&inc_flow.id) {
                 None => {}
                 Some(_) => {
+                    if event_type == &EventType::Terminate {
+                        return self.execute_terminate_end_event(snapshot, current_state);
+                    }
+
                     // Consume incoming token
                     let mut new_state =
                         Self::create_new_state_without_snapshot(snapshot, current_state);
@@ -233,6 +238,22 @@ impl FlowNode {
         }
         new_states
     }
+
+    fn execute_terminate_end_event(
+        &self,
+        snapshot: &ProcessSnapshot,
+        current_state: &State,
+    ) -> Vec<State> {
+        let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
+        let new_snapshot = ProcessSnapshot {
+            id: snapshot.id.clone(),
+            tokens: BTreeMap::new(), // All tokens are removed due to terminate.
+        };
+        new_state.snapshots.push(new_snapshot);
+        self.record_end_event_execution(&mut new_state);
+        vec![new_state]
+    }
+
     fn try_execute_intermediate_catch_event(
         &self,
         snapshot: &ProcessSnapshot,
@@ -400,4 +421,5 @@ pub enum EventType {
     None,
     Message,
     Unsupported,
+    Terminate,
 }
