@@ -90,9 +90,11 @@ impl State {
             .all(|snapshot| snapshot.tokens.is_empty())
     }
 
-    pub fn try_find_unsafe_sf_id(&self) -> Option<&String> {
-        self.snapshots.iter().find_map(|snapshot| {
-            snapshot.tokens.iter().find_map(
+    pub fn find_unsafe_sf_ids(&self) -> Vec<&String> {
+        self.snapshots
+            .iter()
+            .flat_map(|snapshot| snapshot.tokens.iter())
+            .filter_map(
                 |(sf_id, amount)| {
                     if *amount >= 2u16 {
                         Some(sf_id)
@@ -101,7 +103,7 @@ impl State {
                     }
                 },
             )
-        })
+            .collect()
     }
 
     pub fn add_message(&mut self, position: &str) {

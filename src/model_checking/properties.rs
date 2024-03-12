@@ -213,20 +213,21 @@ fn check_if_unsafe(
     current_state: &State,
     property_results: &mut Vec<PropertyResult>,
 ) {
-    match current_state.try_find_unsafe_sf_id() {
-        None => {}
-        Some(unsafe_sf) => match find_property_result(property_results, Property::Safeness) {
+    let unsafe_sfs = current_state.find_unsafe_sf_ids();
+    if !unsafe_sfs.is_empty() {
+        let unsafe_sfs = unsafe_sfs.into_iter().cloned().collect();
+        match find_property_result(property_results, Property::Safeness) {
             None => property_results.push(PropertyResult {
                 property: Property::Safeness,
                 fulfilled: false,
-                problematic_elements: vec![unsafe_sf.clone()],
+                problematic_elements: unsafe_sfs,
                 problematic_state_hashes: vec![current_state_hash],
             }),
             Some(result) => {
                 // TODO: We can end up with the same unsafe element multiple times coming from different state hashes. Problematic state hashes should be a tuple which has a list of problematic elements.
-                result.problematic_elements.push(unsafe_sf.clone());
+                result.problematic_elements.extend(unsafe_sfs);
                 result.problematic_state_hashes.push(current_state_hash)
             }
-        },
+        }
     }
 }
