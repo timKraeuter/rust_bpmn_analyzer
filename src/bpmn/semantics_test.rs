@@ -173,6 +173,24 @@ mod test {
     }
 
     #[test]
+    fn try_execute_receive_task_no_message() {
+        let collaboration =
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/receive_dead.bpmn"));
+        let process = get_process_by_id(&collaboration, "p2_process");
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
+        let start_state = State {
+            snapshots: vec![ProcessSnapshot::new(String::from("p2_process"), vec!["sf"])],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+
+        let next_states = flow_node.try_trigger_message_start_event(process, &start_state);
+
+        assert_eq!(next_states.len(), 0);
+    }
+
+    #[test]
     fn try_execute_message_intermediate_catch_event() {
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "semantics/message_intermediate_catch_event.bpmn"),

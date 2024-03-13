@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::bpmn::collaboration::Collaboration;
-    use crate::bpmn::flow_node::{EventType, FlowNode};
+    use crate::bpmn::flow_node::{EventType, FlowNode, TaskType};
     use crate::bpmn::flow_node::{FlowNodeType, SequenceFlow};
     use crate::bpmn::process::Process;
     use crate::bpmn::reader::read_bpmn_file;
@@ -43,7 +43,10 @@ mod tests {
             String::from("start"),
             FlowNodeType::StartEvent(EventType::None),
         ));
-        process.add_flow_node(FlowNode::new(String::from("task"), FlowNodeType::Task));
+        process.add_flow_node(FlowNode::new(
+            String::from("task"),
+            FlowNodeType::Task(TaskType::Default),
+        ));
         process.add_flow_node(FlowNode::new(
             String::from("exg"),
             FlowNodeType::ExclusiveGateway,

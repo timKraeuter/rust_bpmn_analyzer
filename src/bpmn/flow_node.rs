@@ -54,7 +54,7 @@ impl FlowNode {
     ) -> Vec<State> {
         match &self.flow_node_type {
             FlowNodeType::StartEvent(_) => vec![],
-            FlowNodeType::Task => self.try_execute_task(snapshot, current_state),
+            FlowNodeType::Task(_) => self.try_execute_task(snapshot, current_state),
             FlowNodeType::IntermediateThrowEvent(_) => {
                 self.try_execute_intermediate_throw_event(snapshot, current_state)
             }
@@ -129,7 +129,7 @@ impl FlowNode {
     fn try_execute_task(&self, snapshot: &ProcessSnapshot, current_state: &State) -> Vec<State> {
         let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
 
-        if !self.incoming_message_flows.is_empty()
+        if self.flow_node_type == FlowNodeType::Task(TaskType::Receive)
             && self.no_message_flow_has_a_message(current_state)
         {
             return vec![];
@@ -373,7 +373,7 @@ impl FlowNode {
                             !f.incoming_message_flows.is_empty()
                                 && (f.flow_node_type
                                     == FlowNodeType::IntermediateCatchEvent(EventType::Message)
-                                    || f.flow_node_type == FlowNodeType::Task)
+                                    || f.flow_node_type == FlowNodeType::Task(TaskType::Receive))
                                 && f.incoming_flows
                                     .iter()
                                     .any(|sf| self.outgoing_flows.iter().any(|of| sf.id == of.id))
@@ -409,7 +409,7 @@ pub enum FlowNodeType {
     StartEvent(EventType),
     IntermediateThrowEvent(EventType),
     IntermediateCatchEvent(EventType),
-    Task,
+    Task(TaskType),
     ExclusiveGateway,
     ParallelGateway,
     EventBasedGateway,
@@ -422,4 +422,10 @@ pub enum EventType {
     Message,
     Unsupported,
     Terminate,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum TaskType {
+    Default,
+    Receive,
 }
