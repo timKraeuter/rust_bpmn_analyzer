@@ -1,5 +1,5 @@
 use crate::bpmn::flow_node::FlowNodeType::StartEvent;
-use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow};
+use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow, TaskType};
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
@@ -38,7 +38,7 @@ impl Collaboration {
         properties: Vec<Property>,
     ) -> ModelCheckingResult {
         let mut property_results = vec![];
-        let mut not_executed_activities = self.get_all_flow_nodes_by_type(FlowNodeType::Task);
+        let mut not_executed_activities = self.get_all_tasks();
 
         let mut seen_state_hashes = HashMap::new();
         let start_state_hash = start_state.calc_hash();
@@ -107,16 +107,16 @@ impl Collaboration {
         }
     }
 
-    pub fn get_all_flow_nodes_by_type(
-        &self,
-        flow_node_type: FlowNodeType,
-    ) -> HashMap<String, bool> {
+    pub fn get_all_tasks(&self) -> HashMap<String, bool> {
         let mut flow_nodes = HashMap::new();
         self.participants.iter().for_each(|process| {
             process
                 .flow_nodes
                 .iter()
-                .filter(|flow_node| flow_node.flow_node_type == flow_node_type)
+                .filter(|flow_node| {
+                    flow_node.flow_node_type == FlowNodeType::Task(TaskType::Default)
+                        || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive)
+                })
                 .for_each(|flow_node| {
                     // Cloned id here. Could use RC smart pointer instead.
                     flow_nodes.insert(flow_node.id.clone(), true);
@@ -227,7 +227,8 @@ impl Collaboration {
         flow_node: &FlowNode,
         new_states: &[State],
     ) {
-        if flow_node.flow_node_type == FlowNodeType::Task
+        if (flow_node.flow_node_type == FlowNodeType::Task(TaskType::Default)
+            || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive))
             && not_executed_activities.get(&flow_node.id).is_some()
             && !new_states.is_empty()
         {

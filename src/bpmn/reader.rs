@@ -1,5 +1,5 @@
 use crate::bpmn::collaboration::Collaboration;
-use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, SequenceFlow};
+use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, SequenceFlow, TaskType};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
@@ -55,13 +55,24 @@ pub fn read_bpmn_string(
                         unsupported_elements.push(e);
                     } else {
                         // Normal subprocesses are currently handled as a task. (We assume they finish)
-                        add_flow_node(&mut collaboration, &e, FlowNodeType::Task)
+                        add_flow_node(
+                            &mut collaboration,
+                            &e,
+                            FlowNodeType::Task(TaskType::Default),
+                        )
                     }
                 }
-                b"task" | b"sendTask" | b"receiveTask" | b"serviceTask" | b"userTask"
-                | b"manualTask" | b"businessRuleTask" | b"scriptTask" => {
-                    add_flow_node(&mut collaboration, &e, FlowNodeType::Task)
-                }
+                b"task" | b"sendTask" | b"serviceTask" | b"userTask" | b"manualTask"
+                | b"businessRuleTask" | b"scriptTask" => add_flow_node(
+                    &mut collaboration,
+                    &e,
+                    FlowNodeType::Task(TaskType::Default),
+                ),
+                b"receiveTask" => add_flow_node(
+                    &mut collaboration,
+                    &e,
+                    FlowNodeType::Task(TaskType::Receive),
+                ),
                 b"startEvent"
                 | b"intermediateCatchEvent"
                 | b"intermediateThrowEvent"
@@ -139,9 +150,23 @@ pub fn read_bpmn_string(
                 | b"compensateEventDefinition" => {
                     last_event_type = Some(EventType::Unsupported);
                 }
-                b"task" => add_flow_node(&mut collaboration, &e, FlowNodeType::Task),
-                b"sendTask" | b"receiveTask" | b"callActivity" | b"eventBasedGateway"
-                | b"inclusiveGateway" | b"complexGateway" => unsupported_elements.push(e),
+                b"task" | b"sendTask" | b"serviceTask" | b"userTask" | b"manualTask"
+                | b"businessRuleTask" | b"scriptTask" => add_flow_node(
+                    &mut collaboration,
+                    &e,
+                    FlowNodeType::Task(TaskType::Default),
+                ),
+                b"receiveTask" => add_flow_node(
+                    &mut collaboration,
+                    &e,
+                    FlowNodeType::Task(TaskType::Receive),
+                ),
+                b"eventBasedGateway" => {
+                    add_flow_node(&mut collaboration, &e, FlowNodeType::EventBasedGateway)
+                }
+                b"callActivity" | b"inclusiveGateway" | b"complexGateway" => {
+                    unsupported_elements.push(e)
+                }
                 _ => (),
             },
             Ok(Event::Eof) => break,
