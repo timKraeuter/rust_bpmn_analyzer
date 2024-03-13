@@ -59,6 +59,13 @@ impl StateSpace {
             }
         }
     }
+
+    pub fn count_transitions(&self) -> usize {
+        self.transitions
+            .values()
+            .flat_map(|targets| targets.iter())
+            .count()
+    }
 }
 
 #[derive(Debug, Hash, PartialEq)]

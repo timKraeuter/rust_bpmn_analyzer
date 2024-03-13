@@ -88,9 +88,11 @@ impl Collaboration {
 
                     // Save the state and its transitions.
                     state_space.states.insert(current_state_hash, current_state);
-                    state_space
-                        .transitions
-                        .insert(current_state_hash, transitions);
+                    if !transitions.is_empty() {
+                        state_space
+                            .transitions
+                            .insert(current_state_hash, transitions);
+                    }
                 }
             };
         }
