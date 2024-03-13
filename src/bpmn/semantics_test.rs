@@ -173,14 +173,14 @@ mod test {
     }
 
     #[test]
-    fn try_execute_receive_task_no_message() {
+    fn try_execute_receive_task_no_message_flows() {
         let collaboration =
-            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/receive_dead.bpmn"));
-        let process = get_process_by_id(&collaboration, "p2_process");
+            read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/receive_task_no_mf.bpmn"));
+        let process = get_process_by_id(&collaboration, "p1_process");
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
         let start_state = State {
-            snapshots: vec![ProcessSnapshot::new(String::from("p2_process"), vec!["sf"])],
+            snapshots: vec![ProcessSnapshot::new(String::from("p1_process"), vec!["sf"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
