@@ -11,7 +11,7 @@ pub fn output_state_information(result: &ModelCheckingResult, runtime: Duration)
     println!(
         "States: {}, Transitions: {}",
         result.state_space.states.len(),
-        result.state_space.transitions.values().len()
+        result.state_space.count_transitions()
     );
     println!(
         "Terminated states: {}",
