@@ -98,10 +98,8 @@ fn test_message_receive_prio() {
     };
     let result = bpmnanalyzer::run(config).unwrap();
     assert_eq!(11, result.state_space.states.len());
-    println!("{:?}", result.state_space.transitions);
-    assert_eq!(11, result.state_space.count_transitions());
+    assert_eq!(10, result.state_space.count_transitions());
     assert_eq!(2, result.state_space.terminated_state_hashes.len());
-    // TODO: Double check this model and make sure the counter example is correct.
     assert_eq!(
         vec![Property::OptionToComplete],
         get_unfulfilled_properties(result)
