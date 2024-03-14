@@ -14,7 +14,7 @@ use std::time::{Duration, Instant};
 #[derive(Parser, Debug)]
 #[command(version, author, about, long_about = None)]
 pub struct Config {
-    /// Port to serve the web app. port + 1 is used for the CheckBPMN service.
+    /// Port to serve the web app.
     #[arg(short, long, default_value = "8080")]
     pub port: u16,
 }
