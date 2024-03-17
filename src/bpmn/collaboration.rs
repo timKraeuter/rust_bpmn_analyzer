@@ -154,9 +154,9 @@ impl Collaboration {
         start
     }
 
-    fn explore_state<'a>(
+    fn explore_state<'a, 'b>(
         &'a self,
-        state: &'a State,
+        state: &'b State,
         not_executed_activities: &'a mut HashMap<String, bool>,
     ) -> Vec<(String, State<'a>)> {
         let mut unexplored_states: Vec<(String, State)> = vec![];
@@ -199,9 +199,9 @@ impl Collaboration {
         unexplored_states
     }
 
-    fn try_trigger_message_start_events<'a>(
+    fn try_trigger_message_start_events<'a, 'b>(
         &'a self,
-        state: &'a State,
+        state: &'b State,
         unexplored_states: &'a mut Vec<(String, State<'a>)>,
     ) {
         self.participants.iter().for_each(|process| {
