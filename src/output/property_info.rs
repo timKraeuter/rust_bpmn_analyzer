@@ -112,7 +112,7 @@ fn print_counter_example(property_result: &PropertyResult, state_space: &StateSp
     }
 }
 
-impl Display for State {
+impl Display for State<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
             f,

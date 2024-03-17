@@ -10,6 +10,7 @@ use crate::output::property_info::output_property_results;
 use crate::output::state_space_info::output_state_information;
 use std::error::Error;
 use std::time::{Duration, Instant};
+use crate::bpmn::collaboration::Collaboration;
 
 /// CLI BPMN Analyzer written in Rust
 #[derive(Parser, Debug)]
@@ -24,7 +25,7 @@ pub struct Config {
     pub properties: Vec<Property>,
 }
 
-pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
+pub fn run<'a>(config: Config) -> Result<(ModelCheckingResult<'a>, Collaboration), Box<dyn Error>> {
     let collaboration = read_bpmn_file(&config.file_path)?;
 
     let start = collaboration.create_start_state();
@@ -35,7 +36,7 @@ pub fn run(config: Config) -> Result<ModelCheckingResult, Box<dyn Error>> {
 
     output_result(&result, runtime);
 
-    Ok(result)
+    Ok((result, collaboration))
 }
 
 fn output_result(result: &ModelCheckingResult, runtime: Duration) {

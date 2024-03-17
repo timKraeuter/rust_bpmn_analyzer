@@ -32,11 +32,11 @@ impl Collaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space(
-        &self,
-        start_state: State,
+    pub fn explore_state_space<'a>(
+        &'a self,
+        start_state: State<'a>,
         properties: Vec<Property>,
-    ) -> ModelCheckingResult {
+    ) -> ModelCheckingResult<'a> {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_tasks();
 
@@ -127,7 +127,7 @@ impl Collaboration {
         flow_nodes
     }
 
-    pub fn create_start_state(&self) -> State {
+    pub fn create_start_state<'a>(&'a self) -> State<'a> {
         let mut start = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
@@ -139,8 +139,7 @@ impl Collaboration {
                 if flow_node.flow_node_type == FlowNodeType::StartEvent(EventType::None) {
                     for out_sf in flow_node.outgoing_flows.iter() {
                         // Cloning the string here could be done differently.
-                        let position = out_sf.id.clone();
-                        tokens.insert(position, 1);
+                        tokens.insert(out_sf.id.as_str(), 1);
                     }
                 }
             }
@@ -155,11 +154,11 @@ impl Collaboration {
         start
     }
 
-    fn explore_state(
-        &self,
-        state: &State,
-        not_executed_activities: &mut HashMap<String, bool>,
-    ) -> Vec<(String, State)> {
+    fn explore_state<'a>(
+        &'a self,
+        state: &'a State,
+        not_executed_activities: &'a mut HashMap<String, bool>,
+    ) -> Vec<(String, State<'a>)> {
         let mut unexplored_states: Vec<(String, State)> = vec![];
         if !state.messages.is_empty() {
             self.try_trigger_message_start_events(state, &mut unexplored_states);
@@ -200,10 +199,10 @@ impl Collaboration {
         unexplored_states
     }
 
-    fn try_trigger_message_start_events(
-        &self,
-        state: &State,
-        unexplored_states: &mut Vec<(String, State)>,
+    fn try_trigger_message_start_events<'a>(
+        &'a self,
+        state: &'a State,
+        unexplored_states: &'a mut Vec<(String, State<'a>)>,
     ) {
         self.participants.iter().for_each(|process| {
             process

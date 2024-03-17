@@ -3,15 +3,15 @@ use std::collections::{BTreeMap, HashMap};
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
-pub struct StateSpace {
+pub struct StateSpace<'a> {
     pub start_state_hash: u64,
     pub terminated_state_hashes: Vec<u64>,
-    pub states: HashMap<u64, State>,
+    pub states: HashMap<u64, State<'a>>,
     // Outgoing transitions (executed flow node id, target state hash)
     pub transitions: HashMap<u64, Vec<(String, u64)>>,
 }
 
-impl StateSpace {
+impl StateSpace<'_> {
     pub fn mark_terminated_if_needed(&mut self, state: &State, state_hash: u64) {
         if state.is_terminated() {
             self.terminated_state_hashes.push(state_hash);
@@ -69,13 +69,13 @@ impl StateSpace {
 }
 
 #[derive(Debug, Hash, PartialEq)]
-pub struct State {
-    pub snapshots: Vec<ProcessSnapshot>,
+pub struct State<'a> {
+    pub snapshots: Vec<ProcessSnapshot<'a>>,
     pub messages: BTreeMap<String, u16>,
     pub executed_end_event_counter: BTreeMap<String, u16>,
 }
 
-impl State {
+impl State<'_> {
     pub fn new(snapshot_id: String, tokens: Vec<&str>) -> State {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, tokens)],
@@ -96,12 +96,12 @@ impl State {
             .all(|snapshot| snapshot.tokens.is_empty())
     }
 
-    pub fn find_unsafe_sf_ids(&self) -> Vec<&String> {
+    pub fn find_unsafe_sf_ids(&self) -> Vec<&str> {
         self.snapshots
             .iter()
             .flat_map(|snapshot| snapshot.tokens.iter())
             .filter_map(
-                |(sf_id, amount)| {
+                |(&sf_id, amount)| {
                     if *amount >= 2u16 {
                         Some(sf_id)
                     } else {
@@ -139,13 +139,13 @@ impl State {
 }
 
 #[derive(Debug, Clone, PartialEq, Hash)]
-pub struct ProcessSnapshot {
+pub struct ProcessSnapshot<'a> {
     pub id: String,
-    pub tokens: BTreeMap<String, u16>,
+    pub tokens : BTreeMap<&'a str, u16>
 }
 
-impl ProcessSnapshot {
-    pub fn new(id: String, tokens: Vec<&str>) -> ProcessSnapshot {
+impl<'a> ProcessSnapshot<'a> {
+    pub fn new(id: String, tokens: Vec<&'a str>) -> ProcessSnapshot<'a> {
         let mut snapshot = ProcessSnapshot {
             id,
             tokens: BTreeMap::new(),
@@ -156,12 +156,12 @@ impl ProcessSnapshot {
         snapshot
     }
 
-    pub fn add_token(&mut self, position: &str) {
+    pub fn add_token(&mut self, position: &'a str) {
         let count = self.tokens.get_mut(position);
         if let Some(count) = count {
             *count += 1;
         } else {
-            self.tokens.insert(position.to_string(), 1);
+            self.tokens.insert(position, 1);
         }
     }
     pub fn delete_token(&mut self, position: &str) {

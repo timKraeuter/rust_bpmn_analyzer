@@ -506,7 +506,7 @@ mod test {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("process"),
-                    tokens: BTreeMap::from([(String::from("Unsafe1"), 2u16)]),
+                    tokens: BTreeMap::from([("Unsafe1", 2u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
@@ -606,7 +606,7 @@ mod test {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
-                    tokens: BTreeMap::from([(String::from("stuck"), 1u16)]),
+                    tokens: BTreeMap::from([("stuck", 1u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
@@ -780,12 +780,12 @@ mod test {
             .unwrap()
     }
 
-    fn get_first_snapshot(start_state: &State) -> &ProcessSnapshot {
+    fn get_first_snapshot<'a>(start_state: &'a State) -> &'a ProcessSnapshot<'a> {
         let snapshot = start_state.snapshots.first().unwrap();
         snapshot
     }
 
-    fn get_snapshot_by_id<'a>(start_state: &'a State, id: &str) -> &'a ProcessSnapshot {
+    fn get_snapshot_by_id<'a>(start_state: &'a State, id: &str) -> &'a ProcessSnapshot<'a> {
         start_state
             .snapshots
             .iter()
