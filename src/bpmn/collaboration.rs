@@ -154,10 +154,10 @@ impl Collaboration {
         start
     }
 
-    fn explore_state<'a, 'b, 'c>(
+    fn explore_state<'a, 'b>(
         &'a self,
         state: &'b State<'a>,
-        not_executed_activities: &'c mut HashMap<String, bool>,
+        not_executed_activities: &mut HashMap<String, bool>,
     ) -> Vec<(String, State<'a>)> {
         let mut unexplored_states: Vec<(String, State)> = vec![];
         if !state.messages.is_empty() {

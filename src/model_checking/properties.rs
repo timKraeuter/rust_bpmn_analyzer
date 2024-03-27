@@ -215,7 +215,7 @@ fn check_if_unsafe(
 ) {
     let unsafe_sfs = current_state.find_unsafe_sf_ids();
     if !unsafe_sfs.is_empty() {
-        let unsafe_sfs = unsafe_sfs.iter().map(|&id| { String::from(id) }).collect();
+        let unsafe_sfs = unsafe_sfs.iter().map(|&id| String::from(id)).collect();
         match find_property_result(property_results, Property::Safeness) {
             None => property_results.push(PropertyResult {
                 property: Property::Safeness,

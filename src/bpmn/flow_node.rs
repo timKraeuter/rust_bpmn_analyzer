@@ -48,7 +48,7 @@ impl FlowNode {
     }
     pub fn try_execute<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
         collaboration: &'a Collaboration,
     ) -> Vec<State<'a>> {
@@ -72,7 +72,7 @@ impl FlowNode {
 
     fn try_execute_pg<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot<'a>,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
         if self.missing_token_for_pg(snapshot) {
@@ -102,7 +102,7 @@ impl FlowNode {
     }
 
     fn create_new_state_without_snapshot<'a, 'b>(
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> State<'a> {
         // Clone all but the defined one.
@@ -132,7 +132,7 @@ impl FlowNode {
     }
     fn try_execute_task<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
         let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
@@ -171,7 +171,7 @@ impl FlowNode {
     }
     fn try_execute_intermediate_throw_event<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
         // Currently the same as task but event types will change this.
@@ -180,7 +180,7 @@ impl FlowNode {
     }
     fn try_execute_exg<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
         let mut new_states: Vec<State> = vec![]; // Could set capacity to number of outgoing flows.
@@ -207,8 +207,8 @@ impl FlowNode {
         new_states
     }
 
-    fn create_new_snapshot_without_token<'a>(
-        snapshot: &'a ProcessSnapshot,
+    fn create_new_snapshot_without_token<'a, 'b>(
+        snapshot: &'b ProcessSnapshot<'a>,
         token: &str,
     ) -> ProcessSnapshot<'a> {
         let mut snapshot = ProcessSnapshot {
@@ -221,7 +221,7 @@ impl FlowNode {
     }
     fn try_execute_end_event<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
         event_type: &'a EventType,
     ) -> Vec<State<'a>> {
@@ -253,7 +253,7 @@ impl FlowNode {
 
     fn execute_terminate_end_event<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot<'a>,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
@@ -268,7 +268,7 @@ impl FlowNode {
 
     fn try_execute_intermediate_catch_event<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
         match self.flow_node_type {
@@ -362,7 +362,7 @@ impl FlowNode {
     }
     fn try_execute_evg<'a, 'b>(
         &'a self,
-        snapshot: &'a ProcessSnapshot,
+        snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
         collaboration: &'a Collaboration,
     ) -> Vec<State<'a>> {
