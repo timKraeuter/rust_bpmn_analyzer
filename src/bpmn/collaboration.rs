@@ -32,7 +32,7 @@ impl Collaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space<'a>(
+    pub fn explore_state_space<'a, 'b>(
         &'a self,
         start_state: State<'a>,
         properties: Vec<Property>,
@@ -154,10 +154,10 @@ impl Collaboration {
         start
     }
 
-    fn explore_state<'a, 'b>(
+    fn explore_state<'a, 'b, 'c>(
         &'a self,
-        state: &'b State,
-        not_executed_activities: &'a mut HashMap<String, bool>,
+        state: &'b State<'a>,
+        not_executed_activities: &'c mut HashMap<String, bool>,
     ) -> Vec<(String, State<'a>)> {
         let mut unexplored_states: Vec<(String, State)> = vec![];
         if !state.messages.is_empty() {
@@ -199,10 +199,10 @@ impl Collaboration {
         unexplored_states
     }
 
-    fn try_trigger_message_start_events<'a, 'b>(
+    fn try_trigger_message_start_events<'a, 'b, 'c>(
         &'a self,
-        state: &'b State,
-        unexplored_states: &'a mut Vec<(String, State<'a>)>,
+        state: &'b State<'a>,
+        unexplored_states: &'c mut Vec<(String, State<'a>)>,
     ) {
         self.participants.iter().for_each(|process| {
             process

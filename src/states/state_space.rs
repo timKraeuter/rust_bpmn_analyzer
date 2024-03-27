@@ -141,7 +141,7 @@ impl State<'_> {
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct ProcessSnapshot<'a> {
     pub id: String,
-    pub tokens : BTreeMap<&'a str, u16>
+    pub tokens: BTreeMap<&'a str, u16>,
 }
 
 impl<'a> ProcessSnapshot<'a> {
