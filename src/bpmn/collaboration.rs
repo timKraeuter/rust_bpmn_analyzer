@@ -32,15 +32,12 @@ impl Collaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space<'a, 'b>(
-        &'a self,
-        start_state: State<'a>,
-        properties: Vec<Property>,
-    ) -> ModelCheckingResult<'a> {
+    pub fn explore_state_space(&self, properties: Vec<Property>) -> ModelCheckingResult {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_tasks();
 
         let mut seen_state_hashes = HashMap::new();
+        let start_state = self.create_start_state();
         let start_state_hash = start_state.calc_hash();
         seen_state_hashes.insert(start_state_hash, true);
 

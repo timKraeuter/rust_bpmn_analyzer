@@ -484,9 +484,7 @@ mod test {
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "properties/safeness/unsafe.bpmn"));
 
-        let start = collaboration.create_start_state();
-        let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::Safeness]);
+        let model_checking_result = collaboration.explore_state_space(vec![Property::Safeness]);
 
         let unsafe_state_hash: u64 = 3842228032089975966;
 
@@ -526,9 +524,7 @@ mod test {
     fn safeness_fulfilled() {
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
-        let start = collaboration.create_start_state();
-        let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::Safeness]);
+        let model_checking_result = collaboration.explore_state_space(vec![Property::Safeness]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -542,9 +538,8 @@ mod test {
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-1.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
+            collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
         let not_terminated_state_hash_1 = 6735018309777973944;
         let not_terminated_state_hash_2 = 9452229757242377755;
@@ -584,9 +579,8 @@ mod test {
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-2.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
+            collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
         let expected_hash: u64 = 12581154331755844142;
 
@@ -618,9 +612,8 @@ mod test {
     fn option_to_complete_fulfilled() {
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
+            collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -634,9 +627,8 @@ mod test {
             &(PATH.to_string() + "properties/no_dead_activities/dead-activities.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
+            collaboration.explore_state_space(vec![Property::NoDeadActivities]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -660,9 +652,8 @@ mod test {
             &(PATH.to_string() + "properties/no_dead_activities/no-dead-activities.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
+            collaboration.explore_state_space(vec![Property::NoDeadActivities]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -676,9 +667,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/proper-completion-1.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -692,9 +682,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/proper-completion-2.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -708,9 +697,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-1.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.first().unwrap();
         assert_eq!(
@@ -730,9 +718,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-2.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.first().unwrap();
         assert_eq!(
@@ -752,9 +739,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-3-unsafe.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
-        let model_checking_result = collaboration
-            .explore_state_space(start, vec![Property::Safeness, Property::ProperCompletion]);
+        let model_checking_result =
+            collaboration.explore_state_space(vec![Property::Safeness, Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(1).unwrap();
         assert_eq!(
