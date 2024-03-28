@@ -12,7 +12,7 @@ jobs:
     env:
       BENCHER_PROJECT: rust-bpmn-analyzer
       BENCHER_TESTBED: ubuntu-latest
-      BENCHER_ADAPTER: json
+      BENCHER_ADAPTER: shell
     steps:
       - name: Install hyperfine
         run: sudo apt-get install hyperfine
