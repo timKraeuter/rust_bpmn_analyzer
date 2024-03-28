@@ -20,7 +20,7 @@ jobs:
       - name: Build APP
         run: cargo build --release
       - name: Debug
-        run: ls
+        run: cd target/release && ls
       - uses: bencherdev/bencher@main
       - name: Track Benchmarks with Bencher using hyperfine
         run: |

@@ -3,6 +3,8 @@ name: Rust compile, lint & test
 on:
   workflow_dispatch:
   push:
+    paths:
+    - src/**
   pull_request:
 
 env:
