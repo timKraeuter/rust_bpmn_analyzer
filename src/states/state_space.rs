@@ -72,7 +72,7 @@ impl StateSpace<'_> {
 pub struct State<'a> {
     pub snapshots: Vec<ProcessSnapshot<'a>>,
     pub messages: BTreeMap<String, u16>,
-    pub executed_end_event_counter: BTreeMap<String, u16>,
+    pub executed_end_event_counter: BTreeMap<&'a str, u16>,
 }
 
 impl<'a> State<'a> {

@@ -343,13 +343,9 @@ mod test {
         );
 
         let mut state1 = State::new("process", vec!["Flow_1", "Flow_2"]);
-        state1
-            .executed_end_event_counter
-            .insert("End".to_string(), 1);
+        state1.executed_end_event_counter.insert("End", 1);
         let mut state2 = State::new("process", vec!["Flow_1", "Flow_1"]);
-        state2
-            .executed_end_event_counter
-            .insert("End".to_string(), 1);
+        state2.executed_end_event_counter.insert("End", 1);
         assert_eq!(next_states, vec![state1, state2]);
     }
 
@@ -376,9 +372,7 @@ mod test {
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
-        expected_state
-            .executed_end_event_counter
-            .insert("end".to_string(), 1);
+        expected_state.executed_end_event_counter.insert("end", 1);
         assert_eq!(next_states, vec![expected_state]);
     }
 
