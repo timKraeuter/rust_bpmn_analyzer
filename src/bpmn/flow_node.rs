@@ -164,7 +164,7 @@ impl FlowNode {
         new_states
     }
 
-    fn add_outgoing_messages<'a, 'b>(&'a self, new_state: &'b mut State<'a>) {
+    fn add_outgoing_messages<'a>(&'a self, new_state: &mut State<'a>) {
         for out_mf in self.outgoing_message_flows.iter() {
             new_state.add_message(&out_mf.id);
         }
