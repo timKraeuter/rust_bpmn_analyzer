@@ -57,15 +57,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "327762f6e5a765692301e5bb513e0d9fef63be86bbc14528052b1cd3e6f03e07"
 
 [[package]]
-name = "bpmnanalyzer"
-version = "0.2.0"
-dependencies = [
- "clap",
- "colored",
- "quick-xml",
-]
-
-[[package]]
 name = "clap"
 version = "4.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -204,6 +195,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5267fca4496028628a95160fc423a33e8b2e6af8a5302579e322e4b520293cae"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "rust_bpmn_analyzer"
+version = "1.0.0"
+dependencies = [
+ "clap",
+ "colored",
+ "quick-xml",
 ]
 
 [[package]]

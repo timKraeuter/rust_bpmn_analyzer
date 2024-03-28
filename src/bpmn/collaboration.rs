@@ -32,15 +32,12 @@ impl Collaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space(
-        &self,
-        start_state: State,
-        properties: Vec<Property>,
-    ) -> ModelCheckingResult {
+    pub fn explore_state_space(&self, properties: Vec<Property>) -> ModelCheckingResult {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_tasks();
 
         let mut seen_state_hashes = HashMap::new();
+        let start_state = self.create_start_state();
         let start_state_hash = start_state.calc_hash();
         seen_state_hashes.insert(start_state_hash, true);
 
@@ -139,15 +136,13 @@ impl Collaboration {
                 if flow_node.flow_node_type == FlowNodeType::StartEvent(EventType::None) {
                     for out_sf in flow_node.outgoing_flows.iter() {
                         // Cloning the string here could be done differently.
-                        let position = out_sf.id.clone();
-                        tokens.insert(position, 1);
+                        tokens.insert(out_sf.id.as_str(), 1);
                     }
                 }
             }
             if !tokens.is_empty() {
                 start.snapshots.push(ProcessSnapshot {
-                    // Cloning the string here could be done differently.
-                    id: process.id.clone(),
+                    id: &process.id,
                     tokens,
                 });
             }
@@ -155,12 +150,12 @@ impl Collaboration {
         start
     }
 
-    fn explore_state(
-        &self,
-        state: &State,
+    fn explore_state<'a>(
+        &'a self,
+        state: &State<'a>,
         not_executed_activities: &mut HashMap<String, bool>,
-    ) -> Vec<(String, State)> {
-        let mut unexplored_states: Vec<(String, State)> = vec![];
+    ) -> Vec<(&str, State<'a>)> {
+        let mut unexplored_states: Vec<(&str, State)> = vec![];
         if !state.messages.is_empty() {
             self.try_trigger_message_start_events(state, &mut unexplored_states);
         }
@@ -190,7 +185,7 @@ impl Collaboration {
                         unexplored_states.append(
                             &mut new_states
                                 .into_iter()
-                                .map(|state| (flow_node.id.clone(), state))
+                                .map(|state| (flow_node.id.as_str(), state))
                                 .collect(),
                         );
                     }
@@ -200,10 +195,10 @@ impl Collaboration {
         unexplored_states
     }
 
-    fn try_trigger_message_start_events(
-        &self,
-        state: &State,
-        unexplored_states: &mut Vec<(String, State)>,
+    fn try_trigger_message_start_events<'a>(
+        &'a self,
+        state: &State<'a>,
+        unexplored_states: &mut Vec<(&'a str, State<'a>)>,
     ) {
         self.participants.iter().for_each(|process| {
             process
@@ -217,7 +212,7 @@ impl Collaboration {
                     unexplored_states.append(
                         &mut new_states
                             .into_iter()
-                            .map(|state| (message_start_event.id.clone(), state))
+                            .map(|state| (message_start_event.id.as_str(), state))
                             .collect(),
                     );
                 })
