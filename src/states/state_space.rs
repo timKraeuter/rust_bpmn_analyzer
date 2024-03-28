@@ -71,7 +71,7 @@ impl StateSpace<'_> {
 #[derive(Debug, Hash, PartialEq)]
 pub struct State<'a> {
     pub snapshots: Vec<ProcessSnapshot<'a>>,
-    pub messages: BTreeMap<String, u16>,
+    pub messages: BTreeMap<&'a str, u16>,
     pub executed_end_event_counter: BTreeMap<&'a str, u16>,
 }
 
@@ -112,12 +112,12 @@ impl<'a> State<'a> {
             .collect()
     }
 
-    pub fn add_message(&mut self, position: &str) {
+    pub fn add_message<'b>(&'b mut self, position: &'a str) {
         let count = self.messages.get_mut(position);
         if let Some(count) = count {
             *count += 1;
         } else {
-            self.messages.insert(position.to_string(), 1);
+            self.messages.insert(position, 1);
         }
     }
     pub fn delete_message(&mut self, position: &str) {

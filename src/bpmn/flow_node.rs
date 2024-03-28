@@ -164,7 +164,7 @@ impl FlowNode {
         new_states
     }
 
-    fn add_outgoing_messages(&self, new_state: &mut State) {
+    fn add_outgoing_messages<'a, 'b>(&'a self, new_state: &'b mut State<'a>) {
         for out_mf in self.outgoing_message_flows.iter() {
             new_state.add_message(&out_mf.id);
         }
@@ -310,7 +310,7 @@ impl FlowNode {
         !self
             .incoming_message_flows
             .iter()
-            .any(|inc_mf| current_state.messages.get(&inc_mf.id).is_some())
+            .any(|inc_mf| current_state.messages.get(inc_mf.id.as_str()).is_some())
     }
 
     fn record_end_event_execution<'a>(&'a self, new_state: &mut State<'a>) {
@@ -331,7 +331,7 @@ impl FlowNode {
             return next_states;
         }
         for inc_mf in self.incoming_message_flows.iter() {
-            let message_count = current_state.messages.get(&inc_mf.id);
+            let message_count = current_state.messages.get(inc_mf.id.as_str());
             match message_count {
                 None => {}
                 Some(count) => {

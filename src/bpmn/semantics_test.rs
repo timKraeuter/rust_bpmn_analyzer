@@ -102,7 +102,7 @@ mod test {
         assert_eq!(next_states, vec![]);
 
         let mut state_with_message = state_without_message;
-        state_with_message.messages.insert(String::from("mf"), 1u16);
+        state_with_message.messages.insert("mf", 1u16);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
@@ -138,12 +138,8 @@ mod test {
         assert_eq!(next_states, vec![]);
 
         let mut state_with_message = state_without_message;
-        state_with_message
-            .messages
-            .insert(String::from("mf1"), 1u16);
-        state_with_message
-            .messages
-            .insert(String::from("mf2"), 1u16);
+        state_with_message.messages.insert("mf1", 1u16);
+        state_with_message.messages.insert("mf2", 1u16);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
@@ -202,7 +198,7 @@ mod test {
         assert_eq!(next_states, vec![]);
 
         let mut state_with_message = state_without_message;
-        state_with_message.messages.insert(String::from("mf"), 1u16);
+        state_with_message.messages.insert("mf", 1u16);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
@@ -236,7 +232,7 @@ mod test {
             vec![State {
                 snapshots: vec![ProcessSnapshot::new("p1_process", vec!["post_send_task"],)],
                 executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::from([(String::from("mf"), 1u16)]),
+                messages: BTreeMap::from([("mf", 1u16)]),
             }]
         );
     }
@@ -410,7 +406,7 @@ mod test {
         let start_state = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::from([(String::from("mf"), 1u16)]),
+            messages: BTreeMap::from([("mf", 1u16)]),
         };
 
         let next_states = flow_node.try_trigger_message_start_event(process, &start_state);
