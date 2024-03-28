@@ -1,6 +1,6 @@
 [package]
-name = "bpmnanalyzer"
-version = "0.2.0"
+name = "rust_bpmn_analyzer"
+version = "0.3.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -8,4 +8,4 @@ edition = "2021"
 [dependencies]
 clap = { version = "4.4.7", features = ["derive"] }
 colored = "2.0.4"
-quick-xml = { version = "0.31.0"}
+quick-xml = { version = "0.31.0" }
