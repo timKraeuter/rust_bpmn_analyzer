@@ -142,8 +142,7 @@ impl Collaboration {
             }
             if !tokens.is_empty() {
                 start.snapshots.push(ProcessSnapshot {
-                    // Cloning the string here could be done differently.
-                    id: process.id.clone(),
+                    id: &process.id,
                     tokens,
                 });
             }

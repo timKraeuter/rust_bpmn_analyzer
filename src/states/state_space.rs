@@ -75,8 +75,8 @@ pub struct State<'a> {
     pub executed_end_event_counter: BTreeMap<String, u16>,
 }
 
-impl State<'_> {
-    pub fn new(snapshot_id: String, tokens: Vec<&str>) -> State {
+impl<'a> State<'a> {
+    pub fn new(snapshot_id: &'a str, tokens: Vec<&'a str>) -> State<'a> {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, tokens)],
             executed_end_event_counter: BTreeMap::new(),
@@ -140,12 +140,12 @@ impl State<'_> {
 
 #[derive(Debug, Clone, PartialEq, Hash)]
 pub struct ProcessSnapshot<'a> {
-    pub id: String,
+    pub id: &'a str,
     pub tokens: BTreeMap<&'a str, u16>,
 }
 
 impl<'a> ProcessSnapshot<'a> {
-    pub fn new(id: String, tokens: Vec<&'a str>) -> ProcessSnapshot<'a> {
+    pub fn new(id: &'a str, tokens: Vec<&'a str>) -> ProcessSnapshot<'a> {
         let mut snapshot = ProcessSnapshot {
             id,
             tokens: BTreeMap::new(),

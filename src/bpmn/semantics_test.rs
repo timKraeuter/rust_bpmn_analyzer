@@ -29,10 +29,7 @@ mod test {
         assert_eq!(
             start_state,
             State {
-                snapshots: vec![ProcessSnapshot::new(
-                    String::from("process"),
-                    vec!["Flow_1", "Flow_2"],
-                )],
+                snapshots: vec![ProcessSnapshot::new("process", vec!["Flow_1", "Flow_2"],)],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
             }
@@ -49,8 +46,8 @@ mod test {
             start_state,
             State {
                 snapshots: vec![
-                    ProcessSnapshot::new(String::from("p1_process"), vec!["Flow_04pas1n"]),
-                    ProcessSnapshot::new(String::from("p3_process"), vec!["Flow_0gz2791"])
+                    ProcessSnapshot::new("p1_process", vec!["Flow_04pas1n"]),
+                    ProcessSnapshot::new("p3_process", vec!["Flow_0gz2791"])
                 ],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
@@ -76,8 +73,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",]),
-                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",])
+                State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",]),
+                State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",])
             ]
         )
     }
@@ -91,10 +88,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
         let state_without_message = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_receive_task"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_receive_task"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -118,10 +112,7 @@ mod test {
 
         assert_eq!(
             next_states,
-            vec![State::new(
-                String::from("p1_process"),
-                vec!["post_receive_task"]
-            ),]
+            vec![State::new("p1_process", vec!["post_receive_task"]),]
         );
     }
 
@@ -133,10 +124,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "evg");
         let state_without_message = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_evg"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_evg"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -166,8 +154,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("p1_process"), vec!["post_mice"]),
-                State::new(String::from("p1_process"), vec!["post_ReceiveTask"])
+                State::new("p1_process", vec!["post_mice"]),
+                State::new("p1_process", vec!["post_ReceiveTask"])
             ]
         );
     }
@@ -180,7 +168,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
         let start_state = State {
-            snapshots: vec![ProcessSnapshot::new(String::from("p1_process"), vec!["sf"])],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["sf"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -200,10 +188,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "mice");
         let state_without_message = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_mice"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_mice"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -227,7 +212,7 @@ mod test {
 
         assert_eq!(
             next_states,
-            vec![State::new(String::from("p1_process"), vec!["post_mice"]),]
+            vec![State::new("p1_process", vec!["post_mice"]),]
         );
     }
 
@@ -239,10 +224,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "SendTask");
         let state = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_send_task"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_send_task"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -252,10 +234,7 @@ mod test {
         assert_eq!(
             next_states,
             vec![State {
-                snapshots: vec![ProcessSnapshot::new(
-                    String::from("p1_process"),
-                    vec!["post_send_task"],
-                )],
+                snapshots: vec![ProcessSnapshot::new("p1_process", vec!["post_send_task"],)],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::from([(String::from("mf"), 1u16)]),
             }]
@@ -280,8 +259,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_2"]),
-                State::new(String::from("process"), vec!["Flow_3"]),
+                State::new("process", vec!["Flow_2"]),
+                State::new("process", vec!["Flow_3"]),
             ]
         )
     }
@@ -293,7 +272,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
-        let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
+        let start_state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -304,8 +283,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_3", "Flow_4"],),
-                State::new(String::from("process"), vec!["Flow_2", "Flow_4"],),
+                State::new("process", vec!["Flow_3", "Flow_4"],),
+                State::new("process", vec!["Flow_2", "Flow_4"],),
             ]
         );
     }
@@ -327,10 +306,7 @@ mod test {
 
         assert_eq!(
             next_states,
-            vec![State::new(
-                String::from("process"),
-                vec!["Flow_2", "Flow_3"],
-            ),]
+            vec![State::new("process", vec!["Flow_2", "Flow_3"],),]
         )
     }
 
@@ -341,7 +317,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
-        let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
+        let start_state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -349,10 +325,7 @@ mod test {
             &collaboration,
         );
 
-        assert_eq!(
-            next_states,
-            vec![State::new(String::from("process"), vec!["Flow_4"],),]
-        );
+        assert_eq!(next_states, vec![State::new("process", vec!["Flow_4"],),]);
     }
 
     #[test]
@@ -361,7 +334,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "End");
-        let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_1", "Flow_2"]);
+        let start_state = State::new("process", vec!["Flow_1", "Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -369,11 +342,11 @@ mod test {
             &collaboration,
         );
 
-        let mut state1 = State::new(String::from("process"), vec!["Flow_1", "Flow_2"]);
+        let mut state1 = State::new("process", vec!["Flow_1", "Flow_2"]);
         state1
             .executed_end_event_counter
             .insert("End".to_string(), 1);
-        let mut state2 = State::new(String::from("process"), vec!["Flow_1", "Flow_1"]);
+        let mut state2 = State::new("process", vec!["Flow_1", "Flow_1"]);
         state2
             .executed_end_event_counter
             .insert("End".to_string(), 1);
@@ -397,8 +370,8 @@ mod test {
 
         let mut expected_state = State {
             snapshots: vec![
-                ProcessSnapshot::new(String::from("p0_process"), vec!["flow3"]),
-                ProcessSnapshot::new(String::from("p1_process"), vec![]),
+                ProcessSnapshot::new("p0_process", vec!["flow3"]),
+                ProcessSnapshot::new("p1_process", vec![]),
             ],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
@@ -416,7 +389,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Intermediate");
-        let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_2"]);
+        let start_state = State::new("process", vec!["Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -427,8 +400,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",],),
-                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",],),
+                State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",],),
+                State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",],),
             ]
         );
     }
@@ -451,10 +424,7 @@ mod test {
         assert_eq!(
             next_states,
             vec![State {
-                snapshots: vec![ProcessSnapshot::new(
-                    String::from("p1_process"),
-                    vec!["start_out"]
-                )],
+                snapshots: vec![ProcessSnapshot::new("p1_process", vec!["start_out"])],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
             }]
@@ -503,7 +473,7 @@ mod test {
             unsafe_state,
             &State {
                 snapshots: vec![ProcessSnapshot {
-                    id: String::from("process"),
+                    id: "process",
                     tokens: BTreeMap::from([("Unsafe1", 2u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),
@@ -599,7 +569,7 @@ mod test {
             stuck_state,
             &State {
                 snapshots: vec![ProcessSnapshot {
-                    id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
+                    id: "Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2",
                     tokens: BTreeMap::from([("stuck", 1u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),

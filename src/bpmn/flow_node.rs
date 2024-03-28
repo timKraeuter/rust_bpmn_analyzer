@@ -81,7 +81,7 @@ impl FlowNode {
         // Clone all snapshots and tokens
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
         let mut new_snapshot = ProcessSnapshot {
-            id: snapshot.id.clone(),
+            id: snapshot.id,
             tokens: snapshot.tokens.clone(),
         };
         // Remove incoming tokens
@@ -212,7 +212,7 @@ impl FlowNode {
         token: &str,
     ) -> ProcessSnapshot<'a> {
         let mut snapshot = ProcessSnapshot {
-            id: snapshot.id.clone(),
+            id: snapshot.id,
             // Remove incoming token
             tokens: snapshot.tokens.clone(),
         };
@@ -258,7 +258,7 @@ impl FlowNode {
     ) -> Vec<State<'a>> {
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
         let new_snapshot = ProcessSnapshot {
-            id: snapshot.id.clone(),
+            id: snapshot.id,
             tokens: BTreeMap::new(), // All tokens are removed due to terminate.
         };
         new_state.snapshots.push(new_snapshot);
@@ -347,7 +347,7 @@ impl FlowNode {
                         };
                         // Create a new snapshot.
                         let mut new_snapshot = ProcessSnapshot {
-                            id: process.id.clone(),
+                            id: &process.id,
                             tokens: BTreeMap::new(),
                         };
                         // Add outgoing tokens
