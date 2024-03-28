@@ -14,10 +14,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: bencherdev/bencher@main
-      - name: Track Benchmarks with Bencher
+      - name: Track Benchmarks with Bencher using hyperfine
         run: |
           bencher run \
+          --file results.json \
           --branch "$GITHUB_REF_NAME" \
           --token "${{ secrets.BENCHER_API_TOKEN }}" \
           --err \
-          "bencher mock"
+          "hyperfine --export-json results.json 'sleep 0.1'"
