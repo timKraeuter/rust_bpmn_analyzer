@@ -125,7 +125,7 @@ impl FlowNode {
         }
     }
 
-    fn add_outgoing_tokens<'a, 'b>(&'a self, snapshot: &'b mut ProcessSnapshot<'a>) {
+    fn add_outgoing_tokens<'a>(&'a self, snapshot: &mut ProcessSnapshot<'a>) {
         for out_flow in self.outgoing_flows.iter() {
             snapshot.add_token(&out_flow.id);
         }
@@ -207,8 +207,8 @@ impl FlowNode {
         new_states
     }
 
-    fn create_new_snapshot_without_token<'a, 'b>(
-        snapshot: &'b ProcessSnapshot<'a>,
+    fn create_new_snapshot_without_token<'a>(
+        snapshot: &ProcessSnapshot<'a>,
         token: &str,
     ) -> ProcessSnapshot<'a> {
         let mut snapshot = ProcessSnapshot {
@@ -323,10 +323,10 @@ impl FlowNode {
                 .insert(self.id.clone(), count + 1),
         };
     }
-    pub fn try_trigger_message_start_event<'a, 'b>(
+    pub fn try_trigger_message_start_event<'a>(
         &'a self,
         process: &'a Process,
-        current_state: &'b State<'a>,
+        current_state: &State<'a>,
     ) -> Vec<State<'a>> {
         let mut next_states = vec![];
         if current_state.messages.is_empty() {

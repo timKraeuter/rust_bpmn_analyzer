@@ -124,7 +124,7 @@ impl Collaboration {
         flow_nodes
     }
 
-    pub fn create_start_state<'a>(&'a self) -> State<'a> {
+    pub fn create_start_state(&self) -> State {
         let mut start = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
@@ -151,9 +151,9 @@ impl Collaboration {
         start
     }
 
-    fn explore_state<'a, 'b>(
+    fn explore_state<'a>(
         &'a self,
-        state: &'b State<'a>,
+        state: &State<'a>,
         not_executed_activities: &mut HashMap<String, bool>,
     ) -> Vec<(String, State<'a>)> {
         let mut unexplored_states: Vec<(String, State)> = vec![];
@@ -196,10 +196,10 @@ impl Collaboration {
         unexplored_states
     }
 
-    fn try_trigger_message_start_events<'a, 'b, 'c>(
+    fn try_trigger_message_start_events<'a>(
         &'a self,
-        state: &'b State<'a>,
-        unexplored_states: &'c mut Vec<(String, State<'a>)>,
+        state: &State<'a>,
+        unexplored_states: &mut Vec<(String, State<'a>)>,
     ) {
         self.participants.iter().for_each(|process| {
             process
