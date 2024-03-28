@@ -17,6 +17,8 @@ jobs:
       - name: Install hyperfine
         run: sudo apt-get install hyperfine
       - uses: actions/checkout@v4
+      - name: Build APP
+        run: cargo build --release
       - uses: bencherdev/bencher@main
       - name: Track Benchmarks with Bencher using hyperfine
         run: |
@@ -25,4 +27,4 @@ jobs:
           --branch "$GITHUB_REF_NAME" \
           --token "${{ secrets.BENCHER_API_TOKEN }}" \
           --err \
-          "hyperfine --export-json results.json 'sleep 0.1'"
+          "hyperfine -L bpmnModel benchmark_input/p10x01.bpmn,benchmark_input/p15x01.bpmn,benchmark_input/p17x01.bpmn "./target/release/bpmnanalyzer -f ./{bpmnModel} -p safeness,option-to-complete,proper-completion,no-dead-activities" --export-json results.json"
