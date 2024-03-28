@@ -18,8 +18,8 @@ mod tests {
         }
     }
 
-    fn get_flow_node_ids(process: &Process) -> Vec<String> {
-        process.flow_nodes.iter().map(|f| f.id.clone()).collect()
+    fn get_flow_node_ids(process: &Process) -> Vec<&str> {
+        process.flow_nodes.iter().map(|f| f.id.as_str()).collect()
     }
 
     fn find_flow_node_by_id<'a>(p: &'a Process, id: &str) -> &'a FlowNode {
