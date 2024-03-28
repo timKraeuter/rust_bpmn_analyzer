@@ -1,3 +1,5 @@
+name: Benchmark with Bencher using hyperfine
+
 on:
   workflow_dispatch:
   push:
