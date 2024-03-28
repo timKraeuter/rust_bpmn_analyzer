@@ -14,6 +14,8 @@ jobs:
       BENCHER_TESTBED: ubuntu-latest
       BENCHER_ADAPTER: json
     steps:
+      - name: Install hyperfine
+        run: sudo apt-get install hyperfine
       - uses: actions/checkout@v4
       - uses: bencherdev/bencher@main
       - name: Track Benchmarks with Bencher using hyperfine
