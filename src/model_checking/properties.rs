@@ -139,7 +139,7 @@ pub fn check_on_the_fly_properties(
     current_state: &State,
     properties: &[Property],
     property_results: &mut Vec<PropertyResult>,
-    transitions: &[(String, u64)],
+    transitions: &[(&str, u64)],
 ) {
     for property in properties.iter() {
         match property {
@@ -161,7 +161,7 @@ pub fn check_if_stuck(
     current_state_hash: u64,
     current_state: &State,
     property_results: &mut Vec<PropertyResult>,
-    transitions: &[(String, u64)],
+    transitions: &[(&str, u64)],
 ) {
     if transitions.is_empty() && !current_state.is_terminated() {
         record_option_to_complete(current_state_hash, property_results);

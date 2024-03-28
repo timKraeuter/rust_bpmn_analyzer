@@ -8,7 +8,7 @@ pub struct StateSpace<'a> {
     pub terminated_state_hashes: Vec<u64>,
     pub states: HashMap<u64, State<'a>>,
     // Outgoing transitions (executed flow node id, target state hash)
-    pub transitions: HashMap<u64, Vec<(String, u64)>>,
+    pub transitions: HashMap<u64, Vec<(&'a str, u64)>>,
 }
 
 impl StateSpace<'_> {
@@ -24,7 +24,7 @@ impl StateSpace<'_> {
             .unwrap_or_else(|| panic!("State for {} not found!", state_hash))
     }
 
-    pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<(String, u64)>> {
+    pub fn get_path_to_state(&self, state_hash: u64) -> Option<Vec<(&str, u64)>> {
         if self.start_state_hash == state_hash {
             return Some(vec![]);
         }
@@ -35,7 +35,7 @@ impl StateSpace<'_> {
         from_state_hash: u64,
         to_state_hash: u64,
         seen_states: &mut HashMap<u64, bool>,
-    ) -> Option<Vec<(String, u64)>> {
+    ) -> Option<Vec<(&str, u64)>> {
         match self.transitions.get(&from_state_hash) {
             None => None,
             Some(next_states) => {
@@ -44,13 +44,13 @@ impl StateSpace<'_> {
                         continue;
                     }
                     if *next_state_hash == to_state_hash {
-                        return Some(vec![(flow_node_id.clone(), *next_state_hash)]);
+                        return Some(vec![(flow_node_id, *next_state_hash)]);
                     }
                     seen_states.insert(*next_state_hash, true);
                     match self.get_path(*next_state_hash, to_state_hash, seen_states) {
                         None => {}
                         Some(mut path) => {
-                            path.insert(0, (flow_node_id.clone(), *next_state_hash));
+                            path.insert(0, (flow_node_id, *next_state_hash));
                             return Some(path);
                         }
                     };

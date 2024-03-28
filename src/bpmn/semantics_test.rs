@@ -421,10 +421,10 @@ mod test {
         );
     }
 
-    fn get_flow_nodes_executed_to_reach(
-        model_checking_result: &ModelCheckingResult,
+    fn get_flow_nodes_executed_to_reach<'a>(
+        model_checking_result: &'a ModelCheckingResult<'a>,
         state_hash: u64,
-    ) -> Vec<String> {
+    ) -> Vec<&'a str> {
         let path_to_unsafe = model_checking_result
             .state_space
             .get_path_to_state(state_hash)
@@ -432,7 +432,7 @@ mod test {
         get_flow_nodes_for_path(path_to_unsafe)
     }
 
-    fn get_flow_nodes_for_path(path_to_unsafe: Vec<(String, u64)>) -> Vec<String> {
+    fn get_flow_nodes_for_path(path_to_unsafe: Vec<(&str, u64)>) -> Vec<&str> {
         path_to_unsafe
             .into_iter()
             .map(|(executed_flow_node_id, _)| executed_flow_node_id)

@@ -154,8 +154,8 @@ impl Collaboration {
         &'a self,
         state: &State<'a>,
         not_executed_activities: &mut HashMap<String, bool>,
-    ) -> Vec<(String, State<'a>)> {
-        let mut unexplored_states: Vec<(String, State)> = vec![];
+    ) -> Vec<(&str, State<'a>)> {
+        let mut unexplored_states: Vec<(&str, State)> = vec![];
         if !state.messages.is_empty() {
             self.try_trigger_message_start_events(state, &mut unexplored_states);
         }
@@ -185,7 +185,7 @@ impl Collaboration {
                         unexplored_states.append(
                             &mut new_states
                                 .into_iter()
-                                .map(|state| (flow_node.id.clone(), state))
+                                .map(|state| (flow_node.id.as_str(), state))
                                 .collect(),
                         );
                     }
@@ -198,7 +198,7 @@ impl Collaboration {
     fn try_trigger_message_start_events<'a>(
         &'a self,
         state: &State<'a>,
-        unexplored_states: &mut Vec<(String, State<'a>)>,
+        unexplored_states: &mut Vec<(&'a str, State<'a>)>,
     ) {
         self.participants.iter().for_each(|process| {
             process
@@ -212,7 +212,7 @@ impl Collaboration {
                     unexplored_states.append(
                         &mut new_states
                             .into_iter()
-                            .map(|state| (message_start_event.id.clone(), state))
+                            .map(|state| (message_start_event.id.as_str(), state))
                             .collect(),
                     );
                 })
