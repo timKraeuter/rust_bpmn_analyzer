@@ -4,9 +4,12 @@ use std::process;
 
 fn main() {
     let config = Config::parse();
-
-    if let Err(e) = bpmnanalyzer::run(config) {
-        eprintln!("Application error: {e}");
-        process::exit(1);
-    }
+    let collaboration = bpmnanalyzer::read_bpmn_file(&config.file_path);
+    match collaboration {
+        Ok(collaboration) => bpmnanalyzer::run(&collaboration, config.properties),
+        Err(e) => {
+            eprintln!("Application error: {e}");
+            process::exit(1);
+        }
+    };
 }

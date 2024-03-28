@@ -13,7 +13,8 @@ fn test_stable_state_space1() {
             Property::NoDeadActivities,
         ],
     };
-    let result = bpmnanalyzer::run(config).unwrap();
+    let collaboration = bpmnanalyzer::read_bpmn_file(&config.file_path).unwrap();
+    let result = bpmnanalyzer::run(&collaboration, config.properties);
     assert_eq!(7, result.state_space.states.len());
     assert_eq!(7, result.state_space.count_transitions());
     assert_eq!(4, result.property_results.len());
@@ -32,7 +33,8 @@ fn test_stable_state_space2() {
             Property::NoDeadActivities,
         ],
     };
-    let result = bpmnanalyzer::run(config).unwrap();
+    let collaboration = bpmnanalyzer::read_bpmn_file(&config.file_path).unwrap();
+    let result = bpmnanalyzer::run(&collaboration, config.properties);
     assert_eq!(134, result.state_space.states.len());
     assert_eq!(454, result.state_space.count_transitions());
     assert_eq!(0, result.state_space.terminated_state_hashes.len());
@@ -53,7 +55,8 @@ fn test_stable_state_space_with_messages() {
             Property::NoDeadActivities,
         ],
     };
-    let result = bpmnanalyzer::run(config).unwrap();
+    let collaboration = bpmnanalyzer::read_bpmn_file(&config.file_path).unwrap();
+    let result = bpmnanalyzer::run(&collaboration, config.properties);
     assert_eq!(14, result.state_space.states.len());
     assert_eq!(14, result.state_space.count_transitions());
     assert_eq!(1, result.state_space.terminated_state_hashes.len());
@@ -75,7 +78,8 @@ fn test_stable_state_space_with_e020() {
             Property::NoDeadActivities,
         ],
     };
-    let result = bpmnanalyzer::run(config).unwrap();
+    let collaboration = bpmnanalyzer::read_bpmn_file(&config.file_path).unwrap();
+    let result = bpmnanalyzer::run(&collaboration, config.properties);
     assert_eq!(2112, result.state_space.states.len());
     assert_eq!(3573, result.state_space.count_transitions());
     assert_eq!(30, result.state_space.terminated_state_hashes.len());
@@ -96,7 +100,8 @@ fn test_message_receive_prio() {
             Property::NoDeadActivities,
         ],
     };
-    let result = bpmnanalyzer::run(config).unwrap();
+    let collaboration = bpmnanalyzer::read_bpmn_file(&config.file_path).unwrap();
+    let result = bpmnanalyzer::run(&collaboration, config.properties);
     assert_eq!(11, result.state_space.states.len());
     assert_eq!(10, result.state_space.count_transitions());
     assert_eq!(2, result.state_space.terminated_state_hashes.len());
