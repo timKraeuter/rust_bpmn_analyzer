@@ -28,10 +28,11 @@ impl StateSpace<'_> {
         if self.start_state_hash == state_hash {
             return Some(vec![]);
         }
-        self.get_path(self.start_state_hash, state_hash, &mut HashMap::new()).map(|mut path| {
-            path.reverse();
-            path
-        })
+        self.get_path(self.start_state_hash, state_hash, &mut HashMap::new())
+            .map(|mut path| {
+                path.reverse();
+                path
+            })
     }
     fn get_path(
         &self,
