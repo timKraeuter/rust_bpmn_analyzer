@@ -28,7 +28,10 @@ impl StateSpace<'_> {
         if self.start_state_hash == state_hash {
             return Some(vec![]);
         }
-        self.get_path(self.start_state_hash, state_hash, &mut HashMap::new())
+        self.get_path(self.start_state_hash, state_hash, &mut HashMap::new()).map(|mut path| {
+            path.reverse();
+            path
+        })
     }
     fn get_path(
         &self,
@@ -50,7 +53,7 @@ impl StateSpace<'_> {
                     match self.get_path(*next_state_hash, to_state_hash, seen_states) {
                         None => {}
                         Some(mut path) => {
-                            path.insert(0, (flow_node_id, *next_state_hash));
+                            path.push((flow_node_id, *next_state_hash));
                             return Some(path);
                         }
                     };
