@@ -1,7 +1,7 @@
-use std::collections::BTreeMap;
-use serde::{Deserialize, Serialize};
-use crate::{ModelCheckingResult, Property};
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
+use crate::{ModelCheckingResult, Property};
+use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 
 #[derive(Deserialize)]
 pub struct CheckBPMNRequest {
@@ -56,7 +56,10 @@ pub struct CounterExample {
 }
 
 impl CounterExample {
-    pub fn new(problematic_state_hashes: Vec<u64>, state_space: &StateSpace) -> Option<CounterExample> {
+    pub fn new(
+        problematic_state_hashes: Vec<u64>,
+        state_space: &StateSpace,
+    ) -> Option<CounterExample> {
         match problematic_state_hashes.first() {
             None => None,
             Some(problematic_state) => match state_space.get_path_to_state(*problematic_state) {
@@ -108,9 +111,11 @@ impl StateCopy {
         }));
 
         let mut executed_end_event_counter = BTreeMap::new();
-        executed_end_event_counter.extend(state.executed_end_event_counter.iter().map(|(end_event, count)| {
-            (end_event.to_string(), *count) // clone to make it owned
-        }));
+        executed_end_event_counter.extend(state.executed_end_event_counter.iter().map(
+            |(end_event, count)| {
+                (end_event.to_string(), *count) // clone to make it owned
+            },
+        ));
 
         StateCopy {
             snapshots,

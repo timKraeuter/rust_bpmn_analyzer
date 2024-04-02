@@ -1,7 +1,7 @@
-use rust_bpmn_analyzer::Property;
-use std::fs;
 use rust_bpmn_analyzer::bpmn::collaboration::Collaboration;
 use rust_bpmn_analyzer::bpmn::reader::UnsupportedBpmnElementsError;
+use rust_bpmn_analyzer::Property;
+use std::fs;
 
 const PATH: &str = "tests/resources/integration/";
 

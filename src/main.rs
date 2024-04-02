@@ -1,9 +1,10 @@
 use axum::{http::StatusCode, routing::post, Json, Router};
-use rust_bpmn_analyzer::{run, Config, read_bpmn_string};
 use clap::Parser;
-use std::net::SocketAddr;
-use tower_http::services::ServeDir;
 use rust_bpmn_analyzer::dtos::{CheckBPMNRequest, CheckBPMNResponse};
+use rust_bpmn_analyzer::{read_bpmn_string, run, Config};
+use std::net::SocketAddr;
+use tokio::net::TcpListener;
+use tower_http::services::ServeDir;
 
 #[tokio::main]
 async fn main() {
@@ -32,10 +33,8 @@ async fn serve(app: Router, port: u16) {
     };
     tracing::debug!("Listening on {}", addr);
     println!("Listening on {}", addr);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    let listener = TcpListener::bind(&addr).await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
 
 fn using_serve_dir() -> Router {
@@ -49,11 +48,8 @@ async fn check_bpmn<'a>(
     let collaboration = read_bpmn_string(&payload.bpmn_file_content);
     let response = match collaboration {
         Ok(collaboration) => {
-            let model_checking_result = run(
-                &collaboration,
-                payload.properties_to_be_checked,
-                false,
-            );
+            let model_checking_result =
+                run(&collaboration, payload.properties_to_be_checked, false);
             tracing::info!("{:?}", "Model checking successful");
             CheckBPMNResponse::map_result(model_checking_result)
         }
@@ -68,4 +64,3 @@ async fn check_bpmn<'a>(
 
     (StatusCode::OK, Json(response))
 }
-
