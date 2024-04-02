@@ -1,4 +1,4 @@
-use bpmnanalyzer::Property;
+use rust_bpmn_analyzer::Property;
 use std::fs;
 
 const PATH: &str = "tests/resources/integration/";

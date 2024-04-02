@@ -29,10 +29,7 @@ mod test {
         assert_eq!(
             start_state,
             State {
-                snapshots: vec![ProcessSnapshot::new(
-                    String::from("process"),
-                    vec!["Flow_1", "Flow_2"],
-                )],
+                snapshots: vec![ProcessSnapshot::new("process", vec!["Flow_1", "Flow_2"],)],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
             }
@@ -49,8 +46,8 @@ mod test {
             start_state,
             State {
                 snapshots: vec![
-                    ProcessSnapshot::new(String::from("p1_process"), vec!["Flow_04pas1n"]),
-                    ProcessSnapshot::new(String::from("p3_process"), vec!["Flow_0gz2791"])
+                    ProcessSnapshot::new("p1_process", vec!["Flow_04pas1n"]),
+                    ProcessSnapshot::new("p3_process", vec!["Flow_0gz2791"])
                 ],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
@@ -76,8 +73,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",]),
-                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",])
+                State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",]),
+                State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",])
             ]
         )
     }
@@ -91,10 +88,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
         let state_without_message = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_receive_task"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_receive_task"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -108,7 +102,7 @@ mod test {
         assert_eq!(next_states, vec![]);
 
         let mut state_with_message = state_without_message;
-        state_with_message.messages.insert(String::from("mf"), 1u16);
+        state_with_message.messages.insert("mf", 1u16);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
@@ -118,10 +112,7 @@ mod test {
 
         assert_eq!(
             next_states,
-            vec![State::new(
-                String::from("p1_process"),
-                vec!["post_receive_task"]
-            ),]
+            vec![State::new("p1_process", vec!["post_receive_task"]),]
         );
     }
 
@@ -133,10 +124,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "evg");
         let state_without_message = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_evg"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_evg"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -150,12 +138,8 @@ mod test {
         assert_eq!(next_states, vec![]);
 
         let mut state_with_message = state_without_message;
-        state_with_message
-            .messages
-            .insert(String::from("mf1"), 1u16);
-        state_with_message
-            .messages
-            .insert(String::from("mf2"), 1u16);
+        state_with_message.messages.insert("mf1", 1u16);
+        state_with_message.messages.insert("mf2", 1u16);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
@@ -166,8 +150,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("p1_process"), vec!["post_mice"]),
-                State::new(String::from("p1_process"), vec!["post_ReceiveTask"])
+                State::new("p1_process", vec!["post_mice"]),
+                State::new("p1_process", vec!["post_ReceiveTask"])
             ]
         );
     }
@@ -180,7 +164,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
         let start_state = State {
-            snapshots: vec![ProcessSnapshot::new(String::from("p1_process"), vec!["sf"])],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["sf"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -200,10 +184,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "mice");
         let state_without_message = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_mice"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_mice"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -217,7 +198,7 @@ mod test {
         assert_eq!(next_states, vec![]);
 
         let mut state_with_message = state_without_message;
-        state_with_message.messages.insert(String::from("mf"), 1u16);
+        state_with_message.messages.insert("mf", 1u16);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
@@ -227,7 +208,7 @@ mod test {
 
         assert_eq!(
             next_states,
-            vec![State::new(String::from("p1_process"), vec!["post_mice"]),]
+            vec![State::new("p1_process", vec!["post_mice"]),]
         );
     }
 
@@ -239,10 +220,7 @@ mod test {
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "SendTask");
         let state = State {
-            snapshots: vec![ProcessSnapshot::new(
-                String::from("p1_process"),
-                vec!["pre_send_task"],
-            )],
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_send_task"])],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
@@ -252,12 +230,9 @@ mod test {
         assert_eq!(
             next_states,
             vec![State {
-                snapshots: vec![ProcessSnapshot::new(
-                    String::from("p1_process"),
-                    vec!["post_send_task"],
-                )],
+                snapshots: vec![ProcessSnapshot::new("p1_process", vec!["post_send_task"],)],
                 executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::from([(String::from("mf"), 1u16)]),
+                messages: BTreeMap::from([("mf", 1u16)]),
             }]
         );
     }
@@ -280,8 +255,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_2"]),
-                State::new(String::from("process"), vec!["Flow_3"]),
+                State::new("process", vec!["Flow_2"]),
+                State::new("process", vec!["Flow_3"]),
             ]
         )
     }
@@ -293,7 +268,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
-        let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
+        let start_state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -304,8 +279,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_3", "Flow_4"],),
-                State::new(String::from("process"), vec!["Flow_2", "Flow_4"],),
+                State::new("process", vec!["Flow_3", "Flow_4"],),
+                State::new("process", vec!["Flow_2", "Flow_4"],),
             ]
         );
     }
@@ -327,10 +302,7 @@ mod test {
 
         assert_eq!(
             next_states,
-            vec![State::new(
-                String::from("process"),
-                vec!["Flow_2", "Flow_3"],
-            ),]
+            vec![State::new("process", vec!["Flow_2", "Flow_3"],),]
         )
     }
 
@@ -341,7 +313,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
-        let start_state = State::new(String::from("process"), vec!["Flow_2", "Flow_3"]);
+        let start_state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -349,10 +321,7 @@ mod test {
             &collaboration,
         );
 
-        assert_eq!(
-            next_states,
-            vec![State::new(String::from("process"), vec!["Flow_4"],),]
-        );
+        assert_eq!(next_states, vec![State::new("process", vec!["Flow_4"],),]);
     }
 
     #[test]
@@ -361,7 +330,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "End");
-        let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_1", "Flow_2"]);
+        let start_state = State::new("process", vec!["Flow_1", "Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -369,14 +338,10 @@ mod test {
             &collaboration,
         );
 
-        let mut state1 = State::new(String::from("process"), vec!["Flow_1", "Flow_2"]);
-        state1
-            .executed_end_event_counter
-            .insert("End".to_string(), 1);
-        let mut state2 = State::new(String::from("process"), vec!["Flow_1", "Flow_1"]);
-        state2
-            .executed_end_event_counter
-            .insert("End".to_string(), 1);
+        let mut state1 = State::new("process", vec!["Flow_1", "Flow_2"]);
+        state1.executed_end_event_counter.insert("End", 1);
+        let mut state2 = State::new("process", vec!["Flow_1", "Flow_1"]);
+        state2.executed_end_event_counter.insert("End", 1);
         assert_eq!(next_states, vec![state1, state2]);
     }
 
@@ -397,15 +362,13 @@ mod test {
 
         let mut expected_state = State {
             snapshots: vec![
-                ProcessSnapshot::new(String::from("p0_process"), vec!["flow3"]),
-                ProcessSnapshot::new(String::from("p1_process"), vec![]),
+                ProcessSnapshot::new("p0_process", vec!["flow3"]),
+                ProcessSnapshot::new("p1_process", vec![]),
             ],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::new(),
         };
-        expected_state
-            .executed_end_event_counter
-            .insert("end".to_string(), 1);
+        expected_state.executed_end_event_counter.insert("end", 1);
         assert_eq!(next_states, vec![expected_state]);
     }
 
@@ -416,7 +379,7 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Intermediate");
-        let start_state = State::new(String::from("process"), vec!["Flow_1", "Flow_2"]);
+        let start_state = State::new("process", vec!["Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
@@ -427,8 +390,8 @@ mod test {
         assert_eq!(
             next_states,
             vec![
-                State::new(String::from("process"), vec!["Flow_2", "Flow_3", "Flow_4",],),
-                State::new(String::from("process"), vec!["Flow_1", "Flow_3", "Flow_4",],),
+                State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",],),
+                State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",],),
             ]
         );
     }
@@ -443,7 +406,7 @@ mod test {
         let start_state = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::from([(String::from("mf"), 1u16)]),
+            messages: BTreeMap::from([("mf", 1u16)]),
         };
 
         let next_states = flow_node.try_trigger_message_start_event(process, &start_state);
@@ -451,20 +414,17 @@ mod test {
         assert_eq!(
             next_states,
             vec![State {
-                snapshots: vec![ProcessSnapshot::new(
-                    String::from("p1_process"),
-                    vec!["start_out"]
-                )],
+                snapshots: vec![ProcessSnapshot::new("p1_process", vec!["start_out"])],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
             }]
         );
     }
 
-    fn get_flow_nodes_executed_to_reach(
-        model_checking_result: &ModelCheckingResult,
+    fn get_flow_nodes_executed_to_reach<'a>(
+        model_checking_result: &'a ModelCheckingResult<'a>,
         state_hash: u64,
-    ) -> Vec<String> {
+    ) -> Vec<&'a str> {
         let path_to_unsafe = model_checking_result
             .state_space
             .get_path_to_state(state_hash)
@@ -472,7 +432,7 @@ mod test {
         get_flow_nodes_for_path(path_to_unsafe)
     }
 
-    fn get_flow_nodes_for_path(path_to_unsafe: Vec<(String, u64)>) -> Vec<String> {
+    fn get_flow_nodes_for_path(path_to_unsafe: Vec<(&str, u64)>) -> Vec<&str> {
         path_to_unsafe
             .into_iter()
             .map(|(executed_flow_node_id, _)| executed_flow_node_id)
@@ -484,9 +444,7 @@ mod test {
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "properties/safeness/unsafe.bpmn"));
 
-        let start = collaboration.create_start_state();
-        let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::Safeness]);
+        let model_checking_result = collaboration.explore_state_space(vec![Property::Safeness]);
 
         let unsafe_state_hash: u64 = 3842228032089975966;
 
@@ -505,8 +463,8 @@ mod test {
             unsafe_state,
             &State {
                 snapshots: vec![ProcessSnapshot {
-                    id: String::from("process"),
-                    tokens: BTreeMap::from([(String::from("Unsafe1"), 2u16)]),
+                    id: "process",
+                    tokens: BTreeMap::from([("Unsafe1", 2u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
@@ -526,9 +484,7 @@ mod test {
     fn safeness_fulfilled() {
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
-        let start = collaboration.create_start_state();
-        let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::Safeness]);
+        let model_checking_result = collaboration.explore_state_space(vec![Property::Safeness]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -542,9 +498,8 @@ mod test {
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-1.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
+            collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
         let not_terminated_state_hash_1 = 6735018309777973944;
         let not_terminated_state_hash_2 = 9452229757242377755;
@@ -584,9 +539,8 @@ mod test {
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-2.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
+            collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
         let expected_hash: u64 = 12581154331755844142;
 
@@ -605,8 +559,8 @@ mod test {
             stuck_state,
             &State {
                 snapshots: vec![ProcessSnapshot {
-                    id: String::from("Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2"),
-                    tokens: BTreeMap::from([(String::from("stuck"), 1u16)]),
+                    id: "Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2",
+                    tokens: BTreeMap::from([("stuck", 1u16)]),
                 }],
                 executed_end_event_counter: BTreeMap::new(),
                 messages: BTreeMap::new(),
@@ -618,9 +572,8 @@ mod test {
     fn option_to_complete_fulfilled() {
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::OptionToComplete]);
+            collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -634,9 +587,8 @@ mod test {
             &(PATH.to_string() + "properties/no_dead_activities/dead-activities.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
+            collaboration.explore_state_space(vec![Property::NoDeadActivities]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -660,9 +612,8 @@ mod test {
             &(PATH.to_string() + "properties/no_dead_activities/no-dead-activities.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::NoDeadActivities]);
+            collaboration.explore_state_space(vec![Property::NoDeadActivities]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -676,9 +627,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/proper-completion-1.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -692,9 +642,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/proper-completion-2.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         assert_eq!(
             model_checking_result.property_results,
@@ -708,9 +657,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-1.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.first().unwrap();
         assert_eq!(
@@ -730,9 +678,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-2.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
         let model_checking_result =
-            collaboration.explore_state_space(start, vec![Property::ProperCompletion]);
+            collaboration.explore_state_space(vec![Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.first().unwrap();
         assert_eq!(
@@ -752,9 +699,8 @@ mod test {
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-3-unsafe.bpmn"),
         );
 
-        let start = collaboration.create_start_state();
-        let model_checking_result = collaboration
-            .explore_state_space(start, vec![Property::Safeness, Property::ProperCompletion]);
+        let model_checking_result =
+            collaboration.explore_state_space(vec![Property::Safeness, Property::ProperCompletion]);
 
         let result = model_checking_result.property_results.get(1).unwrap();
         assert_eq!(
@@ -780,12 +726,12 @@ mod test {
             .unwrap()
     }
 
-    fn get_first_snapshot(start_state: &State) -> &ProcessSnapshot {
+    fn get_first_snapshot<'a>(start_state: &'a State) -> &'a ProcessSnapshot<'a> {
         let snapshot = start_state.snapshots.first().unwrap();
         snapshot
     }
 
-    fn get_snapshot_by_id<'a>(start_state: &'a State, id: &str) -> &'a ProcessSnapshot {
+    fn get_snapshot_by_id<'a>(start_state: &'a State, id: &str) -> &'a ProcessSnapshot<'a> {
         start_state
             .snapshots
             .iter()

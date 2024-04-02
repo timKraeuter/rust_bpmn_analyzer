@@ -5,6 +5,9 @@ pub mod states;
 use clap::Parser;
 
 use crate::bpmn::reader::{read_bpmn_string, UnsupportedBpmnElementsError};
+use crate::bpmn::collaboration::Collaboration;
+use crate::bpmn::reader;
+use crate::bpmn::reader::UnsupportedBpmnElementsError;
 pub use crate::model_checking::properties::{ModelCheckingResult, Property};
 use crate::output::property_info::output_property_results;
 use crate::output::state_space_info::output_state_information;
@@ -18,6 +21,7 @@ pub struct Config {
     #[arg(short, long, default_value = "8080")]
     pub port: u16,
 }
+pub fn run(collaboration: &Collaboration, properties: Vec<Property>) -> ModelCheckingResult {
 
 pub fn run(
     bpmn_file_content: &str,
@@ -35,7 +39,11 @@ pub fn run(
         output_result(&result, runtime);
     }
 
-    Ok(result)
+    result
+}
+
+pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBpmnElementsError> {
+    reader::read_bpmn_file(file_path)
 }
 
 fn output_result(result: &ModelCheckingResult, runtime: Duration) {

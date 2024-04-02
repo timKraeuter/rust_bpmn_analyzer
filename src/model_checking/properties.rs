@@ -11,12 +11,12 @@ pub enum Property {
 }
 
 #[derive(Debug)]
-pub struct ModelCheckingResult {
-    pub state_space: StateSpace,
+pub struct ModelCheckingResult<'a> {
+    pub state_space: StateSpace<'a>,
     pub property_results: Vec<PropertyResult>,
 }
 
-impl ModelCheckingResult {
+impl ModelCheckingResult<'_> {
     pub fn get_state(&self, state_hash: &u64) -> Option<&State> {
         self.state_space.states.get(state_hash)
     }
@@ -139,7 +139,7 @@ pub fn check_on_the_fly_properties(
     current_state: &State,
     properties: &[Property],
     property_results: &mut Vec<PropertyResult>,
-    transitions: &[(String, u64)],
+    transitions: &[(&str, u64)],
 ) {
     for property in properties.iter() {
         match property {
@@ -161,7 +161,7 @@ pub fn check_if_stuck(
     current_state_hash: u64,
     current_state: &State,
     property_results: &mut Vec<PropertyResult>,
-    transitions: &[(String, u64)],
+    transitions: &[(&str, u64)],
 ) {
     if transitions.is_empty() && !current_state.is_terminated() {
         record_option_to_complete(current_state_hash, property_results);
@@ -215,7 +215,7 @@ fn check_if_unsafe(
 ) {
     let unsafe_sfs = current_state.find_unsafe_sf_ids();
     if !unsafe_sfs.is_empty() {
-        let unsafe_sfs = unsafe_sfs.into_iter().cloned().collect();
+        let unsafe_sfs = unsafe_sfs.iter().map(|&id| String::from(id)).collect();
         match find_property_result(property_results, Property::Safeness) {
             None => property_results.push(PropertyResult {
                 property: Property::Safeness,
