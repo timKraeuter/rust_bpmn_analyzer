@@ -29,13 +29,13 @@ rustup target add x86_64-unknown-linux-musl
 Build the application image:
 
 ```bash
-docker build -t rust-rust_bpmn_analyzer .
+docker build -t rust_bpmn_analyzer .
 ```
 
 Run the application image:
 
 ```bash
-docker run -p 8080:8080 rust-rust_bpmn_analyzer
+docker run -p 8080:8080 rust_bpmn_analyzer
 ```
 
 ## Deployment to Azure
@@ -45,7 +45,7 @@ docker run -p 8080:8080 rust-rust_bpmn_analyzer
 2. Tag container image
 
 ```bash
-docker tag rust-rust_bpmn_analyzer tg2022.azurecr.io/rust-rust_bpmn_analyzer:v1
+docker tag rust_bpmn_analyzer tg2022.azurecr.io/rust_bpmn_analyzer:v1
 ```
 
 3. Login to the Container Registry. Environment variables `APP_ID` and `AZURE_PW` are expected to be
@@ -58,7 +58,7 @@ docker login tg2022.azurecr.io --username $APP_ID --password $AZURE_PW
 4. Push the image to the Container Registry
 
 ```bash
-docker push tg2022.azurecr.io/rust-rust_bpmn_analyzer:v1
+docker push tg2022.azurecr.io/rust_bpmn_analyzer:v1
 ```
 
 5. Create a new container app revision in the GUI.
