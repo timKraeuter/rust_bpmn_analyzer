@@ -78,7 +78,7 @@ impl PropertyResult {
 pub fn determine_properties(
     properties: &[Property],
     property_results: &mut Vec<PropertyResult>,
-    never_executed_activities: HashMap<String, bool>,
+    never_executed_activities: HashMap<&str, bool>,
     state_space: &StateSpace,
 ) {
     if properties.contains(&Property::Safeness)
@@ -112,9 +112,11 @@ pub fn determine_properties(
         }
     }
     if properties.contains(&Property::NoDeadActivities) {
-        // Cannot do this in the loop due to the borrow checker.
-        let mut dead_activities: Vec<String> = never_executed_activities.into_keys().collect();
-        if !dead_activities.is_empty() {
+        if !never_executed_activities.is_empty() {
+            let mut dead_activities: Vec<String> = never_executed_activities
+                .keys()
+                .map(|activity_id| activity_id.to_string())
+                .collect();
             dead_activities.sort();
             property_results.push(PropertyResult {
                 property: Property::NoDeadActivities,

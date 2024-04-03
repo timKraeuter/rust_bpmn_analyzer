@@ -1,7 +1,7 @@
 use crate::bpmn::collaboration::Collaboration;
 use crate::bpmn::process::Process;
 use crate::states::state_space::{ProcessSnapshot, State};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
@@ -51,6 +51,7 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
         collaboration: &'a Collaboration,
+        not_executed_activities: &mut HashMap<&str, bool>,
     ) -> Vec<State<'a>> {
         match &self.flow_node_type {
             FlowNodeType::StartEvent(_) => vec![],
@@ -60,9 +61,12 @@ impl FlowNode {
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
-            FlowNodeType::EventBasedGateway => {
-                self.try_execute_evg(snapshot, current_state, collaboration)
-            }
+            FlowNodeType::EventBasedGateway => self.try_execute_evg(
+                snapshot,
+                current_state,
+                collaboration,
+                not_executed_activities,
+            ),
             FlowNodeType::EndEvent(e) => self.try_execute_end_event(snapshot, current_state, e),
             FlowNodeType::IntermediateCatchEvent(_) => {
                 self.try_execute_intermediate_catch_event(snapshot, current_state)
@@ -363,6 +367,7 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
         collaboration: &'a Collaboration,
+        not_executed_activities: &mut HashMap<&str, bool>,
     ) -> Vec<State<'a>> {
         // Currently only messages can trigger evgs.
         if current_state.messages.is_empty() {
@@ -393,6 +398,11 @@ impl FlowNode {
                     for flow_node in next_flow_nodes.iter() {
                         if flow_node.no_message_flow_has_a_message(current_state) {
                             continue;
+                        }
+                        if flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive)
+                            || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Default)
+                        {
+                            not_executed_activities.remove(flow_node.id.as_str());
                         }
                         // Consume incoming token
                         let mut new_state =

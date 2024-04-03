@@ -61,8 +61,7 @@ fn test_stable_state_space_with_messages() {
     assert_eq!(14, result.state_space.count_transitions());
     assert_eq!(1, result.state_space.terminated_state_hashes.len());
     assert_eq!(
-        // TODO: Should not contain no dead activities but currently this is hard to implement since we think the evg was executed not the task afterwards
-        vec![Property::OptionToComplete, Property::NoDeadActivities],
+        vec![Property::OptionToComplete],
         get_unfulfilled_properties(result)
     );
 }
