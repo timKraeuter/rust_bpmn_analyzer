@@ -7,7 +7,7 @@ mod test {
     use crate::model_checking::properties::{ModelCheckingResult, PropertyResult};
     use crate::states::state_space::{ProcessSnapshot, State};
     use crate::Property;
-    use std::collections::BTreeMap;
+    use std::collections::{BTreeMap, HashMap};
 
     const PATH: &str = "tests/resources/unit/";
 
@@ -68,6 +68,7 @@ mod test {
             get_first_snapshot(&start_state),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(
@@ -97,6 +98,7 @@ mod test {
             get_first_snapshot(&state_without_message),
             &state_without_message,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(next_states, vec![]);
@@ -108,6 +110,7 @@ mod test {
             get_first_snapshot(&state_with_message),
             &state_with_message,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(
@@ -133,6 +136,7 @@ mod test {
             get_first_snapshot(&state_without_message),
             &state_without_message,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(next_states, vec![]);
@@ -141,10 +145,13 @@ mod test {
         state_with_message.messages.insert("mf1", 1u16);
         state_with_message.messages.insert("mf2", 1u16);
 
+        let mut not_executed_activities = HashMap::new();
+        not_executed_activities.insert("ReceiveTask", true);
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
             &state_with_message,
             &collaboration,
+            &mut not_executed_activities,
         );
 
         assert_eq!(
@@ -154,6 +161,8 @@ mod test {
                 State::new("p1_process", vec!["post_ReceiveTask"])
             ]
         );
+        // The map is empty since the activity was executed to reach one of the states.
+        assert_eq!(not_executed_activities.len(), 0);
     }
 
     #[test]
@@ -193,6 +202,7 @@ mod test {
             get_first_snapshot(&state_without_message),
             &state_without_message,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(next_states, vec![]);
@@ -204,6 +214,7 @@ mod test {
             get_first_snapshot(&state_with_message),
             &state_with_message,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(
@@ -225,7 +236,12 @@ mod test {
             messages: BTreeMap::new(),
         };
 
-        let next_states = flow_node.try_execute(get_first_snapshot(&state), &state, &collaboration);
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&state),
+            &state,
+            &collaboration,
+            &mut HashMap::new(),
+        );
 
         assert_eq!(
             next_states,
@@ -250,6 +266,7 @@ mod test {
             get_first_snapshot(&start_state),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(
@@ -274,6 +291,7 @@ mod test {
             get_first_snapshot(&start_state),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(
@@ -298,6 +316,7 @@ mod test {
             get_first_snapshot(&start_state),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(
@@ -319,6 +338,7 @@ mod test {
             get_first_snapshot(&start_state),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(next_states, vec![State::new("process", vec!["Flow_4"],),]);
@@ -336,6 +356,7 @@ mod test {
             get_first_snapshot(&start_state),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         let mut state1 = State::new("process", vec!["Flow_1", "Flow_2"]);
@@ -358,6 +379,7 @@ mod test {
             get_snapshot_by_id(&start_state, "p1_process"),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         let mut expected_state = State {
@@ -385,6 +407,7 @@ mod test {
             get_first_snapshot(&start_state),
             &start_state,
             &collaboration,
+            &mut HashMap::new(),
         );
 
         assert_eq!(

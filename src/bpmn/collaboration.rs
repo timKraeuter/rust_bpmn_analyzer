@@ -106,7 +106,7 @@ impl Collaboration {
         }
     }
 
-    pub fn get_all_tasks(&self) -> HashMap<String, bool> {
+    pub fn get_all_tasks(&self) -> HashMap<&str, bool> {
         let mut flow_nodes = HashMap::new();
         self.participants.iter().for_each(|process| {
             process
@@ -118,7 +118,7 @@ impl Collaboration {
                 })
                 .for_each(|flow_node| {
                     // Cloned id here. Could use RC smart pointer instead.
-                    flow_nodes.insert(flow_node.id.clone(), true);
+                    flow_nodes.insert(flow_node.id.as_str(), true);
                 })
         });
         flow_nodes
@@ -153,7 +153,7 @@ impl Collaboration {
     fn explore_state<'a>(
         &'a self,
         state: &State<'a>,
-        not_executed_activities: &mut HashMap<String, bool>,
+        not_executed_activities: &mut HashMap<&str, bool>,
     ) -> Vec<(&str, State<'a>)> {
         let mut unexplored_states: Vec<(&str, State)> = vec![];
         if !state.messages.is_empty() {
@@ -173,7 +173,8 @@ impl Collaboration {
                 Some(process) => {
                     // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages. But currently sfs/mfs are just ids and we cannot find their targets easily.
                     for flow_node in process.flow_nodes.iter() {
-                        let new_states = flow_node.try_execute(snapshot, state, self);
+                        let new_states =
+                            flow_node.try_execute(snapshot, state, self, not_executed_activities);
 
                         Self::record_executed_activities(
                             not_executed_activities,
@@ -220,16 +221,15 @@ impl Collaboration {
     }
 
     fn record_executed_activities(
-        not_executed_activities: &mut HashMap<String, bool>,
+        not_executed_activities: &mut HashMap<&str, bool>,
         flow_node: &FlowNode,
         new_states: &[State],
     ) {
         if (flow_node.flow_node_type == FlowNodeType::Task(TaskType::Default)
             || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive))
-            && not_executed_activities.get(&flow_node.id).is_some()
             && !new_states.is_empty()
         {
-            not_executed_activities.remove(&flow_node.id);
+            not_executed_activities.remove(flow_node.id.as_str());
         }
     }
 }
