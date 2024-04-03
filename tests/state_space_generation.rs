@@ -1,6 +1,6 @@
 use rust_bpmn_analyzer::bpmn::collaboration::Collaboration;
 use rust_bpmn_analyzer::bpmn::reader::UnsupportedBpmnElementsError;
-use rust_bpmn_analyzer::Property;
+use rust_bpmn_analyzer::{ModelCheckingResult, Property};
 use std::fs;
 
 const PATH: &str = "tests/resources/integration/";
@@ -81,4 +81,17 @@ fn test_stable_state_space_with_e020() -> Result<(), Box<dyn std::error::Error>>
     assert_eq!(3573, result.state_space.count_transitions());
     assert_eq!(30, result.state_space.terminated_state_hashes.len());
     Ok(())
+}
+
+fn get_unfulfilled_properties(result: ModelCheckingResult) -> Vec<Property> {
+    result
+        .property_results
+        .into_iter()
+        .filter_map(|property_result| {
+            if !property_result.fulfilled {
+                return Some(property_result.property);
+            }
+            None
+        })
+        .collect::<Vec<_>>()
 }
