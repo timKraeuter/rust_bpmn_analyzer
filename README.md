@@ -8,6 +8,28 @@ This is a simple BPMN analyzer written in Rust. It is able to parse BPMN files a
 certain properties. The analyzer is able to detect deadlocks, livelocks, and other properties of
 BPMN models.
 
+# BPMN coverage
+
+The BPMN elements in <span style="color:green;">green</span>
+are supported by the analyzer.
+
+<style>
+  .supported {
+    background-color: green;
+    fill: green;
+  }
+</style>
+
+## Participants
+
+![Pool](./documentation/assets/bpmn-symbols/pool.svg)
+
+## Subprocesses
+
+## Tasks
+
+## Gateways
+
 # Build release for the current platform
 
 ```bash
