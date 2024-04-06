@@ -10,7 +10,7 @@ BPMN models.
 
 # BPMN coverage
 
-The BPMN elements in <span style="color:green;">green</span>
+The BPMN elements in $${\color{green}green}$$
 are supported by the analyzer.
 
 <span>
