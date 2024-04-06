@@ -57,19 +57,6 @@ Markers, data and artifacts are ignored.
 
 ## Events
 
-![](./documentation/assets/bpmn-symbols/error-event-subprocess.svg)
-![](./documentation/assets/bpmn-symbols/error-boundary-event.svg)
-![](./documentation/assets/bpmn-symbols/error-end-event.svg)
-
-![](./documentation/assets/bpmn-symbols/signal-start-event.svg)
-![](./documentation/assets/bpmn-symbols/signal-event-subprocess.svg)
-![](./documentation/assets/bpmn-symbols/signal-event-subprocess-non-interrupting.svg)
-![](./documentation/assets/bpmn-symbols/signal-catch-event.svg)
-![](./documentation/assets/bpmn-symbols/signal-boundary-event.svg)
-![](./documentation/assets/bpmn-symbols/signal-boundary-event-non-interrupting.svg)
-![](./documentation/assets/bpmn-symbols/signal-throw-event.svg)
-![](./documentation/assets/bpmn-symbols/signal-end-event.svg)
-
 ![](./documentation/assets/bpmn-symbols/conditional-start-event.svg)
 ![](./documentation/assets/bpmn-symbols/conditional-event-subprocess.svg)
 ![](./documentation/assets/bpmn-symbols/conditional-event-subprocess-non-interrupting.svg)
@@ -260,22 +247,22 @@ Markers, data and artifacts are ignored.
             Conditional
         </td>
         <td>
-            <ConditionalStartEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/conditional-start-event.svg" />
         </td>
         <td>
-            <ConditionalEventSubprocessSvg />
+            <img src="./documentation/assets/bpmn-symbols/conditional-event-subprocess.svg" />
         </td>
         <td>
-            <ConditionalEventSubprocessNonInterruptingSvg />
+            <img src="./documentation/assets/bpmn-symbols/conditional-event-subprocess-non-interrupting.svg" />
         </td>
         <td>
-            <ConditionalCatchEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/conditional-catch-event.svg" />
         </td>
         <td>
-            <ConditionalBoundaryEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/conditional-boundary-event.svg" />
         </td>
         <td>
-            <ConditionalBoundaryEventNonInterruptingSvg />
+            <img src="./documentation/assets/bpmn-symbols/conditional-boundary-event-non-interrupting.svg" />
         </td>
         <td></td>
         <td></td>
@@ -286,23 +273,23 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <EscalationEventSubprocessSvg" />
+            <img src="./documentation/assets/bpmn-symbols/escalation-event-subprocess.svg" />
         </td>
         <td>
-            <EscalationEventSubprocessNonInterruptingSvg" />
+            <img src="./documentation/assets/bpmn-symbols/escalation-event-subprocess-non-interrupting.svg" />
         </td>
         <td></td>
         <td>
-            <EscalationBoundaryEventSvg" />
+            <img src="./documentation/assets/bpmn-symbols/escalation-boundary-event.svg" />
         </td>
         <td>
-            <EscalationBoundaryEventNonInterruptingSvg" />
+            <img src="./documentation/assets/bpmn-symbols/escalation-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <EscalationThrowEventSvg" />
+            <img src="./documentation/assets/bpmn-symbols/escalation-throw-event.svg" />
         </td>
         <td>
-            <EscalationEndEventSvg" />
+            <img src="./documentation/assets/bpmn-symbols/escalation-end-event.svg" />
         </td>
     </tr>
     <tr>
