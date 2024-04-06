@@ -155,12 +155,10 @@ Markers, data and artifacts are ignored.
   <tbody>
     <tr>
         <td>
-            <a href="./documentation/assets/none-start-event">None</a>
+            None
         </td>
         <td>
-            <a href="../none-events/">
-                <NoneStartEventSvg className="implemented" />
-            </a>
+            <img src="./documentation/assets/bpmn-symbols/none-start-event.svg" alt="None Start Event" />
         </td>
         <td></td>
         <td></td>
@@ -168,166 +166,112 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <a href="../none-events/">
-                <NoneThrowEventSvg className="implemented" />
-            </a>
+            <NoneThrowEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../none-events/">
-                <NoneEndEventSvg className="implemented" />
-            </a>
+            <NoneEndEventSvg className="implemented" />
         </td>
     </tr>
     <tr>
         <td>
-            <a href="../message-events/">Message</a>
+            Message
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageStartEventSvg className="implemented" />
-            </a>
+            <MessageStartEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageEventSubprocessSvg className="implemented" />
-            </a>
+            <MessageEventSubprocessSvg className="implemented" />
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageEventSubprocessNonInterruptingSvg className="implemented" />
-            </a>
+            <MessageEventSubprocessNonInterruptingSvg className="implemented" />
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageCatchEventSvg className="implemented" />
-            </a>
+            <MessageCatchEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageBoundaryEventSvg className="implemented" />
-            </a>
+            <MessageBoundaryEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageBoundaryEventNonInterruptingSvg className="implemented" />
-            </a>
+            <MessageBoundaryEventNonInterruptingSvg className="implemented" />
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageThrowEventSvg className="implemented" />
-            </a>
+            <MessageThrowEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../message-events/">
-                <MessageEndEventSvg className="implemented" />
-            </a>
+            <MessageEndEventSvg className="implemented" />
         </td>
     </tr>
     <tr>
         <td>
-            <a href="../timer-events/">Timer</a>
+            Timer
         </td>
         <td>
-            <a href="../timer-events/">
-                <TimerStartEventSvg className="implemented" />
-            </a>
+            <TimerStartEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../timer-events/">
-                <TimerEventSubprocessSvg className="implemented" />
-            </a>
+            <TimerEventSubprocessSvg className="implemented" />
         </td>
         <td>
-            <a href="../timer-events/">
-                <TimerEventSubprocessNonInterruptingSvg className="implemented" />
-            </a>
+            <TimerEventSubprocessNonInterruptingSvg className="implemented" />
         </td>
         <td>
-            <a href="../timer-events/">
-                <TimerCatchEventSvg className="implemented" />
-            </a>
+            <TimerCatchEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../timer-events/">
-                <TimerBoundaryEventSvg className="implemented" />
-            </a>
+            <TimerBoundaryEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../timer-events/">
-                <TimerBoundaryEventNonInterruptingSvg className="implemented" />
-            </a>
+            <TimerBoundaryEventNonInterruptingSvg className="implemented" />
         </td>
         <td></td>
         <td></td>
     </tr>
     <tr>
         <td>
-            <a href="../error-events/">Error</a>
+            Error
         </td>
         <td></td>
         <td>
-            <a href="../error-events/">
-                <ErrorEventSubprocessSvg className="implemented" />
-            </a>
-        </td>
-        <td></td>
-        <td></td>
-        <td>
-            <a href="../error-events/">
-                <ErrorBoundaryEventSvg className="implemented" />
-            </a>
+            <ErrorEventSubprocessSvg className="implemented" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <a href="../error-events/">
-                <ErrorEndEventSvg className="implemented" />
-            </a>
+            <ErrorBoundaryEventSvg className="implemented" />
+        </td>
+        <td></td>
+        <td></td>
+        <td>
+            <ErrorEndEventSvg className="implemented" />
         </td>
     </tr>
     <tr>
         <td>
-            <a href="../signal-events/">Signal</a>
+            Signal
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalStartEventSvg className="implemented" />
-            </a>
+            <SignalStartEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalEventSubprocessSvg className="implemented" />
-            </a>
+            <SignalEventSubprocessSvg className="implemented" />
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalEventSubprocessNonInterruptingSvg className="implemented" />
-            </a>
+            <SignalEventSubprocessNonInterruptingSvg className="implemented" />
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalCatchEventSvg className="implemented" />
-            </a>
+            <SignalCatchEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalBoundaryEventSvg className="implemented" />
-            </a>
+            <SignalBoundaryEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalBoundaryEventNonInterruptingSvg className="implemented" />
-            </a>
+            <SignalBoundaryEventNonInterruptingSvg className="implemented" />
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalThrowEventSvg className="implemented" />
-            </a>
+            <SignalThrowEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../signal-events/">
-                <SignalEndEventSvg className="implemented" />
-            </a>
+            <SignalEndEventSvg className="implemented" />
         </td>
     </tr>
     <tr>
@@ -335,73 +279,49 @@ Markers, data and artifacts are ignored.
             Conditional
         </td>
         <td>
-            <a href="#">
-                <ConditionalStartEventSvg />
-            </a>
+            <ConditionalStartEventSvg />
         </td>
         <td>
-            <a href="#">
-                <ConditionalEventSubprocessSvg />
-            </a>
+            <ConditionalEventSubprocessSvg />
         </td>
         <td>
-            <a href="#">
-                <ConditionalEventSubprocessNonInterruptingSvg />
-            </a>
+            <ConditionalEventSubprocessNonInterruptingSvg />
         </td>
         <td>
-            <a href="#">
-                <ConditionalCatchEventSvg />
-            </a>
+            <ConditionalCatchEventSvg />
         </td>
         <td>
-            <a href="#">
-                <ConditionalBoundaryEventSvg />
-            </a>
+            <ConditionalBoundaryEventSvg />
         </td>
         <td>
-            <a href="#">
-                <ConditionalBoundaryEventNonInterruptingSvg />
-            </a>
+            <ConditionalBoundaryEventNonInterruptingSvg />
         </td>
         <td></td>
         <td></td>
     </tr>
     <tr>
         <td>
-            <a href="../escalation-events/">Escalation</a>
+            Escalation
         </td>
         <td></td>
         <td>
-            <a href="../escalation-events/">
-                <EscalationEventSubprocessSvg className="implemented" />
-            </a>
+            <EscalationEventSubprocessSvg className="implemented" />
         </td>
         <td>
-            <a href="../escalation-events">
-                <EscalationEventSubprocessNonInterruptingSvg className="implemented" />
-            </a>
+            <EscalationEventSubprocessNonInterruptingSvg className="implemented" />
         </td>
         <td></td>
         <td>
-            <a href="../escalation-events">
-                <EscalationBoundaryEventSvg className="implemented" />
-            </a>
+            <EscalationBoundaryEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../escalation-events">
-                <EscalationBoundaryEventNonInterruptingSvg className="implemented" />
-            </a>
+            <EscalationBoundaryEventNonInterruptingSvg className="implemented" />
         </td>
         <td>
-            <a href="../escalation-events">
-                <EscalationThrowEventSvg className="implemented" />
-            </a>
+            <EscalationThrowEventSvg className="implemented" />
         </td>
         <td>
-            <a href="../escalation-events">
-                <EscalationEndEventSvg className="implemented" />
-            </a>
+            <EscalationEndEventSvg className="implemented" />
         </td>
     </tr>
     <tr>
@@ -410,27 +330,19 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <a href="#">
-                <CompensationEventSubprocessSvg />
-            </a>
+            <CompensationEventSubprocessSvg />
         </td>
         <td></td>
         <td></td>
         <td>
-            <a href="#">
-                <CompensationBoundaryEventSvg />
-            </a>
+            <CompensationBoundaryEventSvg />
         </td>
         <td></td>
         <td>
-            <a href="#">
-                <CompensationThrowEventSvg />
-            </a>
+            <CompensationThrowEventSvg />
         </td>
         <td>
-            <a href="#">
-                <CompensationEndEventSvg />
-            </a>
+            <CompensationEndEventSvg />
         </td>
     </tr>
     <tr>
@@ -442,21 +354,17 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <a href="#">
-                <CancelBoundaryEventSvg />
-            </a>
+            <CancelBoundaryEventSvg />
         </td>
         <td></td>
         <td></td>
         <td>
-            <a href="#">
-                <CancelEndEventSvg />
-            </a>
+            <CancelEndEventSvg />
         </td>
     </tr>
     <tr>
         <td>
-            <a href="../terminate-events/">Terminate</a>
+            Terminate
         </td>
         <td></td>
         <td></td>
@@ -466,29 +374,23 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <a href="../terminate-events/">
-                <TerminationEndEventSvg className="implemented" />
-            </a>
+            <TerminationEndEventSvg className="implemented" />
         </td>
     </tr>
     <tr>
         <td>
-            <a href="../link-events">Link</a>
+            Link
         </td>
         <td></td>
         <td></td>
         <td></td>
         <td>
-            <a href="../link-events/">
-                <LinkCatchEventSvg className="implemented"/>
-            </a>
+            <LinkCatchEventSvg className="implemented"/>
         </td>
         <td></td>
         <td></td>
         <td>
-            <a href="../link-events">
-                <LinkThrowEventSvg className="implemented"/>
-            </a>
+            <LinkThrowEventSvg className="implemented"/>
         </td>
         <td></td>
     </tr>
@@ -497,44 +399,28 @@ Markers, data and artifacts are ignored.
             Multiple
         </td>
         <td>
-            <a href="#">
-                <MultipleStartEventSvg />
-            </a>
+            <MultipleStartEventSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleEventSubprocessSvg />
-            </a>
+            <MultipleEventSubprocessSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleEventSubprocessNonInterruptingSvg />
-            </a>
+            <MultipleEventSubprocessNonInterruptingSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleCatchEventSvg />
-            </a>
+            <MultipleCatchEventSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleBoundaryEventSvg />
-            </a>
+            <MultipleBoundaryEventSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleBoundaryEventNonInterruptingSvg />
-            </a>
+            <MultipleBoundaryEventNonInterruptingSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleThrowEventSvg />
-            </a>
+            <MultipleThrowEventSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleEndEventSvg />
-            </a>
+            <MultipleEndEventSvg />
         </td>
     </tr>
     <tr>
@@ -542,34 +428,22 @@ Markers, data and artifacts are ignored.
             Multiple Parallel
         </td>
         <td>
-            <a href="#">
-                <MultipleParallelStartEventSvg />
-            </a>
+            <MultipleParallelStartEventSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleParallelEventSubprocessSvg />
-            </a>
+            <MultipleParallelEventSubprocessSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleParallelEventSubprocessNonInterruptingSvg />
-            </a>
+            <MultipleParallelEventSubprocessNonInterruptingSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleParallelCatchEventSvg />
-            </a>
+            <MultipleParallelCatchEventSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleParallelBoundaryEventSvg />
-            </a>
+            <MultipleParallelBoundaryEventSvg />
         </td>
         <td>
-            <a href="#">
-                <MultipleParallelBoundaryEventNonInterruptingSvg />
-            </a>
+            <MultipleParallelBoundaryEventNonInterruptingSvg />
         </td>
         <td></td>
         <td></td>
@@ -577,6 +451,8 @@ Markers, data and artifacts are ignored.
 
   </tbody>
 </table>
+
+
 
 # Build release for the current platform
 
