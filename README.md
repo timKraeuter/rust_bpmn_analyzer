@@ -57,9 +57,6 @@ Markers, data and artifacts are ignored.
 
 ## Events
 
-![](./documentation/assets/bpmn-symbols/none-throw-event.svg)
-![](./documentation/assets/bpmn-symbols/none-end-event.svg)
-
 ![](./documentation/assets/bpmn-symbols/message-start-event.svg)
 ![](./documentation/assets/bpmn-symbols/message-event-subprocess.svg)
 ![](./documentation/assets/bpmn-symbols/message-event-subprocess-non-interrupting.svg)
@@ -158,7 +155,7 @@ Markers, data and artifacts are ignored.
             None
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/none-start-event.svg" alt="None Start Event" />
+            <img src="./documentation/assets/bpmn-symbols/none-start-event.svg" alt="none start event" />
         </td>
         <td></td>
         <td></td>
@@ -166,10 +163,10 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/none-throw-event.svg" alt="None throw Event"/>
+            <img src="./documentation/assets/bpmn-symbols/none-throw-event.svg" alt="none throw event"/>
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/none-end-event.svg" alt="None end Event"/>
+            <img src="./documentation/assets/bpmn-symbols/none-end-event.svg" alt="none end event"/>
         </td>
     </tr>
     <tr>
@@ -177,28 +174,28 @@ Markers, data and artifacts are ignored.
             Message
         </td>
         <td>
-            <MessageStartEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-start-event.svg" alt="message start event"/>
         </td>
         <td>
-            <MessageEventSubprocessSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-event-subprocess.svg" alt="message event subprocess"/>
         </td>
         <td>
-            <MessageEventSubprocessNonInterruptingSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-event-subprocess-non-interrupting.svg" alt="message event subprocess non interrupting"/>
         </td>
         <td>
-            <MessageCatchEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-catch-event.svg"/>
         </td>
         <td>
-            <MessageBoundaryEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-boundary-event.svg" />
         </td>
         <td>
-            <MessageBoundaryEventNonInterruptingSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <MessageThrowEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-throw-event.svg" />
         </td>
         <td>
-            <MessageEndEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/message-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -206,22 +203,22 @@ Markers, data and artifacts are ignored.
             Timer
         </td>
         <td>
-            <TimerStartEventSvg className="implemented" />
+            <img src=".TimerStartEventSvg className="implemented" />
         </td>
         <td>
-            <TimerEventSubprocessSvg className="implemented" />
+            <img src=".TimerEventSubprocessSvg className="implemented" />
         </td>
         <td>
-            <TimerEventSubprocessNonInterruptingSvg className="implemented" />
+            <img src=".TimerEventSubprocessNonInterruptingSvg className="implemented" />
         </td>
         <td>
-            <TimerCatchEventSvg className="implemented" />
+            <img src=".TimerCatchEventSvg className="implemented" />
         </td>
         <td>
-            <TimerBoundaryEventSvg className="implemented" />
+            <img src=".TimerBoundaryEventSvg className="implemented" />
         </td>
         <td>
-            <TimerBoundaryEventNonInterruptingSvg className="implemented" />
+            <img src=".TimerBoundaryEventNonInterruptingSvg className="implemented" />
         </td>
         <td></td>
         <td></td>
