@@ -13,12 +13,14 @@ BPMN models.
 The BPMN elements in <span style="color:green;">green</span>
 are supported by the analyzer.
 
-<style>
-  .supported {
-    background-color: green;
-    fill: green;
-  }
-</style>
+<span>
+    <style>
+    .supported {
+        background-color: green;
+        fill: green;
+    }
+    </style>
+</span>
 
 ## Participants
 
