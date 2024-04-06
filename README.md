@@ -298,19 +298,19 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <CompensationEventSubprocessSvg />
+            <img src="./documentation/assets/bpmn-symbols/compensation-event-subprocess.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <CompensationBoundaryEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/compensation-boundary-event.svg" />
         </td>
         <td></td>
         <td>
-            <CompensationThrowEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/compensation-throw-event.svg" />
         </td>
         <td>
-            <CompensationEndEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/compensation-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -322,12 +322,12 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <CancelBoundaryEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/cancel-boundary-event.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <CancelEndEventSvg />
+            <img src="./documentation/assets/bpmn-symbols/cancel-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -342,7 +342,7 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <TerminationEndEventSvg" />
+            <img src="./documentation/assets/bpmn-symbols/termination-end-event.svg" />
         </td>
     </tr>
     <tr>
