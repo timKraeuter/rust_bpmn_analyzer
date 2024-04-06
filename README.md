@@ -82,7 +82,7 @@ Markers, data and artifacts are ignored.
         <td>
             None
         </td>
-        <td style="text-align: center;">
+        <td>
             <img src="./documentation/assets/bpmn-symbols/none-start-event.svg" alt="none start event" />
         </td>
         <td></td>
