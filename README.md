@@ -213,17 +213,17 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <ErrorEventSubprocessSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/error-event-subprocess.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <ErrorBoundaryEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/error-boundary-event.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <ErrorEndEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/error-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -231,28 +231,28 @@ Markers, data and artifacts are ignored.
             Signal
         </td>
         <td>
-            <SignalStartEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-start-event.svg" />
         </td>
         <td>
-            <SignalEventSubprocessSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-event-subprocess.svg" />
         </td>
         <td>
-            <SignalEventSubprocessNonInterruptingSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-event-subprocess-non-interrupting.svg" />
         </td>
         <td>
-            <SignalCatchEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-catch-event.svg" />
         </td>
         <td>
-            <SignalBoundaryEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-boundary-event.svg" />
         </td>
         <td>
-            <SignalBoundaryEventNonInterruptingSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <SignalThrowEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-throw-event.svg" />
         </td>
         <td>
-            <SignalEndEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/signal-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -286,23 +286,23 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <EscalationEventSubprocessSvg className="implemented" />
+            <EscalationEventSubprocessSvg" />
         </td>
         <td>
-            <EscalationEventSubprocessNonInterruptingSvg className="implemented" />
+            <EscalationEventSubprocessNonInterruptingSvg" />
         </td>
         <td></td>
         <td>
-            <EscalationBoundaryEventSvg className="implemented" />
+            <EscalationBoundaryEventSvg" />
         </td>
         <td>
-            <EscalationBoundaryEventNonInterruptingSvg className="implemented" />
+            <EscalationBoundaryEventNonInterruptingSvg" />
         </td>
         <td>
-            <EscalationThrowEventSvg className="implemented" />
+            <EscalationThrowEventSvg" />
         </td>
         <td>
-            <EscalationEndEventSvg className="implemented" />
+            <EscalationEndEventSvg" />
         </td>
     </tr>
     <tr>
@@ -355,7 +355,7 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <TerminationEndEventSvg className="implemented" />
+            <TerminationEndEventSvg" />
         </td>
     </tr>
     <tr>
@@ -366,12 +366,12 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <LinkCatchEventSvg className="implemented"/>
+            <LinkCatchEventSvg"/>
         </td>
         <td></td>
         <td></td>
         <td>
-            <LinkThrowEventSvg className="implemented"/>
+            <LinkThrowEventSvg"/>
         </td>
         <td></td>
     </tr>
