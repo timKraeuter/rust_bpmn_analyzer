@@ -57,7 +57,7 @@ Markers, data and artifacts are ignored.
 
 ## Events
 
-<table style="text-align: center;">
+<table>
   <thead>
       <tr>
         <th>Type</th>
@@ -82,7 +82,7 @@ Markers, data and artifacts are ignored.
         <td>
             None
         </td>
-        <td>
+        <td style="text-align: center;">
             <img src="./documentation/assets/bpmn-symbols/none-start-event.svg" alt="none start event" />
         </td>
         <td></td>
