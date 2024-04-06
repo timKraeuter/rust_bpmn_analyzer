@@ -10,11 +10,13 @@ BPMN models.
 
 # BPMN coverage
 
-The BPMN elements in green are supported by the analyzer. We follow the structure of the [Camunda 8 documentation](https://docs.camunda.io/docs/components/modeler/bpmn/bpmn-coverage/).
+The BPMN elements in green are supported by the analyzer. We follow the structure of
+the [Camunda 8 documentation](https://docs.camunda.io/docs/components/modeler/bpmn/bpmn-coverage/).
 
 ## Participants
 
-Multiple pools are supported. The Analyzer will start one process for each pool and then analyze the given properties.
+Multiple pools are supported. The Analyzer will start one process for each pool and then analyze the
+given properties.
 
 ![Pool](./documentation/assets/bpmn-symbols/pool.svg)
 
@@ -55,8 +57,6 @@ Markers, data and artifacts are ignored.
 
 ## Events
 
-
-![](./documentation/assets/bpmn-symbols/none-start-event.svg)
 ![](./documentation/assets/bpmn-symbols/none-throw-event.svg)
 ![](./documentation/assets/bpmn-symbols/none-end-event.svg)
 
@@ -166,10 +166,10 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <NoneThrowEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/none-throw-event.svg" alt="None throw Event"/>
         </td>
         <td>
-            <NoneEndEventSvg className="implemented" />
+            <img src="./documentation/assets/bpmn-symbols/none-end-event.svg" alt="None end Event"/>
         </td>
     </tr>
     <tr>
@@ -451,8 +451,6 @@ Markers, data and artifacts are ignored.
 
   </tbody>
 </table>
-
-
 
 # Build release for the current platform
 
