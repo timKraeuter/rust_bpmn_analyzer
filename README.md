@@ -57,26 +57,7 @@ Markers, data and artifacts are ignored.
 
 ## Events
 
-![](./documentation/assets/bpmn-symbols/link-catch-event.svg)
-![](./documentation/assets/bpmn-symbols/link-throw-event.svg)
-
-![](./documentation/assets/bpmn-symbols/multiple-start-event.svg)
-![](./documentation/assets/bpmn-symbols/multiple-event-subprocess.svg)
-![](./documentation/assets/bpmn-symbols/multiple-event-subprocess-non-interrupting.svg)
-![](./documentation/assets/bpmn-symbols/multiple-catch-event.svg)
-![](./documentation/assets/bpmn-symbols/multiple-boundary-event.svg)
-![](./documentation/assets/bpmn-symbols/multiple-boundary-event-non-interrupting.svg)
-![](./documentation/assets/bpmn-symbols/multiple-throw-event.svg)
-![](./documentation/assets/bpmn-symbols/multiple-end-event.svg)
-
-![](./documentation/assets/bpmn-symbols/multiple-parallel-start-event.svg)
-![](./documentation/assets/bpmn-symbols/multiple-parallel-event-subprocess.svg)
-![](./documentation/assets/bpmn-symbols/multiple-parallel-event-subprocess-non-interrupting.svg)
-![](./documentation/assets/bpmn-symbols/multiple-parallel-catch-event.svg)
-![](./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event.svg)
-![](./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event-non-interrupting.svg)
-
-<table>
+<table style="text-align: center;">
   <thead>
       <tr>
         <th>Type</th>
