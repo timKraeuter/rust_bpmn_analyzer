@@ -55,7 +55,84 @@ Markers, data and artifacts are ignored.
 
 ## Events
 
-<table className="bpmn-coverage-event-table">
+
+![](./documentation/assets/bpmn-symbols/none-start-event.svg)
+![](./documentation/assets/bpmn-symbols/none-throw-event.svg)
+![](./documentation/assets/bpmn-symbols/none-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/message-start-event.svg)
+![](./documentation/assets/bpmn-symbols/message-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/message-event-subprocess-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/message-catch-event.svg)
+![](./documentation/assets/bpmn-symbols/message-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/message-boundary-event-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/message-throw-event.svg)
+![](./documentation/assets/bpmn-symbols/message-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/timer-start-event.svg)
+![](./documentation/assets/bpmn-symbols/timer-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/timer-event-subprocess-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/timer-catch-event.svg)
+![](./documentation/assets/bpmn-symbols/timer-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/timer-boundary-event-non-interrupting.svg)
+
+![](./documentation/assets/bpmn-symbols/error-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/error-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/error-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/signal-start-event.svg)
+![](./documentation/assets/bpmn-symbols/signal-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/signal-event-subprocess-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/signal-catch-event.svg)
+![](./documentation/assets/bpmn-symbols/signal-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/signal-boundary-event-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/signal-throw-event.svg)
+![](./documentation/assets/bpmn-symbols/signal-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/conditional-start-event.svg)
+![](./documentation/assets/bpmn-symbols/conditional-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/conditional-event-subprocess-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/conditional-catch-event.svg)
+![](./documentation/assets/bpmn-symbols/conditional-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/conditional-boundary-event-non-interrupting.svg)
+
+![](./documentation/assets/bpmn-symbols/escalation-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/escalation-event-subprocess-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/escalation-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/escalation-boundary-event-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/escalation-throw-event.svg)
+![](./documentation/assets/bpmn-symbols/escalation-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/compensation-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/compensation-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/compensation-throw-event.svg)
+![](./documentation/assets/bpmn-symbols/compensation-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/cancel-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/cancel-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/termination-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/link-catch-event.svg)
+![](./documentation/assets/bpmn-symbols/link-throw-event.svg)
+
+![](./documentation/assets/bpmn-symbols/multiple-start-event.svg)
+![](./documentation/assets/bpmn-symbols/multiple-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/multiple-event-subprocess-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/multiple-catch-event.svg)
+![](./documentation/assets/bpmn-symbols/multiple-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/multiple-boundary-event-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/multiple-throw-event.svg)
+![](./documentation/assets/bpmn-symbols/multiple-end-event.svg)
+
+![](./documentation/assets/bpmn-symbols/multiple-parallel-start-event.svg)
+![](./documentation/assets/bpmn-symbols/multiple-parallel-event-subprocess.svg)
+![](./documentation/assets/bpmn-symbols/multiple-parallel-event-subprocess-non-interrupting.svg)
+![](./documentation/assets/bpmn-symbols/multiple-parallel-catch-event.svg)
+![](./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event.svg)
+![](./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event-non-interrupting.svg)
+
+<table>
   <thead>
       <tr>
         <th>Type</th>
@@ -78,7 +155,7 @@ Markers, data and artifacts are ignored.
   <tbody>
     <tr>
         <td>
-            <a href="../none-events/">None</a>
+            <a href="./documentation/assets/none-start-event">None</a>
         </td>
         <td>
             <a href="../none-events/">
