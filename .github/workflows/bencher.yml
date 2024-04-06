@@ -3,6 +3,8 @@ name: Benchmark with Bencher using hyperfine
 on:
   workflow_dispatch:
   push:
+    paths:
+      - src/**
   pull_request:
 
 jobs:
