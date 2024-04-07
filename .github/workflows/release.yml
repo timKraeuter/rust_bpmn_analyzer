@@ -3,6 +3,9 @@ name: Build & Push to Azure and Dockerhub
 on:
   workflow_dispatch:
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
   build:
 
@@ -16,6 +19,7 @@ jobs:
         run: cargo build --release --target x86_64-unknown-linux-musl
       - name: Build docker image
         run: docker build -t tg2022.azurecr.io/rust_bpmn_analyzer:v1 .
+
       - name: Login to Azure Container Registry
         uses: docker/login-action@v3
         with:
@@ -24,6 +28,7 @@ jobs:
           password: ${{ secrets.AZURE_PASSWORD }}
       - name: Push to Azure
         run: docker push tg2022.azurecr.io/rust_bpmn_analyzer:v1
+
       - name: Login to Dockerhub
         uses: docker/login-action@v3
         with:
