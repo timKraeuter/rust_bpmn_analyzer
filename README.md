@@ -1,11 +1,13 @@
-[![Rust](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/rust.yml/badge.svg)](https://github.com/timKraeuter/Rustrust_bpmn_analyzer/actions/workflows/rust.yml)
+[![Core](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/core.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/core.yml)
+[![CLI](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/cli.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/cli.yml)
+[![Webserver](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/webserver.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/webserver.yml)
 
 [Benchmarks using Bencher🐰](https://bencher.dev/console/projects/rust-bpmn-analyzer/perf)
 
 # Rust BPMN Analyzer
 
-This is a simple BPMN analyzer written in Rust. It is able to parse BPMN files and analyze them for
-certain properties. The analyzer is able to detect deadlocks, livelocks, and other properties of
+This is a BPMN analyzer written in Rust. It can parse BPMN files and analyze them for
+specific properties. The analyzer can detect deadlocks, livelocks, and other properties of
 BPMN models.
 
 # Docker
