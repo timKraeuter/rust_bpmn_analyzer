@@ -67,7 +67,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -97,7 +97,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_without_message),
             &state_without_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -109,7 +109,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
             &state_with_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -135,7 +135,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_without_message),
             &state_without_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -150,7 +150,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
             &state_with_message,
-            &collaboration,
+            process,
             &mut not_executed_activities,
         );
 
@@ -172,13 +172,9 @@ mod test {
         let process = get_process_by_id(&collaboration, "p1_process");
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
-        let start_state = State {
-            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["sf"])],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
-        };
+        let state = State::new("p1_process", vec!["sf"]);
 
-        let next_states = flow_node.try_trigger_message_start_event(process, &start_state);
+        let next_states = flow_node.try_trigger_message_start_event(process, &state);
 
         assert_eq!(next_states.len(), 0);
     }
@@ -201,7 +197,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_without_message),
             &state_without_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -213,7 +209,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
             &state_with_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -230,16 +226,13 @@ mod test {
         let process = get_process_by_id(&collaboration, "p1_process");
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "SendTask");
-        let state = State {
-            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_send_task"])],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
-        };
+
+        let state = State::new("p1_process", vec!["pre_send_task"]);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state),
             &state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -265,7 +258,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -285,12 +278,12 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
-        let start_state = State::new("process", vec!["Flow_2", "Flow_3"]);
+        let state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
-            get_first_snapshot(&start_state),
-            &start_state,
-            &collaboration,
+            get_first_snapshot(&state),
+            &state,
+            process,
             &mut HashMap::new(),
         );
 
@@ -315,7 +308,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -332,12 +325,12 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
-        let start_state = State::new("process", vec!["Flow_2", "Flow_3"]);
+        let state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
-            get_first_snapshot(&start_state),
-            &start_state,
-            &collaboration,
+            get_first_snapshot(&state),
+            &state,
+            process,
             &mut HashMap::new(),
         );
 
@@ -350,12 +343,12 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "End");
-        let start_state = State::new("process", vec!["Flow_1", "Flow_1", "Flow_2"]);
+        let state = State::new("process", vec!["Flow_1", "Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
-            get_first_snapshot(&start_state),
-            &start_state,
-            &collaboration,
+            get_first_snapshot(&state),
+            &state,
+            process,
             &mut HashMap::new(),
         );
 
@@ -378,7 +371,7 @@ mod test {
         let next_states = terminate_end_event.try_execute(
             get_snapshot_by_id(&start_state, "p1_process"),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -401,12 +394,12 @@ mod test {
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Intermediate");
-        let start_state = State::new("process", vec!["Flow_1", "Flow_2"]);
+        let state = State::new("process", vec!["Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
-            get_first_snapshot(&start_state),
-            &start_state,
-            &collaboration,
+            get_first_snapshot(&state),
+            &state,
+            process,
             &mut HashMap::new(),
         );
 
@@ -420,19 +413,55 @@ mod test {
     }
 
     #[test]
+    fn try_execute_link_events_connected_by_names() {
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/link_event.bpmn"));
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "C");
+        let state = State::new("p1_process", vec!["pre_c"]);
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&state),
+            &state,
+            process,
+            &mut HashMap::new(),
+        );
+
+        assert_eq!(next_states, vec![State::new("p1_process", vec!["post_c"])]);
+    }
+
+    #[test]
+    fn try_execute_link_events_connected_by_link_names() {
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/link_event.bpmn"));
+        let process = get_first_process(&collaboration);
+
+        let flow_node: &FlowNode = get_flow_node_with_id(process, "A");
+        let state = State::new("p1_process", vec!["flow_a"]);
+
+        let next_states = flow_node.try_execute(
+            get_first_snapshot(&state),
+            &state,
+            process,
+            &mut HashMap::new(),
+        );
+
+        assert_eq!(next_states, vec![State::new("p1_process", vec!["flow_b"])]);
+    }
+
+    #[test]
     fn try_execute_message_start() {
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/message_start_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "start");
-        let start_state = State {
+        let state = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
             messages: BTreeMap::from([("mf", 1u16)]),
         };
 
-        let next_states = flow_node.try_trigger_message_start_event(process, &start_state);
+        let next_states = flow_node.try_trigger_message_start_event(process, &state);
 
         assert_eq!(
             next_states,

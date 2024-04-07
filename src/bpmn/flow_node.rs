@@ -1,4 +1,4 @@
-use crate::bpmn::collaboration::Collaboration;
+use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
 use crate::states::state_space::{ProcessSnapshot, State};
 use std::collections::{BTreeMap, HashMap};
@@ -6,6 +6,8 @@ use std::collections::{BTreeMap, HashMap};
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
     pub id: String,
+    pub target_idx: usize,
+    pub source_idx: usize,
 }
 
 #[derive(Debug, PartialEq)]
@@ -50,23 +52,20 @@ impl FlowNode {
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
-        collaboration: &'a Collaboration,
+        process: &'a Process,
         not_executed_activities: &mut HashMap<&str, bool>,
     ) -> Vec<State<'a>> {
         match &self.flow_node_type {
             FlowNodeType::StartEvent(_) => vec![],
             FlowNodeType::Task(_) => self.try_execute_task(snapshot, current_state),
             FlowNodeType::IntermediateThrowEvent(_) => {
-                self.try_execute_intermediate_throw_event(snapshot, current_state)
+                self.try_execute_intermediate_throw_event(snapshot, current_state, process)
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
-            FlowNodeType::EventBasedGateway => self.try_execute_evg(
-                snapshot,
-                current_state,
-                collaboration,
-                not_executed_activities,
-            ),
+            FlowNodeType::EventBasedGateway => {
+                self.try_execute_evg(snapshot, current_state, process, not_executed_activities)
+            }
             FlowNodeType::EndEvent(e) => self.try_execute_end_event(snapshot, current_state, e),
             FlowNodeType::IntermediateCatchEvent(_) => {
                 self.try_execute_intermediate_catch_event(snapshot, current_state)
@@ -139,7 +138,8 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
-        let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
+        // Usually there is only one incoming flow, i.e., only one new state.
+        let mut new_states: Vec<State> = Vec::with_capacity(1);
 
         if self.flow_node_type == FlowNodeType::Task(TaskType::Receive)
             && self.no_message_flow_has_a_message(current_state)
@@ -173,21 +173,75 @@ impl FlowNode {
             new_state.add_message(&out_mf.id);
         }
     }
+
     fn try_execute_intermediate_throw_event<'a, 'b>(
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
+        process: &'a Process,
     ) -> Vec<State<'a>> {
-        // Currently the same as task but event types will change this.
-        // Still fine since it creates messages just like tasks.
-        self.try_execute_task(snapshot, current_state)
+        match &self.flow_node_type {
+            FlowNodeType::IntermediateThrowEvent(Link(link_name)) => {
+                self.try_execute_link_throw_event(snapshot, current_state, link_name, process)
+            }
+            _ => self.try_execute_task(snapshot, current_state),
+        }
     }
+
+    fn try_execute_link_throw_event<'a, 'b>(
+        &'a self,
+        snapshot: &'b ProcessSnapshot<'a>,
+        current_state: &'b State<'a>,
+        link_name: &str,
+        process: &'a Process,
+    ) -> Vec<State<'a>> {
+        let mut new_states = vec![];
+        let matching_link_catch_event = self.find_matching_link_catch_event(process, link_name);
+        match matching_link_catch_event {
+            None => {}
+            Some(matching_link_catch_event) => {
+                for inc_flow in self.incoming_flows.iter() {
+                    match snapshot.tokens.get(inc_flow.id.as_str()) {
+                        None => {}
+                        Some(_) => {
+                            let mut new_state =
+                                Self::create_new_state_without_snapshot(snapshot, current_state);
+                            let mut new_snapshot =
+                                Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+
+                            matching_link_catch_event.add_outgoing_tokens(&mut new_snapshot);
+                            new_state.snapshots.push(new_snapshot);
+                            new_states.push(new_state);
+                        }
+                    };
+                }
+            }
+        }
+        new_states
+    }
+
+    fn find_matching_link_catch_event<'a>(
+        &'a self,
+        process: &'a Process,
+        link_name: &str,
+    ) -> Option<&'a FlowNode> {
+        process
+            .flow_nodes
+            .iter()
+            .find(|flow_node| match &flow_node.flow_node_type {
+                FlowNodeType::IntermediateCatchEvent(Link(other_link_name)) => {
+                    other_link_name == link_name
+                }
+                _ => false,
+            })
+    }
+
     fn try_execute_exg<'a, 'b>(
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
-        let mut new_states: Vec<State> = vec![]; // Could set capacity to number of outgoing flows.
+        let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(inc_flow.id.as_str()) {
                 None => {}
@@ -223,6 +277,7 @@ impl FlowNode {
         snapshot.delete_token(token);
         snapshot
     }
+
     fn try_execute_end_event<'a, 'b>(
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
@@ -366,36 +421,22 @@ impl FlowNode {
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
-        collaboration: &'a Collaboration,
+        process: &'a Process,
         not_executed_activities: &mut HashMap<&str, bool>,
     ) -> Vec<State<'a>> {
         // Currently only messages can trigger evgs.
         if current_state.messages.is_empty() {
             return vec![];
         }
-        let mut new_states: Vec<State> = Vec::with_capacity(1);
+        let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(inc_flow.id.as_str()) {
                 None => {}
                 Some(_) => {
-                    // Find next flow nodes after the EVG. Currently very annoying! to be improved.
-                    let next_flow_nodes = collaboration
-                        .participants
-                        .iter()
-                        .filter(|p| p.id == snapshot.id)
-                        .flat_map(|p| p.flow_nodes.iter())
-                        .filter(|f| {
-                            !f.incoming_message_flows.is_empty()
-                                && (f.flow_node_type
-                                    == FlowNodeType::IntermediateCatchEvent(EventType::Message)
-                                    || f.flow_node_type == FlowNodeType::Task(TaskType::Receive))
-                                && f.incoming_flows
-                                    .iter()
-                                    .any(|sf| self.outgoing_flows.iter().any(|of| sf.id == of.id))
-                        })
-                        .collect::<Vec<&FlowNode>>();
-                    // Add outgoing tokens of the triggered event/receive task after the gateway.
-                    for flow_node in next_flow_nodes.iter() {
+                    // Add outgoing tokens for the triggered event/receive task after the gateway.
+                    for flow_node in self.outgoing_flows.iter().filter_map(|sequence_flow| {
+                        process.flow_nodes.get(sequence_flow.target_idx)
+                    }) {
                         if flow_node.no_message_flow_has_a_message(current_state) {
                             continue;
                         }
@@ -440,8 +481,8 @@ pub enum FlowNodeType {
 pub enum EventType {
     None,
     Message,
-    Unsupported,
     Terminate,
+    Link(String),
 }
 
 #[derive(Debug, PartialEq)]

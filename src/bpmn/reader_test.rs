@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::bpmn::collaboration::Collaboration;
+    use crate::bpmn::flow_node::FlowNodeType;
     use crate::bpmn::flow_node::{EventType, FlowNode, TaskType};
-    use crate::bpmn::flow_node::{FlowNodeType, SequenceFlow};
     use crate::bpmn::process::Process;
     use crate::bpmn::test_utils::read_bpmn_file;
 
@@ -59,34 +59,10 @@ mod tests {
             String::from("end"),
             FlowNodeType::EndEvent(EventType::None),
         ));
-        process.add_sf(
-            SequenceFlow {
-                id: String::from("sf_1"),
-            },
-            String::from("start"),
-            String::from("task"),
-        );
-        process.add_sf(
-            SequenceFlow {
-                id: String::from("sf_2"),
-            },
-            String::from("task"),
-            String::from("exg"),
-        );
-        process.add_sf(
-            SequenceFlow {
-                id: String::from("sf_3"),
-            },
-            String::from("exg"),
-            String::from("pg"),
-        );
-        process.add_sf(
-            SequenceFlow {
-                id: String::from("sf_4"),
-            },
-            String::from("pg"),
-            String::from("end"),
-        );
+        process.add_sf(String::from("sf_1"), "start", "task");
+        process.add_sf(String::from("sf_2"), "task", "exg");
+        process.add_sf(String::from("sf_3"), "exg", "pg");
+        process.add_sf(String::from("sf_4"), "pg", "end");
         expected.add_participant(process);
 
         // When
@@ -210,8 +186,6 @@ mod tests {
                     vec![
                         "signalStart".to_string(),
                         "signalEnd".to_string(),
-                        "linkCEvent".to_string(),
-                        "linkTEvent".to_string(),
                         "signalCEvent".to_string(),
                         "signalTEvent".to_string(),
                         "timerCEvent".to_string(),

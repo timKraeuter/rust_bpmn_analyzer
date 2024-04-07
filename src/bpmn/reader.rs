@@ -1,5 +1,5 @@
 use crate::bpmn::collaboration::Collaboration;
-use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, SequenceFlow, TaskType};
+use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, TaskType};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
@@ -38,7 +38,7 @@ pub fn read_bpmn_string(
     let mut mfs = vec![];
     let mut unsupported_elements = vec![];
     let mut last_event_start_bytes: Option<BytesStart> = None;
-    let mut last_event_type: Option<EventType> = None;
+    let mut last_event_type: Option<EventType> = Some(EventType::None);
     let mut current_participant = None;
 
     loop {
@@ -118,14 +118,16 @@ pub fn read_bpmn_string(
                 | b"intermediateThrowEvent"
                 | b"endEvent" => {
                     let last_event_bytes = last_event_start_bytes.unwrap();
-                    let event_type = last_event_type.unwrap_or(EventType::None);
-                    if event_type == EventType::Unsupported {
-                        unsupported_elements.push(last_event_bytes);
-                    } else {
-                        add_event(&mut collaboration, &last_event_bytes, event_type);
+                    match last_event_type {
+                        None => {
+                            unsupported_elements.push(last_event_bytes);
+                        }
+                        Some(event_type) => {
+                            add_event(&mut collaboration, &last_event_bytes, event_type);
+                        }
                     }
                     last_event_start_bytes = None;
-                    last_event_type = None;
+                    last_event_type = Some(EventType::None);
                 }
                 _ => (),
             },
@@ -142,13 +144,22 @@ pub fn read_bpmn_string(
                 b"terminateEventDefinition" => {
                     last_event_type = Some(EventType::Terminate);
                 }
-                b"linkEventDefinition"
-                | b"signalEventDefinition"
+                b"linkEventDefinition" => {
+                    let mut link_name = get_attribute_value(&e, "name");
+                    if link_name.is_none() {
+                        // Fallback to link event name.
+                        if let Some(link_event) = last_event_start_bytes.as_ref() {
+                            link_name = get_attribute_value(link_event, "name");
+                        }
+                    }
+                    last_event_type = Some(EventType::Link(link_name.unwrap_or_default()));
+                }
+                b"signalEventDefinition"
                 | b"timerEventDefinition"
                 | b"escalationEventDefinition"
                 | b"errorEventDefinition"
                 | b"compensateEventDefinition" => {
-                    last_event_type = Some(EventType::Unsupported);
+                    last_event_type = None; // Set to none since these are unsupported.
                 }
                 b"task" | b"sendTask" | b"serviceTask" | b"userTask" | b"manualTask"
                 | b"businessRuleTask" | b"scriptTask" => add_flow_node(
@@ -185,9 +196,9 @@ pub fn read_bpmn_string(
     }
     for mf in mfs.into_iter() {
         collaboration.add_message_flow(
-            get_attribute_value_or_panic(&mf, &String::from("id")),
-            get_attribute_value_or_panic(&mf, &String::from("sourceRef")),
-            get_attribute_value_or_panic(&mf, &String::from("targetRef")),
+            get_attribute_value_or_panic(&mf, "id"),
+            get_attribute_value_or_panic(&mf, "sourceRef"),
+            get_attribute_value_or_panic(&mf, "targetRef"),
         );
     }
     Ok(collaboration)
@@ -238,11 +249,9 @@ fn add_sf_to_participant(
     sf_bytes: &BytesStart,
     participant_id: &String,
 ) {
-    let id = get_attribute_value_or_panic(sf_bytes, &String::from("id"));
-    let source_ref = get_attribute_value_or_panic(sf_bytes, &String::from("sourceRef"));
-    let target_ref = get_attribute_value_or_panic(sf_bytes, &String::from("targetRef"));
-
-    let sf = SequenceFlow { id };
+    let id = get_attribute_value_or_panic(sf_bytes, "id");
+    let source_ref = get_attribute_value_or_panic(sf_bytes, "sourceRef");
+    let target_ref = get_attribute_value_or_panic(sf_bytes, "targetRef");
 
     let process = collaboration
         .participants
@@ -253,19 +262,28 @@ fn add_sf_to_participant(
             panic!("Sequence flow found but no BPMN process! Malformed XML?")
         }
         Some(process) => {
-            process.add_sf(sf, source_ref, target_ref);
+            process.add_sf(id, source_ref.as_str(), target_ref.as_str());
         }
     }
 }
 
 fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
+    match get_attribute_value(e, key) {
+        None => {
+            panic!("Attribute value for key \"{}\" not found in {:?}.", key, e)
+        }
+        Some(value) => value,
+    }
+}
+
+fn get_attribute_value(e: &BytesStart, key: &str) -> Option<String> {
     match e.try_get_attribute(key) {
         Ok(attribute) => match attribute {
-            None => {
-                panic!("Attribute value for key \"{}\" not found in {:?}.", key, e)
-            }
-            Some(x) => String::from_utf8(x.value.into_owned())
-                .unwrap_or_else(|e| panic!("UTF8 Error. {}", e)),
+            None => None,
+            Some(x) => Some(
+                String::from_utf8(x.value.into_owned())
+                    .unwrap_or_else(|e| panic!("UTF8 Error. {}", e)),
+            ),
         },
         Err(e) => {
             panic!("Could not get attribute! {}", e)
