@@ -1,6 +1,8 @@
 [![Core](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/core.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/core.yml)
 [![CLI](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/cli.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/cli.yml)
 [![Webserver](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/webserver.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/webserver.yml)
+[![Docker Hub](https://img.shields.io/docker/pulls/tkra/rust_bpmn_analyzer)](https://hub.docker.com/repository/docker/tkra/rust_bpmn_analyzer/general)
+
 
 [Benchmarks using Bencher🐰](https://bencher.dev/console/projects/rust-bpmn-analyzer/perf)
 
