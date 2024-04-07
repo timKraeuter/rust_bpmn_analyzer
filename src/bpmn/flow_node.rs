@@ -427,6 +427,7 @@ pub enum EventType {
     None,
     Message,
     Terminate,
+    Link,
 }
 
 #[derive(Debug, PartialEq)]

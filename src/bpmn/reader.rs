@@ -145,13 +145,15 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 b"terminateEventDefinition" => {
                     last_event_type = Some(EventType::Terminate);
                 }
-                b"linkEventDefinition"
-                | b"signalEventDefinition"
+                b"linkEventDefinition" => {
+                    last_event_type = Some(EventType::Link);
+                }
+                b"signalEventDefinition"
                 | b"timerEventDefinition"
                 | b"escalationEventDefinition"
                 | b"errorEventDefinition"
                 | b"compensateEventDefinition" => {
-                    last_event_type = None; // Set to none since it is unsupported
+                    last_event_type = None; // Set to none since these are unsupported.
                 }
                 b"task" | b"sendTask" | b"serviceTask" | b"userTask" | b"manualTask"
                 | b"businessRuleTask" | b"scriptTask" => add_flow_node(
@@ -188,9 +190,9 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
     }
     for mf in mfs.into_iter() {
         collaboration.add_message_flow(
-            get_attribute_value_or_panic(&mf, &String::from("id")),
-            get_attribute_value_or_panic(&mf, &String::from("sourceRef")),
-            get_attribute_value_or_panic(&mf, &String::from("targetRef")),
+            get_attribute_value_or_panic(&mf, "id"),
+            get_attribute_value_or_panic(&mf, "sourceRef"),
+            get_attribute_value_or_panic(&mf, "targetRef"),
         );
     }
     Ok(collaboration)
