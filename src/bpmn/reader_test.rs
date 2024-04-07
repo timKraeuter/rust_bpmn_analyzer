@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::bpmn::collaboration::Collaboration;
+    use crate::bpmn::flow_node::FlowNodeType;
     use crate::bpmn::flow_node::{EventType, FlowNode, TaskType};
-    use crate::bpmn::flow_node::{FlowNodeType};
     use crate::bpmn::process::Process;
     use crate::bpmn::reader::read_bpmn_file;
 
