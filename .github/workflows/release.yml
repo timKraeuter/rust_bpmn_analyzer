@@ -11,6 +11,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - name: Add x86_64-unknown-linux-musl target
+        run: rustup target add x86_64-unknown-linux-musl
       - name: Build rust_bpmn_analyzer
         run: cargo build --release --target x86_64-unknown-linux-musl
       - name: Build docker image
