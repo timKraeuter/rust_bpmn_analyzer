@@ -26,19 +26,19 @@ rustup target add x86_64-unknown-linux-musl
 ```
 
 ```bash
-docker build -t tkra/rust_bpmn_analyzer:v1 .
+docker build -t tkra/rust_bpmn_analyzer .
 ```
 
 Run the application image:
 
 ```bash
-docker run -p 8080:8080 tkra/rust_bpmn_analyzer:v1
+docker run -p 8080:8080 tkra/rust_bpmn_analyzer
 ```
 
 Push to docker hub:
 
 ```bash
-docker push tkra/rust_bpmn_analyzer:v1
+docker push tkra/rust_bpmn_analyzer
 ```
 
 ## Deployment to Azure
@@ -61,7 +61,7 @@ docker login tg2022.azurecr.io --username $APP_ID --password $AZURE_PW
 4. Push the image to the Container Registry
 
 ```bash
-docker push tg2022.azurecr.io/rust_bpmn_analyzer:v1
+docker push tg2022.azurecr.io/rust_bpmn_analyzer
 ```
 
 5. Create a new container app revision in the GUI.
