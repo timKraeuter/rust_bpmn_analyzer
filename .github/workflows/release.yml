@@ -2,6 +2,7 @@ name: Build & Push to Azure
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build:
