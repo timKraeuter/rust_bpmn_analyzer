@@ -9,7 +9,6 @@ use std::collections::{BTreeMap, HashMap};
 
 #[derive(Debug, PartialEq)]
 pub struct Collaboration {
-    pub name: String,
     pub participants: Vec<Process>,
 }
 

@@ -1,6 +1,8 @@
 use crate::states::state_space::{State, StateSpace};
 use clap::ValueEnum;
+use colored::{ColoredString, Colorize};
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, PartialEq, Clone, ValueEnum)]
 pub enum Property {
@@ -8,6 +10,21 @@ pub enum Property {
     OptionToComplete,
     ProperCompletion,
     NoDeadActivities,
+}
+
+impl Display for Property {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", get_property_string(self))
+    }
+}
+
+fn get_property_string(property: &Property) -> ColoredString {
+    match property {
+        Property::Safeness => "Safeness".blue().bold(),
+        Property::OptionToComplete => "Option to complete".blue().bold(),
+        Property::ProperCompletion => "Proper completion".blue().bold(),
+        Property::NoDeadActivities => "No dead activities".blue().bold(),
+    }
 }
 
 #[derive(Debug)]

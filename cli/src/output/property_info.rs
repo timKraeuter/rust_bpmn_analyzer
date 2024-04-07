@@ -1,7 +1,8 @@
-use crate::model_checking::properties::{ModelCheckingResult, Property, PropertyResult};
-use crate::states::state_space::{State, StateSpace};
-use colored::{ColoredString, Colorize};
-use std::fmt::{Display, Formatter};
+use colored::Colorize;
+use rust_bpmn_analyzer::model_checking::properties::{
+    ModelCheckingResult, Property, PropertyResult,
+};
+use rust_bpmn_analyzer::states::state_space::StateSpace;
 
 pub fn output_property_results(result: &ModelCheckingResult) {
     for property_result in result.property_results.iter() {
@@ -19,21 +20,6 @@ pub fn output_property_results(result: &ModelCheckingResult) {
             );
             print_result_unfulfilled_details(property_result, &result.state_space);
         }
-    }
-}
-
-impl Display for Property {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", get_property_string(self))
-    }
-}
-
-fn get_property_string(property: &Property) -> ColoredString {
-    match property {
-        Property::Safeness => "Safeness".blue().bold(),
-        Property::OptionToComplete => "Option to complete".blue().bold(),
-        Property::ProperCompletion => "Proper completion".blue().bold(),
-        Property::NoDeadActivities => "No dead activities".blue().bold(),
     }
 }
 
@@ -110,24 +96,4 @@ fn print_counter_example(property_result: &PropertyResult, state_space: &StateSp
             };
         }
     }
-}
-
-impl Display for State<'_> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "messages: {:?}, snapshots: {{ {} }}",
-            self.messages,
-            get_state_string(self)
-        )
-    }
-}
-
-fn get_state_string(state: &State) -> String {
-    state
-        .snapshots
-        .iter()
-        .map(|snapshot| format!("{}: {:?}", snapshot.id, snapshot.tokens))
-        .collect::<Vec<String>>()
-        .join(", ")
 }

@@ -1,5 +1,6 @@
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
+use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
@@ -77,6 +78,26 @@ pub struct State<'a> {
     pub snapshots: Vec<ProcessSnapshot<'a>>,
     pub messages: BTreeMap<&'a str, u16>,
     pub executed_end_event_counter: BTreeMap<&'a str, u16>,
+}
+
+impl Display for State<'_> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "messages: {:?}, snapshots: {{ {} }}",
+            self.messages,
+            get_state_string(self)
+        )
+    }
+}
+
+fn get_state_string(state: &State) -> String {
+    state
+        .snapshots
+        .iter()
+        .map(|snapshot| format!("{}: {:?}", snapshot.id, snapshot.tokens))
+        .collect::<Vec<String>>()
+        .join(", ")
 }
 
 impl<'a> State<'a> {

@@ -4,12 +4,12 @@ mod tests {
     use crate::bpmn::flow_node::FlowNodeType;
     use crate::bpmn::flow_node::{EventType, FlowNode, TaskType};
     use crate::bpmn::process::Process;
-    use crate::bpmn::reader::read_bpmn_file;
+    use crate::bpmn::reader::read_bpmn_from_file;
 
     const PATH: &str = "tests/resources/unit/";
 
     fn read_bpmn_and_unwrap(path: &String) -> Collaboration {
-        match read_bpmn_file(path) {
+        match read_bpmn_from_file(path) {
             Ok(collaboration) => collaboration,
             Err(err) => panic!(
                 "Error reading the file {:?}. Unsupported elements found: {:?}",
@@ -32,7 +32,6 @@ mod tests {
     #[test]
     fn read_task_and_gateways() {
         let mut expected = Collaboration {
-            name: String::from("task_and_gateways.bpmn"),
             participants: Vec::new(),
         };
         let mut process = Process {
@@ -76,7 +75,6 @@ mod tests {
         let result1 =
             read_bpmn_and_unwrap(&String::from(&(PATH.to_string() + "prefix/no-prefix.bpmn")));
 
-        assert_eq!("no-prefix.bpmn", result1.name);
         let first_participant = result1.participants.first().unwrap();
         assert_eq!(5, first_participant.flow_nodes.len());
 
@@ -84,7 +82,6 @@ mod tests {
             &(PATH.to_string() + "prefix/bpmn-prefix.bpmn"),
         ));
 
-        assert_eq!("bpmn-prefix.bpmn", result2.name);
         let first_participant = result2.participants.first().unwrap();
         assert_eq!(10, first_participant.flow_nodes.len());
 
@@ -92,7 +89,6 @@ mod tests {
             &(PATH.to_string() + "prefix/wurst-prefix.bpmn"),
         ));
 
-        assert_eq!("wurst-prefix.bpmn", result3.name);
         let first_participant = result3.participants.first().unwrap();
         assert_eq!(10, first_participant.flow_nodes.len());
     }
@@ -103,7 +99,6 @@ mod tests {
             &(PATH.to_string() + "reader/pools-message-flows.bpmn"),
         ));
 
-        assert_eq!("pools-message-flows.bpmn", collaboration.name);
         let first_participant = collaboration
             .participants
             .iter()
@@ -161,7 +156,7 @@ mod tests {
 
     #[test]
     fn read_all_possible_tasks() {
-        let result = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/tasks.bpmn")));
+        let result = read_bpmn_from_file(&String::from(&(PATH.to_string() + "reader/tasks.bpmn")));
 
         match result {
             Ok(_) => {
@@ -175,7 +170,7 @@ mod tests {
 
     #[test]
     fn read_all_possible_events() {
-        let result = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/events.bpmn")));
+        let result = read_bpmn_from_file(&String::from(&(PATH.to_string() + "reader/events.bpmn")));
 
         match result {
             Ok(_) => {
@@ -204,7 +199,8 @@ mod tests {
 
     #[test]
     fn read_all_possible_gateways() {
-        let result = read_bpmn_file(&String::from(&(PATH.to_string() + "reader/gateways.bpmn")));
+        let result =
+            read_bpmn_from_file(&String::from(&(PATH.to_string() + "reader/gateways.bpmn")));
 
         match result {
             Ok(_) => {
@@ -224,7 +220,7 @@ mod tests {
 
     #[test]
     fn read_event_subprocess() {
-        let result = read_bpmn_file(&String::from(
+        let result = read_bpmn_from_file(&String::from(
             &(PATH.to_string() + "reader/event-subprocesses.bpmn"),
         ));
 

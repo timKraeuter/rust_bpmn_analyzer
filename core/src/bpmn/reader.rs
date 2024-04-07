@@ -3,7 +3,6 @@ use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, TaskType};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
-use std::path::Path;
 use std::{fmt, fs};
 
 #[derive(Debug)]
@@ -23,15 +22,19 @@ impl fmt::Display for UnsupportedBpmnElementsError {
 
 impl std::error::Error for UnsupportedBpmnElementsError {}
 
-pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBpmnElementsError> {
-    // TODO: Read directly from file (less peak memory usage).
-    // TODO: Use serde to map to structs.
-    let (contents, file_name) = read_file_and_get_name(file_path);
+pub fn read_bpmn_from_file(file_path: &str) -> Result<Collaboration, UnsupportedBpmnElementsError> {
+    // TODO: Could read directly from file for less peak memory usage.
+    let contents = read_file(file_path);
+    read_bpmn_from_string(&contents)
+}
+
+pub fn read_bpmn_from_string(
+    contents: &str,
+) -> Result<Collaboration, UnsupportedBpmnElementsError> {
     let mut reader = Reader::from_str(&contents);
     reader.trim_text(true);
 
     let mut collaboration = Collaboration {
-        name: file_name,
         participants: vec![],
     };
 
@@ -205,20 +208,13 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
     Ok(collaboration)
 }
 
-fn read_file_and_get_name(path: &String) -> (String, String) {
-    let file_content = match fs::read_to_string(path) {
+fn read_file(path: &str) -> String {
+    match fs::read_to_string(path) {
         Ok(content) => content,
         Err(err) => {
             panic!("Error reading the file {:?}. {}", path, err)
         }
-    };
-    (file_content, get_file_name(path))
-}
-
-fn get_file_name(path: &String) -> String {
-    let path = Path::new(path);
-    // Wtf is the next line. Careful file might not exist!
-    path.file_name().unwrap().to_str().unwrap().parse().unwrap()
+    }
 }
 
 fn add_participant(collaboration: &mut Collaboration, p_bytes: &BytesStart) {

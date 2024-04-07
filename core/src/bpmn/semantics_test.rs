@@ -3,7 +3,7 @@ mod test {
     use crate::bpmn::collaboration::Collaboration;
     use crate::bpmn::flow_node::FlowNode;
     use crate::bpmn::process::Process;
-    use crate::bpmn::reader::read_bpmn_file;
+    use crate::bpmn::reader::read_bpmn_from_file;
     use crate::model_checking::properties::{ModelCheckingResult, PropertyResult};
     use crate::states::state_space::{ProcessSnapshot, State};
     use crate::Property;
@@ -12,7 +12,7 @@ mod test {
     const PATH: &str = "tests/resources/unit/";
 
     fn read_bpmn_and_unwrap(path: &String) -> Collaboration {
-        match read_bpmn_file(path) {
+        match read_bpmn_from_file(path) {
             Ok(collaboration) => collaboration,
             Err(err) => panic!(
                 "Error reading the file {:?}. Unsupported elements found: {:?}",

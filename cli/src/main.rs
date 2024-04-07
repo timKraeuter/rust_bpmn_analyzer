@@ -1,6 +1,11 @@
+mod output;
+
+use crate::output::property_info::output_property_results;
+use crate::output::state_space_info::output_state_information;
 use clap::Parser;
-use rust_bpmn_analyzer::Property;
+use rust_bpmn_analyzer::{ModelCheckingResult, Property};
 use std::process;
+use std::time::{Duration, Instant};
 
 /// CLI BPMN Analyzer written in Rust
 #[derive(Parser, Debug)]
@@ -17,12 +22,23 @@ pub struct Config {
 
 fn main() {
     let config = Config::parse();
-    let collaboration = rust_bpmn_analyzer::read_bpmn_file(&config.file_path);
+    let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&config.file_path);
     match collaboration {
-        Ok(collaboration) => rust_bpmn_analyzer::run(&collaboration, config.properties),
+        Ok(collaboration) => {
+            let start_time = Instant::now();
+            let result = rust_bpmn_analyzer::run(&collaboration, config.properties);
+            let runtime = start_time.elapsed();
+            output_result(&result, runtime);
+        }
         Err(e) => {
             eprintln!("Application error: {e}");
             process::exit(1);
         }
     };
+}
+
+fn output_result(result: &ModelCheckingResult, runtime: Duration) {
+    output_state_information(result, runtime);
+    println!();
+    output_property_results(result);
 }
