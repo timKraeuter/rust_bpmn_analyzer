@@ -255,9 +255,9 @@ fn add_sf_to_participant(
     sf_bytes: &BytesStart,
     participant_id: &String,
 ) {
-    let id = get_attribute_value_or_panic(sf_bytes, &String::from("id"));
-    let source_ref = get_attribute_value_or_panic(sf_bytes, &String::from("sourceRef"));
-    let target_ref = get_attribute_value_or_panic(sf_bytes, &String::from("targetRef"));
+    let id = get_attribute_value_or_panic(sf_bytes, "id");
+    let source_ref = get_attribute_value_or_panic(sf_bytes, "sourceRef");
+    let target_ref = get_attribute_value_or_panic(sf_bytes, "targetRef");
 
     let sf = SequenceFlow { id };
 
