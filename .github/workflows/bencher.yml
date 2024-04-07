@@ -1,4 +1,4 @@
-name: Benchmark with Bencher using hyperfine
+name: Benchmark
 
 on:
   workflow_dispatch:
