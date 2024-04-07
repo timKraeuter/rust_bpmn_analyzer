@@ -11,9 +11,7 @@ pub fn run(collaboration: &Collaboration, properties: Vec<Property>) -> ModelChe
     collaboration.explore_state_space(properties)
 }
 
-pub fn read_bpmn_from_file(
-    file_path: &String,
-) -> Result<Collaboration, UnsupportedBpmnElementsError> {
+pub fn read_bpmn_from_file(file_path: &str) -> Result<Collaboration, UnsupportedBpmnElementsError> {
     reader::read_bpmn_from_file(file_path)
 }
 

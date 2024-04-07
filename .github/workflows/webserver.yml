@@ -1,4 +1,4 @@
-name: Rust compile, lint & test Webserver
+name: Rust compile, lint & test webserver
 
 on:
   workflow_dispatch:
