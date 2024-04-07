@@ -1,0 +1,21 @@
+name: Push from dockerhub to azure
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pull image
+        run: docker pull tkra/rust_bpmn_analyzer
+      - name: Tag image
+        run: docker tag tkra/rust_bpmn_analyzer tg2022.azurecr.io/rust_bpmn_analyzer:v1
+      - name: Pull image
+        run: docker pull tkra/rust_bpmn_analyzer
+      - name: Login to Azure
+        run: docker login tg2022.azurecr.io --username ${{ secrets.AZURE_USERNAME }} --password ${{ secrets.AZURE_PASSWORD }}
+      - name: Push to Azure
+        run: docker push tg2022.azurecr.io/rust_bpmn_analyzer:v1
