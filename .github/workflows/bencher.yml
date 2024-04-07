@@ -4,22 +4,27 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - src/**
+      - core/**
+      - cli/**
   pull_request:
 
 jobs:
   benchmark_with_bencher:
     name: Continuous Benchmarking with Bencher
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cli
     env:
       BENCHER_PROJECT: rust-bpmn-analyzer
       BENCHER_TESTBED: ubuntu-latest
       BENCHER_ADAPTER: shell
+
     steps:
+      - uses: actions/checkout@v4
       - name: Install hyperfine
         run: wget https://github.com/sharkdp/hyperfine/releases/download/v1.18.0/hyperfine_1.18.0_amd64.deb &&
              sudo dpkg -i hyperfine_1.18.0_amd64.deb
-      - uses: actions/checkout@v4
       - name: Build APP
         run: cargo build --release
       - uses: bencherdev/bencher@main
@@ -30,4 +35,4 @@ jobs:
           --branch "$GITHUB_REF_NAME" \
           --token "${{ secrets.BENCHER_API_TOKEN }}" \
           --err \
-          "hyperfine -L bpmnModel benchmark_input/p10x01.bpmn,benchmark_input/p15x01.bpmn,benchmark_input/p17x01.bpmn './target/release/rust_bpmn_analyzer -f ./{bpmnModel} -p safeness,option-to-complete,proper-completion,no-dead-activities' --export-json results.json"
+          "hyperfine -L bpmnModel benchmark_input/p10x01.bpmn,benchmark_input/p15x01.bpmn,benchmark_input/p17x01.bpmn './target/release/rust_bpmn_analyzer_cli -f ./{bpmnModel} -p safeness,option-to-complete,proper-completion,no-dead-activities' --export-json results.json"

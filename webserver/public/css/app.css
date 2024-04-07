@@ -1,0 +1,290 @@
+.quick-fixes-hide .djs-overlays .quick-fix-note {
+  display: none;
+}
+
+:root {
+  --color-button-hover: #fbdbc0;
+  --color-property--fulfilled: #008000ff;
+  --color-property--violated: #ff0000ff;
+  --color-warning: #ffae00;
+}
+
+select {
+  font-size: 0.9rem;
+  padding: 2px 5px;
+  cursor: pointer;
+}
+
+html,
+body,
+#canvas {
+  font-family: "IBM Plex Sans", sans-serif;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+#canvas {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 12px;
+}
+
+.bottom-buttons {
+  bottom: 20px;
+  left: 20px;
+}
+
+.button-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.button-row:not(:last-child) {
+  margin-bottom: 10px;
+}
+
+.buttons-active:hover,
+.bottom-buttons button:hover {
+  cursor: pointer;
+  background-color: var(--color-button-hover);
+  transition: background-color 0.2s linear;
+}
+
+.bottom-buttons a.active {
+  opacity: 1;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* screen interaction helpers & modal */
+
+#io-dialog-main {
+  display: none;
+}
+
+#io-editing-tools-buttons {
+  display: block;
+  position: fixed;
+  top: 10px;
+  right: 15px;
+}
+
+.icon-keyboard::before {
+  content: "\e802";
+}
+
+.icon-resize-full::before {
+  content: "\e801";
+}
+
+.icon-question::before {
+  content: "\e805";
+}
+
+.icon-check::before {
+  content: "\e804";
+}
+
+.icon-xmark::before {
+  content: "\e800";
+}
+
+@font-face {
+  font-family: "Font Awesome 5 Free Solid";
+  src: url("./font-awesome-5/fa.eot"); /* IE9*/
+  src:
+    url("./font-awesome-5/fa.eot?#iefix") format("embedded-opentype"),
+    /* IE6-IE8 */ url("./font-awesome-5/fa.woff2") format("woff2"),
+    /* chrome、firefox */ url("./font-awesome-5/fa.woff") format("woff"),
+    /* chrome、firefox */ url("./font-awesome-5/fa.ttf") format("truetype"),
+    /* chrome、firefox、opera、Safari, Android, iOS 4.2+*/
+      url("./font-awesome-5/fa.svg#Font Awesome 5 Free Solid") format("svg"); /* iOS 4.1- */
+}
+
+/* General */
+button {
+  border: none;
+  background: none;
+}
+
+.buttons {
+  position: fixed;
+}
+
+.buttons button {
+  color: black;
+  background-color: #f8f8f8;
+  border-radius: 3px;
+  display: inline-block;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  border: solid 1px #cdcdcd;
+}
+
+.buttons a {
+  opacity: 0.3;
+  text-decoration: none;
+}
+
+.buttons a.buttons-active,
+.buttons button.buttons-active {
+  opacity: 1;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.example-select {
+  opacity: 1;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* canvas drawing */
+[class*="general-icon"]::before {
+  font-style: normal;
+  font-weight: normal;
+  speak: none;
+  display: inline-block;
+  text-decoration: inherit;
+  text-align: center;
+  font-variant: normal;
+  text-transform: none;
+}
+
+.general-icon {
+  font-family: "Font Awesome 5 Free Solid", serif;
+  line-height: 1.2em;
+  box-sizing: border-box;
+  font-size: 18px;
+}
+
+.io-dialog.io-dialog-open::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  background: #666;
+  opacity: 0.2;
+  z-index: 1001;
+}
+
+.dialog-content {
+  background: white;
+  z-index: 1001;
+  position: fixed;
+  width: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 100px;
+  padding: 10px 30px 20px 30px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 2px;
+  height: auto;
+}
+
+.small-note {
+  color: white;
+  border-radius: 5px;
+  font-family: Arial, serif;
+  font-size: 12px;
+  padding: 5px;
+  min-height: 16px;
+  width: 40px;
+  text-align: center;
+}
+
+.property-note {
+  background-color: var(--color-property--violated);
+}
+
+.quick-fix-note {
+  background-color: var(--color-property--fulfilled);
+  width: 25px;
+  cursor: pointer;
+}
+
+.warning-note {
+  background-color: var(--color-warning);
+  width: 25px;
+}
+
+.big-note {
+  color: white;
+  border-radius: 5px;
+  font-family: Arial, serif;
+  font-size: 12px;
+  padding: 5px;
+  min-height: 16px;
+  width: 60px;
+  text-align: center;
+}
+
+.fulfilled {
+  color: var(--color-property--fulfilled);
+}
+
+.violated {
+  color: var(--color-property--violated);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltipText {
+  visibility: hidden;
+  width: 100px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 5px 0;
+
+  /* Position the tooltip */
+  top: 50%;
+  left: 105%;
+  transform: translateY(-50%);
+  position: absolute;
+  z-index: 1;
+}
+
+.tooltip:hover .tooltipText {
+  visibility: visible;
+}
+
+.keybindings {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-row-gap: 10px;
+  align-items: center;
+}
+
+.properties {
+  display: grid;
+  grid-template-columns: 1fr 20px;
+  grid-column-gap: 15px;
+  grid-row-gap: 5px;
+  align-items: center;
+
+  background-color: #f8f8f8;
+  border-radius: 3px;
+  font-size: 13px;
+  font-weight: bold;
+  border: solid 1px #cdcdcd;
+
+  top: 55px;
+  right: 15px;
+  padding: 5px;
+  position: fixed;
+}
+
+.binding {
+  font-family: monospace;
+}
