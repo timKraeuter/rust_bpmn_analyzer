@@ -67,7 +67,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -97,7 +97,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_without_message),
             &state_without_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -109,7 +109,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
             &state_with_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -135,7 +135,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_without_message),
             &state_without_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -150,7 +150,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
             &state_with_message,
-            &collaboration,
+            process,
             &mut not_executed_activities,
         );
 
@@ -201,7 +201,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_without_message),
             &state_without_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -213,7 +213,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
             &state_with_message,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -239,7 +239,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state),
             &state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -265,7 +265,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -290,7 +290,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -315,7 +315,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -337,7 +337,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -355,7 +355,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -378,7 +378,7 @@ mod test {
         let next_states = terminate_end_event.try_execute(
             get_snapshot_by_id(&start_state, "p1_process"),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 
@@ -406,7 +406,7 @@ mod test {
         let next_states = flow_node.try_execute(
             get_first_snapshot(&start_state),
             &start_state,
-            &collaboration,
+            process,
             &mut HashMap::new(),
         );
 

@@ -1,4 +1,3 @@
-use crate::bpmn::collaboration::Collaboration;
 use crate::bpmn::process::Process;
 use crate::states::state_space::{ProcessSnapshot, State};
 use std::collections::{BTreeMap, HashMap};
@@ -6,6 +5,8 @@ use std::collections::{BTreeMap, HashMap};
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
     pub id: String,
+    pub target_idx: usize,
+    pub source_idx: usize,
 }
 
 #[derive(Debug, PartialEq)]
@@ -50,7 +51,7 @@ impl FlowNode {
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
-        collaboration: &'a Collaboration,
+        process: &'a Process,
         not_executed_activities: &mut HashMap<&str, bool>,
     ) -> Vec<State<'a>> {
         match &self.flow_node_type {
@@ -61,12 +62,9 @@ impl FlowNode {
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
-            FlowNodeType::EventBasedGateway => self.try_execute_evg(
-                snapshot,
-                current_state,
-                collaboration,
-                not_executed_activities,
-            ),
+            FlowNodeType::EventBasedGateway => {
+                self.try_execute_evg(snapshot, current_state, process, not_executed_activities)
+            }
             FlowNodeType::EndEvent(e) => self.try_execute_end_event(snapshot, current_state, e),
             FlowNodeType::IntermediateCatchEvent(_) => {
                 self.try_execute_intermediate_catch_event(snapshot, current_state)
@@ -366,7 +364,7 @@ impl FlowNode {
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
-        collaboration: &'a Collaboration,
+        process: &'a Process,
         not_executed_activities: &mut HashMap<&str, bool>,
     ) -> Vec<State<'a>> {
         // Currently only messages can trigger evgs.
@@ -378,24 +376,10 @@ impl FlowNode {
             match snapshot.tokens.get(inc_flow.id.as_str()) {
                 None => {}
                 Some(_) => {
-                    // Find next flow nodes after the EVG. Currently very annoying! to be improved.
-                    let next_flow_nodes = collaboration
-                        .participants
-                        .iter()
-                        .filter(|p| p.id == snapshot.id)
-                        .flat_map(|p| p.flow_nodes.iter())
-                        .filter(|f| {
-                            !f.incoming_message_flows.is_empty()
-                                && (f.flow_node_type
-                                    == FlowNodeType::IntermediateCatchEvent(EventType::Message)
-                                    || f.flow_node_type == FlowNodeType::Task(TaskType::Receive))
-                                && f.incoming_flows
-                                    .iter()
-                                    .any(|sf| self.outgoing_flows.iter().any(|of| sf.id == of.id))
-                        })
-                        .collect::<Vec<&FlowNode>>();
                     // Add outgoing tokens of the triggered event/receive task after the gateway.
-                    for flow_node in next_flow_nodes.iter() {
+                    for flow_node in self.outgoing_flows.iter().filter_map(|sequence_flow| {
+                        process.flow_nodes.get(sequence_flow.target_idx)
+                    }) {
                         if flow_node.no_message_flow_has_a_message(current_state) {
                             continue;
                         }

@@ -7,28 +7,38 @@ pub struct Process {
 }
 
 impl Process {
-    fn find_flow_node(&mut self, id: &str) -> Option<&mut FlowNode> {
-        self.flow_nodes.iter_mut().find(|f| f.id == id)
+    fn find_flow_node_idx_by_id(&self, id: &str) -> Option<usize> {
+        self.flow_nodes.iter().position(|f| f.id == id)
     }
-    pub fn add_sf(&mut self, id: String, source_ref: &str, target_ref: &str) {
-        let source = self.find_flow_node(source_ref);
-        // TODO: Clone for now but maybe refactor using lifetimes?
-        let id_clone = id.clone();
 
-        match source {
-            None => {
-                panic!("There should be a flow node for the id \"{}\"", source_ref)
+    pub fn add_sf(&mut self, id: String, source_ref: &str, target_ref: &str) {
+        let source_idx = self.find_flow_node_idx_by_id(source_ref);
+        let target_idx = self.find_flow_node_idx_by_id(target_ref);
+        match (source_idx, target_idx) {
+            (Some(source_idx), Some(target_idx)) => {
+                let source = self.flow_nodes.get_mut(source_idx).unwrap();
+                source.add_outgoing_flow(SequenceFlow {
+                    id: id.clone(),
+                    source_idx,
+                    target_idx,
+                });
+
+                let target = self.flow_nodes.get_mut(target_idx).unwrap();
+                target.add_incoming_flow(SequenceFlow {
+                    id,
+                    source_idx,
+                    target_idx,
+                });
             }
-            Some(source) => source.add_outgoing_flow(SequenceFlow { id }),
-        }
-        let target = self.find_flow_node(target_ref);
-        match target {
-            None => {
-                panic!("There should be a flow node for the id \"{}\"", target_ref)
+            (_, _) => {
+                panic!(
+                    "There should be flow nodes for the ids \"{}\" and \"{}\".",
+                    source_ref, target_ref
+                )
             }
-            Some(target) => target.add_incoming_flow(SequenceFlow { id: id_clone }),
         }
     }
+
     pub fn add_flow_node(&mut self, flow_node: FlowNode) {
         self.flow_nodes.push(flow_node);
     }

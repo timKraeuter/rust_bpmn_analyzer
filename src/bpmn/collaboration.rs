@@ -165,16 +165,20 @@ impl Collaboration {
             let process = self
                 .participants
                 .iter()
-                .find(|process_snapshot| process_snapshot.id == snapshot.id);
+                .find(|process| process.id == snapshot.id);
             match process {
                 None => {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
                 Some(process) => {
-                    // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages. But currently sfs/mfs are just ids and we cannot find their targets easily.
+                    // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages. But currently sfs are contained in flow nodes not in the process itself.
                     for flow_node in process.flow_nodes.iter() {
-                        let new_states =
-                            flow_node.try_execute(snapshot, state, self, not_executed_activities);
+                        let new_states = flow_node.try_execute(
+                            snapshot,
+                            state,
+                            process,
+                            not_executed_activities,
+                        );
 
                         Self::record_executed_activities(
                             not_executed_activities,
