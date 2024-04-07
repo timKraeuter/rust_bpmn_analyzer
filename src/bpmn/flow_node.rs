@@ -1,3 +1,4 @@
+use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
 use crate::states::state_space::{ProcessSnapshot, State};
 use std::collections::{BTreeMap, HashMap};
@@ -58,7 +59,7 @@ impl FlowNode {
             FlowNodeType::StartEvent(_) => vec![],
             FlowNodeType::Task(_) => self.try_execute_task(snapshot, current_state),
             FlowNodeType::IntermediateThrowEvent(_) => {
-                self.try_execute_intermediate_throw_event(snapshot, current_state)
+                self.try_execute_intermediate_throw_event(snapshot, current_state, process)
             }
             FlowNodeType::ExclusiveGateway => self.try_execute_exg(snapshot, current_state),
             FlowNodeType::ParallelGateway => self.try_execute_pg(snapshot, current_state),
@@ -177,8 +178,62 @@ impl FlowNode {
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
+        process: &'a Process,
     ) -> Vec<State<'a>> {
-        self.try_execute_task(snapshot, current_state)
+        match &self.flow_node_type {
+            FlowNodeType::IntermediateThrowEvent(Link(link_name)) => {
+                self.try_execute_link_throw_event(snapshot, current_state, link_name, process)
+            }
+            _ => self.try_execute_task(snapshot, current_state),
+        }
+    }
+
+    fn try_execute_link_throw_event<'a, 'b>(
+        &'a self,
+        snapshot: &'b ProcessSnapshot<'a>,
+        current_state: &'b State<'a>,
+        link_name: &str,
+        process: &'a Process,
+    ) -> Vec<State<'a>> {
+        let mut new_states = vec![];
+        let matching_link_catch_event = self.find_matching_link_catch_event(process, link_name);
+        match matching_link_catch_event {
+            None => {}
+            Some(matching_link_catch_event) => {
+                for inc_flow in self.incoming_flows.iter() {
+                    match snapshot.tokens.get(inc_flow.id.as_str()) {
+                        None => {}
+                        Some(_) => {
+                            let mut new_state =
+                                Self::create_new_state_without_snapshot(snapshot, current_state);
+                            let mut new_snapshot =
+                                Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+
+                            matching_link_catch_event.add_outgoing_tokens(&mut new_snapshot);
+                            new_state.snapshots.push(new_snapshot);
+                            new_states.push(new_state);
+                        }
+                    };
+                }
+            }
+        }
+        new_states
+    }
+
+    fn find_matching_link_catch_event<'a>(
+        &'a self,
+        process: &'a Process,
+        link_name: &str,
+    ) -> Option<&'a FlowNode> {
+        process
+            .flow_nodes
+            .iter()
+            .find(|flow_node| match &flow_node.flow_node_type {
+                FlowNodeType::IntermediateCatchEvent(Link(other_link_name)) => {
+                    other_link_name == link_name
+                }
+                _ => false,
+            })
     }
 
     fn try_execute_exg<'a, 'b>(
@@ -427,7 +482,7 @@ pub enum EventType {
     None,
     Message,
     Terminate,
-    Link,
+    Link(String),
 }
 
 #[derive(Debug, PartialEq)]

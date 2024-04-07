@@ -146,7 +146,14 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                     last_event_type = Some(EventType::Terminate);
                 }
                 b"linkEventDefinition" => {
-                    last_event_type = Some(EventType::Link);
+                    let mut link_name = get_attribute_value(&e, "name");
+                    if link_name.is_none() {
+                        // Fallback to link event name.
+                        if let Some(link_event) = last_event_start_bytes.as_ref() {
+                            link_name = get_attribute_value(link_event, "name");
+                        }
+                    }
+                    last_event_type = Some(EventType::Link(link_name.unwrap_or_default()));
                 }
                 b"signalEventDefinition"
                 | b"timerEventDefinition"
@@ -278,13 +285,22 @@ fn add_sf_to_participant(
 }
 
 fn get_attribute_value_or_panic(e: &BytesStart, key: &str) -> String {
+    match get_attribute_value(e, key) {
+        None => {
+            panic!("Attribute value for key \"{}\" not found in {:?}.", key, e)
+        }
+        Some(value) => value,
+    }
+}
+
+fn get_attribute_value(e: &BytesStart, key: &str) -> Option<String> {
     match e.try_get_attribute(key) {
         Ok(attribute) => match attribute {
-            None => {
-                panic!("Attribute value for key \"{}\" not found in {:?}.", key, e)
-            }
-            Some(x) => String::from_utf8(x.value.into_owned())
-                .unwrap_or_else(|e| panic!("UTF8 Error. {}", e)),
+            None => None,
+            Some(x) => Some(
+                String::from_utf8(x.value.into_owned())
+                    .unwrap_or_else(|e| panic!("UTF8 Error. {}", e)),
+            ),
         },
         Err(e) => {
             panic!("Could not get attribute! {}", e)
