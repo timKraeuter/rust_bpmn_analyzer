@@ -10,23 +10,23 @@ impl Process {
     fn find_flow_node(&mut self, id: &str) -> Option<&mut FlowNode> {
         self.flow_nodes.iter_mut().find(|f| f.id == id)
     }
-    pub fn add_sf(&mut self, sf: SequenceFlow, source_ref: String, target_ref: String) {
-        let source = self.find_flow_node(&source_ref);
+    pub fn add_sf(&mut self, id: String, source_ref: &str, target_ref: &str) {
+        let source = self.find_flow_node(source_ref);
         // TODO: Clone for now but maybe refactor using lifetimes?
-        let sf_id = sf.id.clone();
+        let id_clone = id.clone();
 
         match source {
             None => {
                 panic!("There should be a flow node for the id \"{}\"", source_ref)
             }
-            Some(source) => source.add_outgoing_flow(sf),
+            Some(source) => source.add_outgoing_flow(SequenceFlow { id }),
         }
-        let target = self.find_flow_node(&target_ref);
+        let target = self.find_flow_node(target_ref);
         match target {
             None => {
                 panic!("There should be a flow node for the id \"{}\"", target_ref)
             }
-            Some(target) => target.add_incoming_flow(SequenceFlow { id: sf_id }),
+            Some(target) => target.add_incoming_flow(SequenceFlow { id: id_clone }),
         }
     }
     pub fn add_flow_node(&mut self, flow_node: FlowNode) {

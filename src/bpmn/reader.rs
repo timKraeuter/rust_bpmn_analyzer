@@ -1,5 +1,5 @@
 use crate::bpmn::collaboration::Collaboration;
-use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, SequenceFlow, TaskType};
+use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, TaskType};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
@@ -259,8 +259,6 @@ fn add_sf_to_participant(
     let source_ref = get_attribute_value_or_panic(sf_bytes, "sourceRef");
     let target_ref = get_attribute_value_or_panic(sf_bytes, "targetRef");
 
-    let sf = SequenceFlow { id };
-
     let process = collaboration
         .participants
         .iter_mut()
@@ -270,7 +268,7 @@ fn add_sf_to_participant(
             panic!("Sequence flow found but no BPMN process! Malformed XML?")
         }
         Some(process) => {
-            process.add_sf(sf, source_ref, target_ref);
+            process.add_sf(id, source_ref.as_str(), target_ref.as_str());
         }
     }
 }
