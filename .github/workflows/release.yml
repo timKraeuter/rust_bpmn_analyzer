@@ -2,6 +2,7 @@ name: Push from dockerhub to azure
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   build:
