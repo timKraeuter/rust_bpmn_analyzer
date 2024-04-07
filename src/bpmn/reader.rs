@@ -39,7 +39,7 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
     let mut mfs = vec![];
     let mut unsupported_elements = vec![];
     let mut last_event_start_bytes: Option<BytesStart> = None;
-    let mut last_event_type: Option<EventType> = None;
+    let mut last_event_type: Option<EventType> = Some(EventType::None);
     let mut current_participant = None;
 
     loop {
@@ -119,14 +119,16 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 | b"intermediateThrowEvent"
                 | b"endEvent" => {
                     let last_event_bytes = last_event_start_bytes.unwrap();
-                    let event_type = last_event_type.unwrap_or(EventType::None);
-                    if event_type == EventType::Unsupported {
-                        unsupported_elements.push(last_event_bytes);
-                    } else {
-                        add_event(&mut collaboration, &last_event_bytes, event_type);
+                    match last_event_type {
+                        None => {
+                            unsupported_elements.push(last_event_bytes);
+                        }
+                        Some(event_type) => {
+                            add_event(&mut collaboration, &last_event_bytes, event_type);
+                        }
                     }
                     last_event_start_bytes = None;
-                    last_event_type = None;
+                    last_event_type = Some(EventType::None);
                 }
                 _ => (),
             },
@@ -149,7 +151,7 @@ pub fn read_bpmn_file(file_path: &String) -> Result<Collaboration, UnsupportedBp
                 | b"escalationEventDefinition"
                 | b"errorEventDefinition"
                 | b"compensateEventDefinition" => {
-                    last_event_type = Some(EventType::Unsupported);
+                    last_event_type = None; // Set to none since it is unsupported
                 }
                 b"task" | b"sendTask" | b"serviceTask" | b"userTask" | b"manualTask"
                 | b"businessRuleTask" | b"scriptTask" => add_flow_node(

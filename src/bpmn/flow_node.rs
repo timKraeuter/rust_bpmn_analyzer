@@ -426,7 +426,6 @@ pub enum FlowNodeType {
 pub enum EventType {
     None,
     Message,
-    Unsupported,
     Terminate,
 }
 
