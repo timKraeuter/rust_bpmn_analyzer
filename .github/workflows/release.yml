@@ -1,4 +1,4 @@
-name: Push from dockerhub to azure
+name: Build & Push to Azure
 
 on:
   workflow_dispatch:
@@ -9,12 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pull image
-        run: docker pull tkra/rust_bpmn_analyzer
-      - name: Tag image
-        run: docker tag tkra/rust_bpmn_analyzer tg2022.azurecr.io/rust_bpmn_analyzer:v1
-      - name: Pull image
-        run: docker pull tkra/rust_bpmn_analyzer
+      - name: Build rust_bpmn_analyzer
+        run: cargo build --release --target x86_64-unknown-linux-musl
+      - name: Build docker image
+        run: docker build -t tg2022.azurecr.io/rust_bpmn_analyzer:v1 .
       - name: Login to Azure
         run: docker login tg2022.azurecr.io --username ${{ secrets.AZURE_USERNAME }} --password ${{ secrets.AZURE_PASSWORD }}
       - name: Push to Azure
