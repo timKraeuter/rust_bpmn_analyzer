@@ -14,6 +14,7 @@ BPMN models.
 
 # Docker
 
+The webserver running the analyzer is available using [docker](https://hub.docker.com/repository/docker/tkra/rust_bpmn_analyzer/general).
 Building the image is done using GitHub actions (see release.yml).
 
 Pull the application image:
