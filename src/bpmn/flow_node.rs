@@ -137,7 +137,8 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
-        let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
+        // Usually there is only one incoming flow, i.e., only one new state.
+        let mut new_states: Vec<State> = Vec::with_capacity(1);
 
         if self.flow_node_type == FlowNodeType::Task(TaskType::Receive)
             && self.no_message_flow_has_a_message(current_state)
@@ -171,21 +172,21 @@ impl FlowNode {
             new_state.add_message(&out_mf.id);
         }
     }
+
     fn try_execute_intermediate_throw_event<'a, 'b>(
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
-        // Currently the same as task but event types will change this.
-        // Still fine since it creates messages just like tasks.
         self.try_execute_task(snapshot, current_state)
     }
+
     fn try_execute_exg<'a, 'b>(
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
-        let mut new_states: Vec<State> = vec![]; // Could set capacity to number of outgoing flows.
+        let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(inc_flow.id.as_str()) {
                 None => {}
@@ -221,6 +222,7 @@ impl FlowNode {
         snapshot.delete_token(token);
         snapshot
     }
+
     fn try_execute_end_event<'a, 'b>(
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
@@ -371,12 +373,12 @@ impl FlowNode {
         if current_state.messages.is_empty() {
             return vec![];
         }
-        let mut new_states: Vec<State> = Vec::with_capacity(1);
+        let mut new_states: Vec<State> = vec![];
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(inc_flow.id.as_str()) {
                 None => {}
                 Some(_) => {
-                    // Add outgoing tokens of the triggered event/receive task after the gateway.
+                    // Add outgoing tokens for the triggered event/receive task after the gateway.
                     for flow_node in self.outgoing_flows.iter().filter_map(|sequence_flow| {
                         process.flow_nodes.get(sequence_flow.target_idx)
                     }) {
