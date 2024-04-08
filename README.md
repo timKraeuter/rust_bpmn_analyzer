@@ -1,7 +1,7 @@
 [![Core](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/core.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/core.yml)
 [![CLI](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/cli.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/cli.yml)
 [![Webserver](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/webserver.yml/badge.svg)](https://github.com/timKraeuter/rust_bpmn_analyzer/actions/workflows/webserver.yml)
-[![Docker Hub](https://img.shields.io/docker/pulls/tkra/rust_bpmn_analyzer)](https://hub.docker.com/repository/docker/tkra/rust_bpmn_analyzer/general)
+[![Docker Hub](https://img.shields.io/docker/pulls/tkra/rust_bpmn_analyzer)](https://hub.docker.com/r/tkra/rust_bpmn_analyzer)
 
 
 [Benchmarks using Bencher🐰](https://bencher.dev/console/projects/rust-bpmn-analyzer/perf)
@@ -14,7 +14,7 @@ BPMN models.
 
 # Docker
 
-The webserver running the analyzer is available using [docker](https://hub.docker.com/repository/docker/tkra/rust_bpmn_analyzer/general).
+The webserver running the analyzer is available using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer).
 Building the image is done using GitHub actions (see release.yml).
 
 Pull the application image:
