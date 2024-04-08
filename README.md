@@ -12,9 +12,39 @@ This is a BPMN analyzer written in Rust. It can parse BPMN files and analyze the
 specific properties. The analyzer can detect deadlocks, livelocks, and other properties of
 BPMN models.
 
-# Docker
+The Analyzer is structured into one library and two binary crates:
+- `core`: The core functionality of the analyzer, i.e., analyzing BPMN models **(library)**.
+- `cli`: A CLI application providing BPMN analysis **(binary)**.
+- `webserver`: A webserver providing BPMN analysis as a service **(binary)**.
 
-The webserver running the analyzer is available using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer).
+# Core
+
+See a detailed description on [my website](https://timkraeuter.com//rust-bpmn-analyzer/).
+
+# CLI
+The following command lists the available options:
+```bash
+cargo run -- -h
+```
+One can run the CLI application for a specific BPMN model and a set of properties like this:
+```bash
+cargo run -- -f benchmark_input/p10x01.bpmn -p safeness,option-to-complete,proper-completion,no-dead-activities
+```
+
+Build an optimized binary which can be used like shown above:
+```bash
+cargo build --release
+```
+
+# Webserver
+The webserver is available locally, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://bpm-2024.whitefield-c9fed487.northeurope.azurecontainerapps.io/).
+
+The webserver not only serves the analyzer but also a custom [BPMN editor](https://github.com/timKraeuter/bpmn-analyzer-js) to create BPMN models and get instantaneous feedback, counter examples, and quick fixes for the checked properties.
+See a detailed description on [my website](https://timkraeuter.com//rust-bpmn-analyzer/).
+
+## Docker
+
+The webserver is available using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer).
 Building the image is done using GitHub actions (see release.yml).
 
 Pull the application image:
