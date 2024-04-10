@@ -170,8 +170,20 @@ impl Collaboration {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
                 Some(process) => {
-                    // TODO: Would be nice to only try to execute flow nodes that have incoming tokens/messages. But currently sfs are contained in flow nodes not in the process itself.
-                    for flow_node in process.flow_nodes.iter() {
+                    // Only try to execute flow nodes that have incoming tokens.
+                    let mut flow_node_indexes: Vec<&usize> = snapshot
+                        .tokens
+                        .iter()
+                        .filter_map(|(&token_position, _)| {
+                            process.sequence_flow_index.get(token_position)
+                        })
+                        .collect();
+                    flow_node_indexes.sort();
+                    flow_node_indexes.dedup(); // Do not try to execute a flow node twice.
+                    for flow_node in flow_node_indexes
+                        .iter()
+                        .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
+                    {
                         let new_states = flow_node.try_execute(
                             snapshot,
                             state,
