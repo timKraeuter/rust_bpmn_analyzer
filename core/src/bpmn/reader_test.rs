@@ -5,6 +5,7 @@ mod tests {
     use crate::bpmn::flow_node::{EventType, FlowNode, TaskType};
     use crate::bpmn::process::Process;
     use crate::bpmn::reader::read_bpmn_from_file;
+    use std::collections::HashMap;
 
     const PATH: &str = "tests/resources/unit/";
 
@@ -36,7 +37,8 @@ mod tests {
         };
         let mut process = Process {
             id: String::from("process_id"),
-            flow_nodes: Vec::new(),
+            flow_nodes: vec![],
+            sequence_flow_index: HashMap::new(),
         };
         process.add_flow_node(FlowNode::new(
             String::from("start"),

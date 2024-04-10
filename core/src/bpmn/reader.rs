@@ -3,6 +3,7 @@ use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, TaskType};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
+use std::collections::HashMap;
 use std::{fmt, fs};
 
 #[derive(Debug)]
@@ -50,8 +51,7 @@ pub fn read_bpmn_from_string(
             Ok(Event::Start(e)) => match e.local_name().as_ref() {
                 b"process" => {
                     add_participant(&mut collaboration, &e);
-                    current_participant =
-                        Some(get_attribute_value_or_panic(&e, &String::from("id")));
+                    current_participant = Some(get_attribute_value_or_panic(&e, "id"));
                 }
                 b"subProcess" => {
                     if has_true_attribute_value(&e, "triggeredByEvent") {
@@ -192,7 +192,7 @@ pub fn read_bpmn_from_string(
     if !unsupported_elements.is_empty() {
         let unsupported_elements: Vec<String> = unsupported_elements
             .iter()
-            .map(|e| get_attribute_value_or_panic(e, &String::from("id")))
+            .map(|e| get_attribute_value_or_panic(e, "id"))
             .collect();
         return Err(UnsupportedBpmnElementsError {
             unsupported_elements,
@@ -218,10 +218,11 @@ fn read_file(path: &str) -> String {
 }
 
 fn add_participant(collaboration: &mut Collaboration, p_bytes: &BytesStart) {
-    let id = get_attribute_value_or_panic(p_bytes, &String::from("id"));
+    let id = get_attribute_value_or_panic(p_bytes, "id");
     collaboration.add_participant(Process {
         id,
-        flow_nodes: Vec::new(),
+        flow_nodes: vec![],
+        sequence_flow_index: HashMap::new(),
     });
 }
 
@@ -245,7 +246,7 @@ fn add_flow_node(
     flow_node_bytes: &BytesStart,
     flow_node_type: FlowNodeType,
 ) {
-    let id = get_attribute_value_or_panic(flow_node_bytes, &String::from("id"));
+    let id = get_attribute_value_or_panic(flow_node_bytes, "id");
     let last_participant = collaboration.participants.last_mut();
     match last_participant {
         None => {
