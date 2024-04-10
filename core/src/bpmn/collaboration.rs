@@ -170,19 +170,10 @@ impl Collaboration {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
                 Some(process) => {
-                    // Only try to execute flow nodes that have incoming tokens.
-                    let mut flow_node_indexes: Vec<&usize> = snapshot
-                        .tokens
-                        .iter()
-                        .filter_map(|(&token_position, _)| {
-                            process.sequence_flow_index.get(token_position)
-                        })
-                        .collect();
-                    flow_node_indexes.sort();
-                    flow_node_indexes.dedup(); // Do not try to execute a flow node twice.
-                    for flow_node in flow_node_indexes
-                        .iter()
-                        .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
+                    for flow_node in
+                        Collaboration::get_flow_node_indexes_with_incoming_tokens(snapshot, process)
+                            .iter()
+                            .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
                     {
                         let new_states = flow_node.try_execute(
                             snapshot,
@@ -209,6 +200,20 @@ impl Collaboration {
             }
         }
         unexplored_states
+    }
+
+    fn get_flow_node_indexes_with_incoming_tokens<'a>(
+        snapshot: &ProcessSnapshot,
+        process: &'a Process,
+    ) -> Vec<&'a usize> {
+        let mut flow_node_indexes: Vec<&usize> = snapshot
+            .tokens
+            .iter()
+            .filter_map(|(&token_position, _)| process.sequence_flow_index.get(token_position))
+            .collect();
+        flow_node_indexes.sort();
+        flow_node_indexes.dedup(); // Do not try to execute a flow node twice.
+        flow_node_indexes
     }
 
     fn try_trigger_message_start_events<'a>(
