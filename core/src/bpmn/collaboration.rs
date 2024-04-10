@@ -171,23 +171,19 @@ impl Collaboration {
                 }
                 Some(process) => {
                     // Only try to execute flow nodes that have incoming tokens.
-                    let mut executed_flow_nodes = HashMap::new();
-                    for (&token_postion, _) in snapshot.tokens.iter() {
-                        let flow_node_idx = process
-                            .sequence_flow_index
-                            .get(token_postion)
-                            .expect("Token must be positioned at a sequence flow.");
-                        if executed_flow_nodes.get(flow_node_idx).is_some() {
-                            // Do not execute flow node twice.
-                            continue;
-                        }
-                        let flow_node_idx = *flow_node_idx;
-                        executed_flow_nodes.insert(flow_node_idx, true);
-
-                        let flow_node = process
-                            .flow_nodes
-                            .get(flow_node_idx)
-                            .expect("The target of a sequence flow must exist as flow node.");
+                    let mut flow_node_indexes: Vec<&usize> = snapshot
+                        .tokens
+                        .iter()
+                        .filter_map(|(&token_position, _)| {
+                            process.sequence_flow_index.get(token_position)
+                        })
+                        .collect();
+                    flow_node_indexes.sort();
+                    flow_node_indexes.dedup(); // Do not try to execute a flow node twice.
+                    for flow_node in flow_node_indexes
+                        .iter()
+                        .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
+                    {
                         let new_states = flow_node.try_execute(
                             snapshot,
                             state,
