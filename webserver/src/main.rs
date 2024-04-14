@@ -28,7 +28,7 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     let checker = Router::new().route("/check_bpmn", post(check_bpmn));
-    let webapp = using_serve_dir();
+    let webapp = serve_dir();
 
     let app = Router::new().nest("/", checker).nest("/", webapp);
 
@@ -48,8 +48,8 @@ async fn serve(app: Router, port: u16) {
     axum::serve(listener, app).await.unwrap();
 }
 
-fn using_serve_dir() -> Router {
-    // serve the file in the "assets" directory under `/assets`
+fn serve_dir() -> Router {
+    // serve the file in the "public" directory under `/public`
     Router::new().nest_service("/", ServeDir::new("public"))
 }
 
