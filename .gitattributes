@@ -1,2 +1,3 @@
-*.html linguist-vendored
-*.css linguist-vendored
+*.html linguist-generated
+*.css linguist-generated
+/webserver/public/* linguist-generated
