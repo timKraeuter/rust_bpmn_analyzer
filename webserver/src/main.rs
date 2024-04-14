@@ -49,7 +49,6 @@ async fn serve(app: Router, port: u16) {
 }
 
 fn serve_dir() -> Router {
-    // serve the file in the "public" directory under `/public`
     Router::new().nest_service("/", ServeDir::new("public"))
 }
 
