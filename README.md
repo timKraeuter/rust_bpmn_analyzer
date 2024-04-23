@@ -8,7 +8,7 @@
 
 # Rust BPMN Analyzer
 
-This is a BPMN analyzer written in Rust. It can parse BPMN files and analyze them for
+This is a BPMN analyzer, i.e., a **BPMN-specific model checker** written in Rust. It can parse BPMN files and analyze them for
 specific properties. The analyzer can detect deadlocks, livelocks, and other properties of
 BPMN models.
 
