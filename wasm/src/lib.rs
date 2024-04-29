@@ -1,5 +1,8 @@
+use crate::dtos::CheckBPMNResponse;
 use rust_bpmn_analyzer::{read_bpmn_from_string, Property};
 use wasm_bindgen::prelude::*;
+
+mod dtos;
 
 #[wasm_bindgen]
 extern "C" {
@@ -7,11 +10,11 @@ extern "C" {
 }
 
 #[wasm_bindgen]
-pub fn check_bpmn(bpmn_content: &str) {
+pub fn check_bpmn(bpmn_content: &str) -> Result<JsValue, JsValue> {
     let collaboration = read_bpmn_from_string(bpmn_content);
     match collaboration {
         Ok(collaboration) => {
-            let _result = rust_bpmn_analyzer::run(
+            let result = rust_bpmn_analyzer::run(
                 &collaboration,
                 vec![
                     Property::Safeness,
@@ -20,11 +23,13 @@ pub fn check_bpmn(bpmn_content: &str) {
                     Property::ProperCompletion,
                 ],
             );
-            alert(&format!("BPMN check done!"));
+            Ok(serde_wasm_bindgen::to_value(
+                &CheckBPMNResponse::map_result(result),
+            )?)
         }
-        Err(err) => {
-            alert(&format!("BPMN was not ok: {}!", err));
-        }
+        Err(error) => Ok(serde_wasm_bindgen::to_value(&CheckBPMNResponse {
+            property_results: vec![],
+            unsupported_elements: error.unsupported_elements,
+        })?),
     }
-    // todo!("TBD make enum wrapping error and the current result");
 }
