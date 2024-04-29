@@ -17,6 +17,16 @@ The Analyzer is structured into one library and two binary crates:
 - `cli`: A CLI application providing BPMN analysis **(binary)**.
 - `webserver`: A webserver providing BPMN analysis as a service **(binary)**.
 
+
+
+## WASM / JS package
+
+Run the following command in the ./wasm subdir.
+
+```bash
+wasm-pack build --target web
+```
+
 # Core
 
 See a detailed description on [my website](https://timkraeuter.com//rust-bpmn-analyzer/).
