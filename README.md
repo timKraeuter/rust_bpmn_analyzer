@@ -24,7 +24,7 @@ The Analyzer is structured into one library and two binary crates:
 Run the following command in the ./wasm subdir.
 
 ```bash
-wasm-pack build --target web --out-dir ../../bpmn-analyzer-js/src/analysis
+cd ./wasm/ && wasm-pack build --target web --out-dir ../../bpmn-analyzer-js/src/analysis
 ```
 
 # Core
