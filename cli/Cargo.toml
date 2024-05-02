@@ -11,3 +11,4 @@ rust_bpmn_analyzer = { path = "../core" }
 [profile.release]
 codegen-units = 1
 lto = "fat"
+panic = "abort"
