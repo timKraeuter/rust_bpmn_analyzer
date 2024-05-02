@@ -7,3 +7,7 @@ edition = "2021"
 clap = { version = "4.5.4", features = ["derive"] }
 colored = "2.1.0"
 rust_bpmn_analyzer = { path = "../core" }
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
