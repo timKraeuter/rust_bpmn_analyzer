@@ -3,7 +3,7 @@ mod dtos;
 use crate::dtos::{CheckBPMNRequest, CheckBPMNResponse};
 use axum::{http::StatusCode, routing::post, Json, Router};
 use clap::Parser;
-use rust_bpmn_analyzer::{Property, read_bpmn_from_string, run};
+use rust_bpmn_analyzer::{read_bpmn_from_string, run, Property};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
