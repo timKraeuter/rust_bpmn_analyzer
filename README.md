@@ -12,16 +12,20 @@ This is a BPMN analyzer, i.e., a **BPMN-specific model checker** written in Rust
 specific properties. The analyzer can detect deadlocks, livelocks, and other properties of
 BPMN models.
 
-The Analyzer is structured into one library and two binary crates:
+The Analyzer is structured into four crates:
 - `core`: The core functionality of the analyzer, i.e., analyzing BPMN models **(library)**.
 - `cli`: A CLI application providing BPMN analysis **(binary)**.
 - `webserver`: A webserver providing BPMN analysis as a service **(binary)**.
+- `wasm`: The WebAssembly crate provides bindings to web-assembly to analyze BPMN models on the client-side in the browser.
 
 # Core
 
+This crate contains the core functionality of the analyzer.
 See a detailed description on [my website](https://timkraeuter.com//rust-bpmn-analyzer/).
 
 # CLI
+
+This binary crate is a CLI application to analyze BPMN models.
 The following command lists the available options:
 ```bash
 cargo run -- -h
@@ -37,7 +41,8 @@ cargo build --release
 ```
 
 # Webserver
-The webserver is available locally, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://bpm-2024.whitefield-c9fed487.northeurope.azurecontainerapps.io/).
+This binary crate provides a webserver with a webservice to analyze BPMN models.
+The webserver is available locally by running `main.rs`, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://bpm-2024.whitefield-c9fed487.northeurope.azurecontainerapps.io/).
 
 The webserver not only serves the analyzer but also a custom [BPMN editor](https://github.com/timKraeuter/bpmn-analyzer-js) to create BPMN models and get instantaneous feedback, counter examples, and quick fixes for the checked properties.
 See a detailed description on [my website](https://timkraeuter.com//rust-bpmn-analyzer/).
@@ -56,6 +61,22 @@ Run the application image:
 ```bash
 docker run -p 8080:8080 tkra/rust_bpmn_analyzer
 ```
+
+# Wasm
+This crate provides wasm bindings to run BPMN analysis directly in the browser on the clients machine.
+
+Install wasm-pack using (see [documentation](https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_Wasm)):
+
+```bash
+cargo install wasm-pack
+```
+
+Run the following command in the `./wasm` directory to cross-compile to WASM:
+```bash
+wasm-pack build --target web --out-dir ../../bpmn-analyzer-js/src/analysis
+```
+
+The output can be found in `../../bpmn-analyzer-js/src/analysis`.
 
 # BPMN coverage
 
@@ -180,22 +201,22 @@ Markers, data and artifacts are ignored.
             Timer
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/timer-start-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/timer-start-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/timer-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/timer-event-subprocess.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/timer-event-subprocess-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/timer-event-subprocess-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/timer-catch-event.svg"/>
+            <img alt="" src="./documentation/assets/bpmn-symbols/timer-catch-event.svg"/>
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/timer-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/timer-boundary-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/timer-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/timer-boundary-event-non-interrupting.svg" />
         </td>
         <td></td>
         <td></td>
@@ -206,17 +227,17 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/error-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/error-event-subprocess.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/error-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/error-boundary-event.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/error-end-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/error-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -224,28 +245,28 @@ Markers, data and artifacts are ignored.
             Signal
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-start-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-start-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-event-subprocess.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-event-subprocess-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-event-subprocess-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-catch-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-catch-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-boundary-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-throw-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-throw-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/signal-end-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/signal-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -253,22 +274,22 @@ Markers, data and artifacts are ignored.
             Conditional
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/conditional-start-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/conditional-start-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/conditional-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/conditional-event-subprocess.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/conditional-event-subprocess-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/conditional-event-subprocess-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/conditional-catch-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/conditional-catch-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/conditional-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/conditional-boundary-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/conditional-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/conditional-boundary-event-non-interrupting.svg" />
         </td>
         <td></td>
         <td></td>
@@ -279,23 +300,23 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/escalation-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/escalation-event-subprocess.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/escalation-event-subprocess-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/escalation-event-subprocess-non-interrupting.svg" />
         </td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/escalation-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/escalation-boundary-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/escalation-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/escalation-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/escalation-throw-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/escalation-throw-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/escalation-end-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/escalation-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -304,19 +325,19 @@ Markers, data and artifacts are ignored.
         </td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/compensation-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/compensation-event-subprocess.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/compensation-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/compensation-boundary-event.svg" />
         </td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/compensation-throw-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/compensation-throw-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/compensation-end-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/compensation-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -328,12 +349,12 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/cancel-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/cancel-boundary-event.svg" />
         </td>
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/cancel-end-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/cancel-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -348,7 +369,7 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/termination-end-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/termination-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -359,12 +380,12 @@ Markers, data and artifacts are ignored.
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/link-catch-event.svg"/>
+            <img alt="" src="./documentation/assets/bpmn-symbols/link-catch-event.svg"/>
         </td>
         <td></td>
         <td></td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/link-throw-event.svg"/>
+            <img alt="" src="./documentation/assets/bpmn-symbols/link-throw-event.svg"/>
         </td>
         <td></td>
     </tr>
@@ -373,28 +394,28 @@ Markers, data and artifacts are ignored.
             Multiple
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-start-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-start-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-event-subprocess.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-catch-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-catch-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-boundary-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-throw-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-throw-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-end-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-end-event.svg" />
         </td>
     </tr>
     <tr>
@@ -402,22 +423,22 @@ Markers, data and artifacts are ignored.
             Multiple Parallel
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-parallel-start-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-parallel-start-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-parallel-event-subprocess.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-parallel-event-subprocess.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event-non-interrupting.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-parallel-catch-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-parallel-catch-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event.svg" />
         </td>
         <td>
-            <img src="./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event-non-interrupting.svg" />
+            <img alt="" src="./documentation/assets/bpmn-symbols/multiple-parallel-boundary-event-non-interrupting.svg" />
         </td>
         <td></td>
         <td></td>
