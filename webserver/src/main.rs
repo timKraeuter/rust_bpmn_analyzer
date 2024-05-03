@@ -61,7 +61,7 @@ async fn check_bpmn<'a>(
             let properties = payload
                 .properties_to_be_checked
                 .into_iter()
-                .map(|dto| Property::from(dto))
+                .map(Property::from)
                 .collect();
             let model_checking_result = run(&collaboration, properties);
             tracing::info!("{:?}", "Model checking successful");

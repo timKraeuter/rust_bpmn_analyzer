@@ -132,7 +132,7 @@ impl From<&State<'_>> for StateDTO {
         let snapshots = state
             .snapshots
             .iter()
-            .map(|snapshot| ProcessSnapshotDTO::from(snapshot))
+            .map(ProcessSnapshotDTO::from)
             .collect();
 
         let mut messages = BTreeMap::new();
