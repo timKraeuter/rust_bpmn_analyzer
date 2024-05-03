@@ -64,6 +64,7 @@ docker run -p 8080:8080 tkra/rust_bpmn_analyzer
 
 # Wasm
 This crate provides wasm bindings to run BPMN analysis directly in the browser on the clients machine.
+A demo using the WASM bindings is available [here](https://timkraeuter.com/bpmn-analyzer-js/). 
 
 Install wasm-pack using (see [documentation](https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_Wasm)):
 
