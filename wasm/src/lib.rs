@@ -24,7 +24,7 @@ pub fn check_bpmn(bpmn_content: &str) -> Result<JsValue, JsValue> {
                 ],
             );
             Ok(serde_wasm_bindgen::to_value(
-                &CheckBPMNResponse::map_result(result),
+                &CheckBPMNResponse::from(result),
             )?)
         }
         Err(error) => Ok(serde_wasm_bindgen::to_value(&CheckBPMNResponse {

@@ -3,6 +3,12 @@ use rust_bpmn_analyzer::{ModelCheckingResult, Property};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
+#[derive(Deserialize)]
+pub struct CheckBPMNRequest {
+    pub bpmn_file_content: String,
+    pub properties_to_be_checked: Vec<PropertyDTO>,
+}
+
 #[derive(Serialize, Deserialize)]
 pub enum PropertyDTO {
     Safeness,
@@ -11,8 +17,8 @@ pub enum PropertyDTO {
     NoDeadActivities,
 }
 
-impl PropertyDTO {
-    fn map_to_dto(property: &Property) -> PropertyDTO {
+impl From<Property> for PropertyDTO {
+    fn from(property: Property) -> Self {
         match property {
             Property::Safeness => PropertyDTO::Safeness,
             Property::OptionToComplete => PropertyDTO::OptionToComplete,
@@ -28,8 +34,8 @@ pub struct CheckBPMNResponse {
     pub unsupported_elements: Vec<String>,
 }
 
-impl CheckBPMNResponse {
-    pub fn map_result(model_checking_result: ModelCheckingResult) -> CheckBPMNResponse {
+impl From<ModelCheckingResult<'_>> for CheckBPMNResponse {
+    fn from(model_checking_result: ModelCheckingResult) -> Self {
         let property_results = model_checking_result
             .property_results
             .into_iter()
@@ -40,7 +46,7 @@ impl CheckBPMNResponse {
                 result.problematic_elements.dedup();
                 MinimalPropertyResult {
                     fulfilled: result.fulfilled,
-                    property: PropertyDTO::map_to_dto(&result.property),
+                    property: PropertyDTO::from(result.property),
                     problematic_elements: result.problematic_elements,
                     counter_example: CounterExample::new(result.problematic_state_hashes, state),
                 }
@@ -82,12 +88,12 @@ impl CounterExample {
                         .into_iter()
                         .map(|(label, state_hash)| Transition {
                             label: label.to_string(),
-                            next_state: StateDTO::new(state_space.get_state(&state_hash)),
+                            next_state: StateDTO::from(state_space.get_state(&state_hash)),
                         })
                         .collect();
                     let start_state = state_space.get_state(&state_space.start_state_hash);
                     Some(CounterExample {
-                        start_state: StateDTO::new(start_state),
+                        start_state: StateDTO::from(start_state),
                         transitions,
                     })
                 }
@@ -110,12 +116,12 @@ struct StateDTO {
     pub executed_end_event_counter: BTreeMap<String, u16>,
 }
 
-impl StateDTO {
-    fn new(state: &State) -> StateDTO {
+impl From<&State<'_>> for StateDTO {
+    fn from(state: &State) -> StateDTO {
         let snapshots = state
             .snapshots
             .iter()
-            .map(|snapshot| ProcessSnapshotDTO::new(snapshot))
+            .map(ProcessSnapshotDTO::from)
             .collect();
 
         let mut messages = BTreeMap::new();
@@ -144,8 +150,8 @@ struct ProcessSnapshotDTO {
     pub tokens: BTreeMap<String, u16>,
 }
 
-impl ProcessSnapshotDTO {
-    fn new(snapshot: &ProcessSnapshot) -> ProcessSnapshotDTO {
+impl From<&ProcessSnapshot<'_>> for ProcessSnapshotDTO {
+    fn from(snapshot: &ProcessSnapshot) -> Self {
         let mut tokens = BTreeMap::new();
         tokens.extend(snapshot.tokens.iter().map(|(token, count)| {
             (token.to_string(), *count) // clone to make it owned
