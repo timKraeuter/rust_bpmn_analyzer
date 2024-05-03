@@ -1,9 +1,9 @@
 mod dtos;
 
-use crate::dtos::{CheckBPMNRequest, CheckBPMNResponse, PropertyDTO};
+use crate::dtos::{CheckBPMNRequest, CheckBPMNResponse};
 use axum::{http::StatusCode, routing::post, Json, Router};
 use clap::Parser;
-use rust_bpmn_analyzer::{read_bpmn_from_string, run};
+use rust_bpmn_analyzer::{read_bpmn_from_string, run, Property};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
@@ -60,12 +60,12 @@ async fn check_bpmn<'a>(
         Ok(collaboration) => {
             let properties = payload
                 .properties_to_be_checked
-                .iter()
-                .map(PropertyDTO::map_from_dto)
+                .into_iter()
+                .map(Property::from)
                 .collect();
             let model_checking_result = run(&collaboration, properties);
             tracing::info!("{:?}", "Model checking successful");
-            CheckBPMNResponse::map_result(model_checking_result)
+            CheckBPMNResponse::from(model_checking_result)
         }
         Err(error) => {
             tracing::warn!("{:?}", error);
