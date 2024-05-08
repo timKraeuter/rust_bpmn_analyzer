@@ -1,0 +1,27 @@
+name: Rust compile, lint & test webserver
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+    - wasm/**
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: wasm
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Format
+        run: cargo fmt --check
+      - name: Lint
+        run: cargo clippy -- -Dwarnings
+      - name: Build
+        run: cargo build
