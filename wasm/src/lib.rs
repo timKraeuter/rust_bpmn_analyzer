@@ -3,12 +3,6 @@ use rust_bpmn_analyzer::{read_bpmn_from_string, Property};
 use wasm_bindgen::prelude::*;
 
 mod dtos;
-
-#[wasm_bindgen]
-extern "C" {
-    pub fn alert(s: &str);
-}
-
 #[wasm_bindgen]
 pub fn check_bpmn(bpmn_content: &str) -> Result<JsValue, JsValue> {
     let collaboration = read_bpmn_from_string(bpmn_content);
@@ -23,9 +17,9 @@ pub fn check_bpmn(bpmn_content: &str) -> Result<JsValue, JsValue> {
                     Property::ProperCompletion,
                 ],
             );
-            Ok(serde_wasm_bindgen::to_value(
-                &CheckBPMNResponse::from(result),
-            )?)
+            Ok(serde_wasm_bindgen::to_value(&CheckBPMNResponse::from(
+                result,
+            ))?)
         }
         Err(error) => Ok(serde_wasm_bindgen::to_value(&CheckBPMNResponse {
             property_results: vec![],
