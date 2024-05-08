@@ -21,6 +21,7 @@ pub fn check_bpmn(bpmn_content: &str) -> Result<JsValue, JsValue> {
                 result,
             ))?)
         }
+
         Err(error) => Ok(serde_wasm_bindgen::to_value(&CheckBPMNResponse {
             property_results: vec![],
             unsupported_elements: error.unsupported_elements,
