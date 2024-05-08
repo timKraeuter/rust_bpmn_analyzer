@@ -74,10 +74,10 @@ cargo install wasm-pack
 
 Run the following command in the `./wasm` directory to cross-compile to WASM:
 ```bash
-wasm-pack build --target web --out-dir ../../bpmn-analyzer-js/src/analysis
+wasm-pack build --target web --out-dir ../../bpmn-analyzer-js/src/lib/analysis/wasm/generated
 ```
 
-The output can be found in `../../bpmn-analyzer-js/src/analysis`.
+The output can be found in `../../bpmn-analyzer-js/src/lib/analysis/wasm/generated`.
 
 # BPMN coverage
 
