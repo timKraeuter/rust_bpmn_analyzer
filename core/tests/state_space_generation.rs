@@ -33,13 +33,10 @@ fn test_stable_state_space_with_messages() {
     let file_path = PATH.to_string() + "pools-message-flows.bpmn";
     let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();
     let result = rust_bpmn_analyzer::run(&collaboration, all_properties());
-    assert_eq!(14, result.state_space.states.len());
-    assert_eq!(14, result.state_space.count_transitions());
-    assert_eq!(1, result.state_space.terminated_state_hashes.len());
-    assert_eq!(
-        vec![Property::OptionToComplete],
-        get_unfulfilled_properties(result)
-    );
+    assert_eq!(18, result.state_space.states.len());
+    assert_eq!(21, result.state_space.count_transitions());
+    assert_eq!(2, result.state_space.terminated_state_hashes.len());
+    assert_eq!(0, get_unfulfilled_properties(result).len());
 }
 
 #[test]
@@ -47,27 +44,23 @@ fn test_stable_state_space_with_e020() {
     let file_path = PATH.to_string() + "e020.bpmn";
     let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();
     let result = rust_bpmn_analyzer::run(&collaboration, all_properties());
-    assert_eq!(2112, result.state_space.states.len());
-    assert_eq!(3573, result.state_space.count_transitions());
-    assert_eq!(30, result.state_space.terminated_state_hashes.len());
-    assert_eq!(
-        vec![Property::OptionToComplete],
-        get_unfulfilled_properties(result)
-    );
+    assert_eq!(5356, result.state_space.states.len());
+    assert_eq!(13556, result.state_space.count_transitions());
+    assert_eq!(36, result.state_space.terminated_state_hashes.len());
+    assert_eq!(0, get_unfulfilled_properties(result).len());
 }
 
 #[test]
-fn test_message_receive_prio() {
-    let file_path = PATH.to_string() + "message_receive_prio.bpmn";
+fn test_persistent_messages() {
+    let file_path = PATH.to_string() + "message_persistence.bpmn";
     let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();
     let result = rust_bpmn_analyzer::run(&collaboration, all_properties());
-    assert_eq!(11, result.state_space.states.len());
-    assert_eq!(10, result.state_space.count_transitions());
+    assert_eq!(14, result.state_space.states.len());
+    assert_eq!(17, result.state_space.count_transitions());
+    // One terminated state is the first process completing before the second has started
+    // The other is normal termination
     assert_eq!(2, result.state_space.terminated_state_hashes.len());
-    assert_eq!(
-        vec![Property::OptionToComplete],
-        get_unfulfilled_properties(result)
-    );
+    assert_eq!(0, get_unfulfilled_properties(result).len());
 }
 
 fn all_properties() -> Vec<Property> {

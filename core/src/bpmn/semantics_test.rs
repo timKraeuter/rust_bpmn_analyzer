@@ -154,13 +154,11 @@ mod test {
             &mut not_executed_activities,
         );
 
-        assert_eq!(
-            next_states,
-            vec![
-                State::new("p1_process", vec!["post_mice"]),
-                State::new("p1_process", vec!["post_ReceiveTask"])
-            ]
-        );
+        let mut state1 = State::new("p1_process", vec!["post_mice"]);
+        state1.messages.insert("mf1", 1u16);
+        let mut state2 = State::new("p1_process", vec!["post_ReceiveTask"]);
+        state2.messages.insert("mf2", 1u16);
+        assert_eq!(next_states, vec![state1, state2]);
         // The map is empty since the activity was executed to reach one of the states.
         assert_eq!(not_executed_activities.len(), 0);
     }
@@ -204,7 +202,7 @@ mod test {
         assert_eq!(next_states, vec![]);
 
         let mut state_with_message = state_without_message;
-        state_with_message.messages.insert("mf", 1u16);
+        state_with_message.messages.insert("mf", 2u16);
 
         let next_states = flow_node.try_execute(
             get_first_snapshot(&state_with_message),
@@ -213,10 +211,9 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![State::new("p1_process", vec!["post_mice"]),]
-        );
+        let mut expected_state = State::new("p1_process", vec!["post_mice"]);
+        expected_state.messages.insert("mf", 1u16);
+        assert_eq!(next_states, vec![expected_state,]);
     }
 
     #[test]
