@@ -417,7 +417,7 @@ impl FlowNode {
         self.incoming_message_flows
             .iter()
             .filter_map(|inc_mf| {
-                if current_state.messages.get(inc_mf.id.as_str()).is_some() {
+                if current_state.messages.contains_key(inc_mf.id.as_str()) {
                     return Some(inc_mf.id.as_str());
                 }
                 None
