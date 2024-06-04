@@ -108,7 +108,33 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> State<'a> {
-        // Clone all but the defined one.
+        let snapshots = Self::clone_snapshots_without_snapshot(snapshot, current_state);
+
+        State {
+            snapshots,
+            executed_end_event_counter: current_state.executed_end_event_counter.clone(),
+            messages: current_state.messages.clone(),
+        }
+    }
+
+    fn create_new_state_without_snapshot_and_message<'a, 'b>(
+        snapshot: &'b ProcessSnapshot<'a>,
+        current_state: &'b State<'a>,
+        message_id: &str,
+    ) -> State<'a> {
+        let snapshots = Self::clone_snapshots_without_snapshot(snapshot, current_state);
+
+        State {
+            snapshots,
+            executed_end_event_counter: current_state.executed_end_event_counter.clone(),
+            messages: Self::clone_decrease_message(message_id, current_state),
+        }
+    }
+
+    fn clone_snapshots_without_snapshot<'a, 'b>(
+        snapshot: &'b ProcessSnapshot<'a>,
+        current_state: &'b State<'a>,
+    ) -> Vec<ProcessSnapshot<'a>> {
         let snapshots = current_state
             .snapshots
             .iter()
@@ -120,12 +146,7 @@ impl FlowNode {
                 }
             })
             .collect();
-
-        State {
-            snapshots,
-            executed_end_event_counter: current_state.executed_end_event_counter.clone(),
-            messages: BTreeMap::new(),
-        }
+        snapshots
     }
 
     fn add_outgoing_tokens<'a>(&'a self, snapshot: &mut ProcessSnapshot<'a>) {
@@ -141,27 +162,46 @@ impl FlowNode {
         // Usually there is only one incoming flow, i.e., only one new state.
         let mut new_states: Vec<State> = Vec::with_capacity(1);
 
-        if self.flow_node_type == FlowNodeType::Task(TaskType::Receive)
-            && self.no_message_flow_has_a_message(current_state)
-        {
-            return vec![];
-        }
         for inc_flow in self.incoming_flows.iter() {
             match snapshot.tokens.get(inc_flow.id.as_str()) {
                 None => {}
                 Some(_) => {
-                    // Add new state
-                    let mut new_state =
-                        Self::create_new_state_without_snapshot(snapshot, current_state);
-                    let mut new_snapshot =
-                        Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+                    if self.flow_node_type == FlowNodeType::Task(TaskType::Receive) {
+                        // Handle message task
+                        let messages = self.get_message_flows_with_message(current_state);
+                        if messages.is_empty() {
+                            continue;
+                        }
+                        for message in messages {
+                            let mut new_state = Self::create_new_state_without_snapshot_and_message(
+                                snapshot,
+                                current_state,
+                                message,
+                            );
+                            let mut new_snapshot =
+                                Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
 
-                    self.add_outgoing_tokens(&mut new_snapshot);
-                    new_state.snapshots.push(new_snapshot);
+                            self.add_outgoing_tokens(&mut new_snapshot);
+                            new_state.snapshots.push(new_snapshot);
 
-                    self.add_outgoing_messages(&mut new_state);
+                            self.add_outgoing_messages(&mut new_state);
 
-                    new_states.push(new_state);
+                            new_states.push(new_state);
+                        }
+                    } else {
+                        // Handle normal task
+                        let mut new_state =
+                            Self::create_new_state_without_snapshot(snapshot, current_state);
+                        let mut new_snapshot =
+                            Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+
+                        self.add_outgoing_tokens(&mut new_snapshot);
+                        new_state.snapshots.push(new_snapshot);
+
+                        self.add_outgoing_messages(&mut new_state);
+
+                        new_states.push(new_state);
+                    }
                 }
             }
         }
@@ -333,24 +373,32 @@ impl FlowNode {
         match self.flow_node_type {
             FlowNodeType::IntermediateCatchEvent(EventType::Message) => {
                 let mut new_states: Vec<State> = Vec::with_capacity(1); // Usually there is only one incoming flow, i.e., max 1 new state.
-                if self.no_message_flow_has_a_message(current_state) {
+                let message_flows_with_messages =
+                    self.get_message_flows_with_message(current_state);
+                if message_flows_with_messages.is_empty() {
                     return vec![];
                 }
                 for inc_flow in self.incoming_flows.iter() {
                     match snapshot.tokens.get(inc_flow.id.as_str()) {
                         None => {}
                         Some(_) => {
-                            // Consume incoming token
-                            let mut new_state =
-                                Self::create_new_state_without_snapshot(snapshot, current_state);
-                            let mut new_snapshot =
-                                Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
-                            // Add outgoing tokens
-                            self.add_outgoing_tokens(&mut new_snapshot);
+                            for &message in message_flows_with_messages.iter() {
+                                // Consume incoming token and message.
+                                let mut new_state =
+                                    Self::create_new_state_without_snapshot_and_message(
+                                        snapshot,
+                                        current_state,
+                                        message,
+                                    );
+                                let mut new_snapshot =
+                                    Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+                                // Add outgoing tokens
+                                self.add_outgoing_tokens(&mut new_snapshot);
 
-                            new_state.snapshots.push(new_snapshot);
+                                new_state.snapshots.push(new_snapshot);
 
-                            new_states.push(new_state);
+                                new_states.push(new_state);
+                            }
                         }
                     }
                 }
@@ -365,11 +413,16 @@ impl FlowNode {
         }
     }
 
-    fn no_message_flow_has_a_message(&self, current_state: &State) -> bool {
-        !self
-            .incoming_message_flows
+    fn get_message_flows_with_message(&self, current_state: &State) -> Vec<&str> {
+        self.incoming_message_flows
             .iter()
-            .any(|inc_mf| current_state.messages.get(inc_mf.id.as_str()).is_some())
+            .filter_map(|inc_mf| {
+                if current_state.messages.get(inc_mf.id.as_str()).is_some() {
+                    return Some(inc_mf.id.as_str());
+                }
+                None
+            })
+            .collect()
     }
 
     fn record_end_event_execution<'a>(&'a self, new_state: &mut State<'a>) {
@@ -390,7 +443,8 @@ impl FlowNode {
             return next_states;
         }
         for inc_mf in self.incoming_message_flows.iter() {
-            let message_count = current_state.messages.get(inc_mf.id.as_str());
+            let message_id = inc_mf.id.as_str();
+            let message_count = current_state.messages.get(message_id);
             match message_count {
                 None => {}
                 Some(count) => {
@@ -400,7 +454,7 @@ impl FlowNode {
                             executed_end_event_counter: current_state
                                 .executed_end_event_counter
                                 .clone(),
-                            messages: BTreeMap::new(),
+                            messages: Self::clone_decrease_message(message_id, current_state),
                         };
                         // Create a new snapshot.
                         let mut new_snapshot = ProcessSnapshot {
@@ -417,6 +471,21 @@ impl FlowNode {
         }
         next_states
     }
+
+    fn clone_decrease_message<'a>(message_id: &str, state: &State<'a>) -> BTreeMap<&'a str, u16> {
+        let mut messages = BTreeMap::new();
+        state.messages.iter().for_each(|(&message, count)| {
+            if message == message_id {
+                if *count > 1 {
+                    messages.insert(message, *count - 1);
+                }
+            } else {
+                messages.insert(message, *count);
+            }
+        });
+        messages
+    }
+
     fn try_execute_evg<'a, 'b>(
         &'a self,
         snapshot: &'b ProcessSnapshot<'a>,
@@ -437,7 +506,9 @@ impl FlowNode {
                     for flow_node in self.outgoing_flows.iter().filter_map(|sequence_flow| {
                         process.flow_nodes.get(sequence_flow.target_idx)
                     }) {
-                        if flow_node.no_message_flow_has_a_message(current_state) {
+                        let message_flows_with_incoming_messages =
+                            flow_node.get_message_flows_with_message(current_state);
+                        if message_flows_with_incoming_messages.is_empty() {
                             continue;
                         }
                         if flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive)
@@ -445,18 +516,23 @@ impl FlowNode {
                         {
                             not_executed_activities.remove(flow_node.id.as_str());
                         }
-                        // Consume incoming token
-                        let mut new_state =
-                            Self::create_new_state_without_snapshot(snapshot, current_state);
-                        let mut new_snapshot =
-                            Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
+                        for message in message_flows_with_incoming_messages {
+                            // Consume incoming token
+                            let mut new_state = Self::create_new_state_without_snapshot_and_message(
+                                snapshot,
+                                current_state,
+                                message,
+                            );
+                            let mut new_snapshot =
+                                Self::create_new_snapshot_without_token(snapshot, &inc_flow.id);
 
-                        // Add outgoing tokens
-                        flow_node.add_outgoing_tokens(&mut new_snapshot);
+                            // Add outgoing tokens
+                            flow_node.add_outgoing_tokens(&mut new_snapshot);
 
-                        new_state.snapshots.push(new_snapshot);
+                            new_state.snapshots.push(new_snapshot);
 
-                        new_states.push(new_state);
+                            new_states.push(new_state);
+                        }
                     }
                 }
             }
