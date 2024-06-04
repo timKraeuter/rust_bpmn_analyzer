@@ -158,13 +158,7 @@ mod test {
         state1.messages.insert("mf1", 1u16);
         let mut state2 = State::new("p1_process", vec!["post_ReceiveTask"]);
         state2.messages.insert("mf2", 1u16);
-        assert_eq!(
-            next_states,
-            vec![
-                state1,
-                state2
-            ]
-        );
+        assert_eq!(next_states, vec![state1, state2]);
         // The map is empty since the activity was executed to reach one of the states.
         assert_eq!(not_executed_activities.len(), 0);
     }
@@ -219,10 +213,7 @@ mod test {
 
         let mut expected_state = State::new("p1_process", vec!["post_mice"]);
         expected_state.messages.insert("mf", 1u16);
-        assert_eq!(
-            next_states,
-            vec![expected_state,]
-        );
+        assert_eq!(next_states, vec![expected_state,]);
     }
 
     #[test]
