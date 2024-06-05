@@ -1,7 +1,10 @@
+use crate::model_checking::properties::LiveLockError;
 use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
+
+const MAX_TOKEN: u16 = 50;
 
 #[derive(Debug)]
 pub struct StateSpace<'a> {
@@ -121,20 +124,21 @@ impl<'a> State<'a> {
             .all(|snapshot| snapshot.tokens.is_empty())
     }
 
-    pub fn find_unsafe_sf_ids(&self) -> Vec<&str> {
-        self.snapshots
-            .iter()
-            .flat_map(|snapshot| snapshot.tokens.iter())
-            .filter_map(
-                |(&sf_id, amount)| {
-                    if *amount >= 2u16 {
-                        Some(sf_id)
-                    } else {
-                        None
-                    }
-                },
-            )
-            .collect()
+    pub fn find_unsafe_sf_ids_or_livelock(&self) -> Result<Vec<&str>, LiveLockError> {
+        let mut result = vec![];
+        for snapshot in self.snapshots.iter() {
+            for (&sf_id, &amount) in snapshot.tokens.iter() {
+                if amount >= MAX_TOKEN {
+                    return Err(LiveLockError {
+                        overflowing_position: sf_id.to_string(),
+                    });
+                }
+                if amount >= 2u16 {
+                    result.push(sf_id);
+                }
+            }
+        }
+        Ok(result)
     }
 
     pub fn add_message<'b>(&'b mut self, position: &'a str) {
