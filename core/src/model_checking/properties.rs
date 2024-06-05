@@ -2,6 +2,7 @@ use crate::states::state_space::{State, StateSpace};
 use clap::ValueEnum;
 use colored::{ColoredString, Colorize};
 use std::collections::HashMap;
+use std::fmt;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, PartialEq, Clone, ValueEnum)]
@@ -159,11 +160,11 @@ pub fn check_on_the_fly_properties(
     properties: &[Property],
     property_results: &mut Vec<PropertyResult>,
     transitions: &[(&str, u64)],
-) {
+) -> Result<(), LiveLockError> {
     for property in properties.iter() {
         match property {
             Property::Safeness => {
-                check_if_unsafe(current_state_hash, current_state, property_results);
+                check_if_unsafe_or_livelock(current_state_hash, current_state, property_results)?;
             }
             Property::OptionToComplete => check_if_stuck(
                 current_state_hash,
@@ -174,6 +175,7 @@ pub fn check_on_the_fly_properties(
             _ => {}
         }
     }
+    Ok(())
 }
 
 pub fn check_if_stuck(
@@ -227,12 +229,12 @@ fn find_property_result(
         .find(|result| result.property == property)
 }
 
-fn check_if_unsafe(
+fn check_if_unsafe_or_livelock(
     current_state_hash: u64,
     current_state: &State,
     property_results: &mut Vec<PropertyResult>,
-) {
-    let unsafe_sfs = current_state.find_unsafe_sf_ids();
+) -> Result<(), LiveLockError> {
+    let unsafe_sfs = current_state.find_unsafe_sf_ids_or_livelock()?;
     if !unsafe_sfs.is_empty() {
         let unsafe_sfs = unsafe_sfs.iter().map(|&id| String::from(id)).collect();
         match find_property_result(property_results, Property::Safeness) {
@@ -249,4 +251,22 @@ fn check_if_unsafe(
             }
         }
     }
+    Ok(())
 }
+
+#[derive(Debug)]
+pub struct LiveLockError {
+    pub overflowing_position: String,
+}
+
+impl Display for LiveLockError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "Livelock (> MAX_TOKENS) found at BPMN element: {:?}",
+            self.overflowing_position
+        )
+    }
+}
+
+impl std::error::Error for LiveLockError {}

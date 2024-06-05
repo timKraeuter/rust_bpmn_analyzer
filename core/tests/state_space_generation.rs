@@ -63,6 +63,20 @@ fn test_persistent_messages() {
     assert_eq!(0, get_unfulfilled_properties(result).len());
 }
 
+#[test]
+fn test_livelock() {
+    let file_path = PATH.to_string() + "livelock.bpmn";
+    let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();
+    let result = rust_bpmn_analyzer::run(&collaboration, all_properties());
+    assert_eq!(48195, result.state_space.states.len());
+    assert_eq!(138391, result.state_space.count_transitions());
+    assert_eq!(0, result.state_space.terminated_state_hashes.len());
+    assert_eq!(
+        vec![Property::Safeness, Property::OptionToComplete],
+        get_unfulfilled_properties(result)
+    );
+}
+
 fn all_properties() -> Vec<Property> {
     vec![
         Property::Safeness,

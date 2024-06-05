@@ -3,6 +3,7 @@ use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow, Tas
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
+    PropertyResult,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 use std::collections::{BTreeMap, HashMap, VecDeque};
@@ -74,7 +75,7 @@ impl Collaboration {
                         transitions.push((flow_node_id, new_hash));
                     }
                     // Do stuff for model checking
-                    check_on_the_fly_properties(
+                    let property_result = check_on_the_fly_properties(
                         current_state_hash,
                         &current_state,
                         &properties,
@@ -89,6 +90,18 @@ impl Collaboration {
                         state_space
                             .transitions
                             .insert(current_state_hash, transitions);
+                    }
+                    match property_result {
+                        Ok(_) => {}
+                        Err(e) => {
+                            property_results.push(PropertyResult {
+                                property: Property::OptionToComplete,
+                                problematic_state_hashes: vec![current_state_hash],
+                                problematic_elements: vec![e.overflowing_position],
+                                fulfilled: false,
+                            });
+                            break;
+                        }
                     }
                 }
             };
