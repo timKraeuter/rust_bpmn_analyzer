@@ -502,8 +502,8 @@ mod test {
             vec![PropertyResult {
                 property: Property::Safeness,
                 fulfilled: false,
-                problematic_elements: vec![String::from("Unsafe2"), String::from("Unsafe1")],
-                problematic_state_hashes: vec![10963063677454573590, unsafe_state_hash]
+                problematic_elements: vec![String::from("Unsafe1"), String::from("Unsafe2")],
+                problematic_state_hashes: vec![unsafe_state_hash, 10963063677454573590]
             }]
         );
 
@@ -550,8 +550,8 @@ mod test {
         let model_checking_result =
             collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
-        let not_terminated_state_hash_1 = 6735018309777973944;
-        let not_terminated_state_hash_2 = 9452229757242377755;
+        let not_terminated_state_hash_1 = 9452229757242377755;
+        let not_terminated_state_hash_2 = 6735018309777973944;
         assert_eq!(
             model_checking_result.property_results,
             vec![PropertyResult {
@@ -569,7 +569,7 @@ mod test {
             get_flow_nodes_executed_to_reach(&model_checking_result, not_terminated_state_hash_1);
 
         assert_eq!(
-            vec!["Gateway_0do975f", "Activity_0x2nbu7"],
+            vec!["Gateway_0do975f", "Activity_03mx8x5"],
             path_to_not_terminated_1
         );
 
@@ -577,7 +577,7 @@ mod test {
             get_flow_nodes_executed_to_reach(&model_checking_result, not_terminated_state_hash_2);
 
         assert_eq!(
-            vec!["Gateway_0do975f", "Activity_03mx8x5"],
+            vec!["Gateway_0do975f", "Activity_0x2nbu7"],
             path_to_not_terminated_2
         );
     }

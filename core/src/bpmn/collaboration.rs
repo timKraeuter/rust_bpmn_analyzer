@@ -5,7 +5,7 @@ use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, VecDeque};
 
 #[derive(Debug, PartialEq)]
 pub struct Collaboration {
@@ -47,10 +47,11 @@ impl Collaboration {
             transitions: HashMap::new(),
         };
 
-        let mut unexplored_states = vec![(start_state_hash, start_state)];
+        let mut unexplored_states = VecDeque::new();
+        unexplored_states.push_back((start_state_hash, start_state));
 
         while !unexplored_states.is_empty() {
-            match unexplored_states.pop() {
+            match unexplored_states.pop_front() {
                 None => {}
                 Some((current_state_hash, current_state)) => {
                     // Explore the state
@@ -65,7 +66,7 @@ impl Collaboration {
                             None => {
                                 // State is new.
                                 seen_state_hashes.insert(new_hash, true);
-                                unexplored_states.push((new_hash, new_state));
+                                unexplored_states.push_back((new_hash, new_state));
                             }
                             Some(_) => {}
                         }
