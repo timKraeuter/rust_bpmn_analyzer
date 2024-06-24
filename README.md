@@ -7,17 +7,17 @@
 
 [Benchmarks using Bencher🐰](https://bencher.dev/console/projects/rust-bpmn-analyzer/perf)
 
-# Rust BPMN Analyzer
+# BPMN Analyzer 2.0
 
-This is a BPMN analyzer, i.e., a **BPMN-specific model checker** written in Rust. It can parse BPMN files and analyze them for
+This is an analyzer for BPMN models, i.e., a **BPMN-specific model checker** written in Rust. It can parse BPMN files and analyze them for
 specific properties. The analyzer can detect deadlocks, livelocks, and other properties of
 BPMN models.
 
 The Analyzer is structured into four crates:
 - `core`: The core functionality of the analyzer, i.e., analyzing BPMN models **(library)**.
 - `cli`: A CLI application providing BPMN analysis **(binary)**.
-- `webserver`: A webserver providing BPMN analysis as a service **(binary)**.
-- `wasm`: The WebAssembly crate provides bindings to web-assembly to analyze BPMN models on the client-side in the browser.
+- `webserver`: A web server providing BPMN analysis as a service **(binary)**.
+- `wasm`: The WebAssembly crate provides bindings to web assembly to analyze BPMN models on the client-side in the browser.
 
 # Core
 
@@ -36,16 +36,16 @@ One can run the CLI application for a specific BPMN model and a set of propertie
 cargo run -- -f benchmark_input/p10x01.bpmn -p safeness,option-to-complete,proper-completion,no-dead-activities
 ```
 
-Build an optimized binary which can be used like shown above:
+Build an optimized binary that can be used as shown above:
 ```bash
 cargo build --release
 ```
 
 # Webserver
-This binary crate provides a webserver with a webservice to analyze BPMN models.
+This binary crate provides a web server with a web service to analyze BPMN models.
 The webserver is available locally by running `main.rs`, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://bpm-2024.whitefield-c9fed487.northeurope.azurecontainerapps.io/).
 
-The webserver not only serves the analyzer but also a custom [BPMN editor](https://github.com/timKraeuter/bpmn-analyzer-js) to create BPMN models and get instantaneous feedback, counter examples, and quick fixes for the checked properties.
+The web server serves not only the analyzer but also a custom [BPMN editor](https://github.com/timKraeuter/bpmn-analyzer-js) to create BPMN models and get instantaneous feedback, counter examples, and quick fixes for the checked properties.
 See a detailed description on [my website](https://timkraeuter.com//rust-bpmn-analyzer/).
 
 ## Docker
@@ -63,8 +63,8 @@ Run the application image:
 docker run -p 8080:8080 tkra/rust_bpmn_analyzer
 ```
 
-# Wasm
-This crate provides wasm bindings to run BPMN analysis directly in the browser on the clients machine.
+# WASM
+This crate provides wasm bindings to run BPMN analysis directly in the browser on the clients' machine.
 A demo using the WASM bindings is available [here](https://timkraeuter.com/bpmn-analyzer-js/). 
 
 Install wasm-pack using (see [documentation](https://developer.mozilla.org/en-US/docs/WebAssembly/Rust_to_Wasm)):
@@ -82,7 +82,7 @@ The output can be found in `../../bpmn-analyzer-js/src/lib/analysis/wasm/generat
 
 # BPMN coverage
 
-The BPMN elements in green are supported by the analyzer. We follow the structure of
+The analyzer supports the green BPMN elements. We follow the structure of
 the [Camunda 8 documentation](https://docs.camunda.io/docs/components/modeler/bpmn/bpmn-coverage/).
 
 ## Participants
@@ -94,7 +94,7 @@ given properties.
 
 ## Subprocesses
 
-Call Activities are handled as tasks, i.e., we assume they terminate after a certain amount of time.
+Call Activities are handled as tasks, i.e., we assume they terminate after a certain time.
 
 ![Call activity](./documentation/assets/bpmn-symbols/call-activity.svg)
 ![Embedded subprocess](./documentation/assets/bpmn-symbols/embedded-subprocess.svg)
@@ -103,7 +103,7 @@ Call Activities are handled as tasks, i.e., we assume they terminate after a cer
 
 ## Tasks
 
-All tasks are handled identically expect Send/Receive tasks which send/receive messages.
+All tasks are handled identically except Send/Receive tasks, which send/receive messages.
 
 ![Service Task](./documentation/assets/bpmn-symbols/service-task.svg)
 ![User Task](./documentation/assets/bpmn-symbols/user-task.svg)
@@ -125,7 +125,7 @@ All tasks are handled identically expect Send/Receive tasks which send/receive m
 
 ## Markers, Data & Artifacts
 
-Markers, data and artifacts are ignored.
+Markers, data, and artifacts are ignored.
 
 ## Events
 
