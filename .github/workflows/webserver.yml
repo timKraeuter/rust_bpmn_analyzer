@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-    - webserver/**
+    - webserver/src/**
   pull_request:
 
 env:
