@@ -1,9 +1,9 @@
 use rust_bpmn_analyzer::states::state_space::{ProcessSnapshot, State, StateSpace};
 use rust_bpmn_analyzer::{ModelCheckingResult, Property};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::collections::BTreeMap;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize)]
 pub enum PropertyDTO {
     Safeness,
     OptionToComplete,
