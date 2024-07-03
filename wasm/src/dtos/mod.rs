@@ -3,12 +3,6 @@ use rust_bpmn_analyzer::{ModelCheckingResult, Property};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Deserialize)]
-pub struct CheckBPMNRequest {
-    pub bpmn_file_content: String,
-    pub properties_to_be_checked: Vec<PropertyDTO>,
-}
-
 #[derive(Serialize, Deserialize)]
 pub enum PropertyDTO {
     Safeness,
