@@ -6,6 +6,7 @@ use crate::model_checking::properties::{
     PropertyResult,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
+use std::collections::hash_map::Entry::Vacant;
 use std::collections::{BTreeMap, HashMap, VecDeque};
 
 #[derive(Debug, PartialEq)]
@@ -63,13 +64,10 @@ impl Collaboration {
                     for (flow_node_id, new_state) in potentially_unexplored_states {
                         let new_hash = new_state.calc_hash();
                         // Check if we know the state already
-                        match seen_state_hashes.get(&new_hash) {
-                            None => {
-                                // State is new.
-                                seen_state_hashes.insert(new_hash, true);
-                                unexplored_states.push_back((new_hash, new_state));
-                            }
-                            Some(_) => {}
+                        if let Vacant(e) = seen_state_hashes.entry(new_hash) {
+                            // State is new.
+                            e.insert(true);
+                            unexplored_states.push_back((new_hash, new_state));
                         }
                         // Remember states to make transitions.
                         transitions.push((flow_node_id, new_hash));
