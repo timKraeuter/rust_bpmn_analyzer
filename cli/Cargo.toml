@@ -4,7 +4,7 @@ version = "2.0.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.4", features = ["derive"] }
+clap = { version = "4.5.21", features = ["derive"] }
 colored = "2.1.0"
 rust_bpmn_analyzer = { path = "../core" }
 
