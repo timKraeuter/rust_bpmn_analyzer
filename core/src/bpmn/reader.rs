@@ -33,7 +33,7 @@ pub fn read_bpmn_from_string(
     contents: &str,
 ) -> Result<Collaboration, UnsupportedBpmnElementsError> {
     let mut reader = Reader::from_str(contents);
-    reader.trim_text(true);
+    reader.config_mut().trim_text(true);
 
     let mut collaboration = Collaboration {
         participants: vec![],
