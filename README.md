@@ -43,7 +43,7 @@ cargo build --release
 
 # Webserver
 This binary crate provides a web server with a web service to analyze BPMN models.
-The webserver is available locally by running `main.rs`, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://bpm-2024.whitefield-c9fed487.northeurope.azurecontainerapps.io/).
+The webserver is available locally by running `main.rs`, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://rust-bpmn-analyzer.wittyrock-9d6a3c00.northeurope.azurecontainerapps.io).
 
 The web server serves not only the analyzer but also a custom [BPMN editor](https://github.com/timKraeuter/bpmn-analyzer-js) to create BPMN models and get instantaneous feedback, counter examples, and quick fixes for the checked properties.
 See a detailed description on [my website](https://timkraeuter.com//rust-bpmn-analyzer/).
