@@ -1,4 +1,4 @@
-name: Build & Push to Azure and Dockerhub
+name: Build Container & Push to Dockerhub
 
 on:
   workflow_dispatch:
