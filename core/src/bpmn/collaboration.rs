@@ -165,7 +165,7 @@ impl Collaboration {
         &'a self,
         state: &State<'a>,
         not_executed_activities: &mut HashMap<&str, bool>,
-    ) -> Vec<(&str, State<'a>)> {
+    ) -> Vec<(&'a str, State<'a>)> {
         let mut unexplored_states: Vec<(&str, State)> = vec![];
         if !state.messages.is_empty() {
             self.try_trigger_message_start_events(state, &mut unexplored_states);
