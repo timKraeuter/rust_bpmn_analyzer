@@ -30,7 +30,7 @@ async fn main() {
     let checker = Router::new().route("/check_bpmn", post(check_bpmn));
     let webapp = serve_dir();
 
-    let app = Router::new().nest("/", checker).nest("/", webapp);
+    let app = Router::new().merge(checker).merge(webapp);
 
     serve(app, config.port).await;
 }
@@ -49,7 +49,7 @@ async fn serve(app: Router, port: u16) {
 }
 
 fn serve_dir() -> Router {
-    Router::new().nest_service("/", ServeDir::new("public"))
+    Router::new().fallback_service(ServeDir::new("public"))
 }
 
 async fn check_bpmn<'a>(
