@@ -35,7 +35,7 @@ pub struct ModelCheckingResult<'a> {
 }
 
 impl ModelCheckingResult<'_> {
-    pub fn get_state(&self, state_hash: &u64) -> Option<&State> {
+    pub fn get_state(&self, state_hash: &u64) -> Option<&State<'_>> {
         self.state_space.states.get(state_hash)
     }
 }

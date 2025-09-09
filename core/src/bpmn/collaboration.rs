@@ -33,7 +33,7 @@ impl Collaboration {
         self.participants.push(participant);
     }
 
-    pub fn explore_state_space(&self, properties: Vec<Property>) -> ModelCheckingResult {
+    pub fn explore_state_space(&self, properties: Vec<Property>) -> ModelCheckingResult<'_> {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_tasks();
 
@@ -135,7 +135,7 @@ impl Collaboration {
         flow_nodes
     }
 
-    pub fn create_start_state(&self) -> State {
+    pub fn create_start_state(&self) -> State<'_> {
         let mut start = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),

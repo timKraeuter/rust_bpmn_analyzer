@@ -7,7 +7,7 @@ use crate::bpmn::reader;
 use crate::bpmn::reader::UnsupportedBpmnElementsError;
 pub use crate::model_checking::properties::{ModelCheckingResult, Property};
 
-pub fn run(collaboration: &Collaboration, properties: Vec<Property>) -> ModelCheckingResult {
+pub fn run(collaboration: &Collaboration, properties: Vec<Property>) -> ModelCheckingResult<'_> {
     collaboration.explore_state_space(properties)
 }
 
