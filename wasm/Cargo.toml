@@ -11,3 +11,6 @@ wasm-bindgen = "0.2.95"
 rust_bpmn_analyzer = { path = "../core" }
 serde = { version = "1.0.215", features = ["derive"] }
 serde-wasm-bindgen = "0.6.5"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(`wasm_bindgen_unstable_test_coverage)'] }
