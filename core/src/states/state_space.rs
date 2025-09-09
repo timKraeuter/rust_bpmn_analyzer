@@ -22,7 +22,7 @@ impl StateSpace<'_> {
         }
     }
 
-    pub fn get_state(&self, state_hash: &u64) -> &State {
+    pub fn get_state(&self, state_hash: &u64) -> &State<'_> {
         self.states
             .get(state_hash)
             .unwrap_or_else(|| panic!("State for {} not found!", state_hash))
