@@ -52,7 +52,7 @@ fn serve_dir() -> Router {
     Router::new().fallback_service(ServeDir::new("public"))
 }
 
-async fn check_bpmn<'a>(
+async fn check_bpmn(
     Json(payload): Json<CheckBPMNRequest>,
 ) -> (StatusCode, Json<CheckBPMNResponse>) {
     let collaboration = read_bpmn_from_string(&payload.bpmn_file_content);
