@@ -19,7 +19,7 @@ jobs:
         working-directory: core
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Format
         run: cargo fmt --check
       - name: Lint

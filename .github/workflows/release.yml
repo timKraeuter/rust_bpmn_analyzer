@@ -15,7 +15,7 @@ jobs:
         working-directory: webserver
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Add x86_64-unknown-linux-musl target
         run: rustup target add x86_64-unknown-linux-musl
       - name: Build rust_bpmn_analyzer
