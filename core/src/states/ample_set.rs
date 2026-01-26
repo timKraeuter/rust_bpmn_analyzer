@@ -115,22 +115,46 @@ pub fn compute_ample_set<'a>(
         return full_expansion(enabled_transitions, AmpleSetReason::C3Proviso);
     }
 
-    // IMPORTANT: For correctness, if ANY transition produces OR consumes messages,
-    // we must fully expand. This is because:
-    // 1. Message-producing transitions can enable transitions in other processes
-    // 2. Message-consuming transitions indicate inter-process communication patterns
-    //    where the order of execution matters for reachability analysis
-    // A more sophisticated implementation would track potential message dependencies.
+    // CORRECTNESS CHECK: For multi-process BPMN models with message passing,
+    // we must be very careful about singleton ample sets.
+    //
+    // The C1 condition requires that transitions in the ample set are independent
+    // of ALL transitions that could eventually be enabled via paths through
+    // transitions OUTSIDE the ample set.
+    //
+    // In BPMN collaborations:
+    // - Process A might send a message that enables Process B
+    // - If we select a transition from Process C as singleton ample set,
+    //   we skip Process A's transitions
+    // - This means Process B is never enabled, causing incorrect deadlock detection
+    //
+    // For now, we only apply singleton ample set optimization for models where:
+    // 1. There are no message-involving transitions at all, OR
+    // 2. All enabled transitions belong to the same process (intra-process parallelism)
+    //
+    // This is more conservative but guarantees correctness.
     let any_involves_messages = enabled_transitions
         .iter()
         .any(|t| !t.produces_messages.is_empty() || !t.consumes_messages.is_empty());
 
-    if any_involves_messages {
+    // Check if all transitions are from the same process
+    let first_process = enabled_transitions.first().map(|t| t.process_id);
+    let all_same_process = first_process.is_some()
+        && enabled_transitions
+            .iter()
+            .all(|t| Some(t.process_id) == first_process);
+
+    // Only attempt singleton ample sets if:
+    // - No message transitions (pure parallel within/across processes), OR
+    // - All transitions are from the same process (intra-process parallelism)
+    if any_involves_messages && !all_same_process {
         return full_expansion(enabled_transitions, AmpleSetReason::C1Violated);
     }
 
-    // Try to find a single independent transition as ample set
-    // This works for parallel branches within a single process or across processes
+    // Try to find a single independent transition as ample set.
+    // This is safe because either:
+    // 1. No messages are involved, so all processes are truly independent, OR
+    // 2. All transitions are in the same process, so we're just reordering within a process
     if let Some(result) = find_singleton_ample_set(enabled_transitions, config) {
         return result;
     }
@@ -157,6 +181,15 @@ fn find_singleton_ample_set<'a>(
 ) -> Option<AmpleSetResult<'a>> {
     // Try each transition as a potential singleton ample set
     for (idx, candidate) in enabled_transitions.iter().enumerate() {
+        // Skip message-producing transitions.
+        // These can enable transitions in other processes (message receivers),
+        // and those receivers might depend on other enabled transitions in their
+        // process. Selecting a message-producing transition as a singleton could
+        // cause us to miss reachable states.
+        if !candidate.produces_messages.is_empty() {
+            continue;
+        }
+
         // C1: Check if this transition is independent of ALL other enabled transitions
         let is_independent_of_others = enabled_transitions
             .iter()
