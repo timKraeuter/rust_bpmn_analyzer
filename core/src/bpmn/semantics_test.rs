@@ -5,7 +5,7 @@ mod test {
     use crate::bpmn::process::Process;
     use crate::bpmn::reader::read_bpmn_from_file;
     use crate::model_checking::properties::{ModelCheckingResult, PropertyResult};
-    use crate::states::state_space::{ProcessSnapshot, State};
+    use crate::states::state_space::{ProcessSnapshot, State, reset_snapshot_counter};
     use crate::Property;
     use std::collections::{BTreeMap, HashMap};
 
@@ -23,21 +23,23 @@ mod test {
 
     #[test]
     fn create_start_state_one_participant() {
+        reset_snapshot_counter();
+        let expected_state = State {
+            snapshots: vec![ProcessSnapshot::new("process", vec!["Flow_1", "Flow_2"],)],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+        
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/start.bpmn"));
+        reset_snapshot_counter(); // Reset again to get the same IDs
         let start_state = collaboration.create_start_state();
 
-        assert_eq!(
-            start_state,
-            State {
-                snapshots: vec![ProcessSnapshot::new("process", vec!["Flow_1", "Flow_2"],)],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
-            }
-        );
+        assert_eq!(start_state, expected_state);
     }
 
     #[test]
     fn create_start_state_multiple_participants() {
+        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/multiple_participants.bpmn"));
         let start_state = collaboration.create_start_state();
@@ -57,6 +59,7 @@ mod test {
 
     #[test]
     fn try_execute_task() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/task.bpmn"));
 
         let process = get_first_process(&collaboration);
@@ -82,6 +85,7 @@ mod test {
 
     #[test]
     fn try_execute_receive_task() {
+        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/receive_task.bpmn"));
 
@@ -121,6 +125,7 @@ mod test {
 
     #[test]
     fn try_execute_evg() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/evg.bpmn"));
 
         let process = get_process_by_id(&collaboration, "p1_process");
@@ -165,6 +170,7 @@ mod test {
 
     #[test]
     fn try_execute_receive_task_no_message_flows() {
+        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/receive_task_no_mf.bpmn"));
         let process = get_process_by_id(&collaboration, "p1_process");
@@ -179,6 +185,7 @@ mod test {
 
     #[test]
     fn try_execute_message_intermediate_catch_event() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "semantics/message_intermediate_catch_event.bpmn"),
         );
@@ -218,6 +225,7 @@ mod test {
 
     #[test]
     fn try_execute_send_task() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/send_task.bpmn"));
 
         let process = get_process_by_id(&collaboration, "p1_process");
@@ -245,6 +253,7 @@ mod test {
 
     #[test]
     fn try_execute_exg_choice() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
@@ -270,6 +279,7 @@ mod test {
 
     #[test]
     fn try_execute_exg_merge() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
@@ -295,6 +305,7 @@ mod test {
 
     #[test]
     fn try_execute_pg_split() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
@@ -317,6 +328,7 @@ mod test {
 
     #[test]
     fn try_execute_pg_sync() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
@@ -336,6 +348,7 @@ mod test {
 
     #[test]
     fn try_execute_end_event() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/end.bpmn"));
         let process = get_first_process(&collaboration);
 
@@ -358,6 +371,7 @@ mod test {
 
     #[test]
     fn try_execute_terminate_end_event() {
+        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/terminate_end.bpmn"));
         let process = get_process_by_id(&collaboration, "p1_process");
@@ -366,7 +380,7 @@ mod test {
         let start_state = collaboration.create_start_state();
 
         let next_states = terminate_end_event.try_execute(
-            get_snapshot_by_id(&start_state, "p1_process"),
+            get_snapshot_by_process_id(&start_state, "p1_process"),
             &start_state,
             process,
             &mut HashMap::new(),
@@ -386,6 +400,7 @@ mod test {
 
     #[test]
     fn try_execute_intermediate_throw_event() {
+        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/intermediate_event.bpmn"));
         let process = get_first_process(&collaboration);
@@ -411,6 +426,7 @@ mod test {
 
     #[test]
     fn try_execute_link_events_connected_by_names() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/link_event.bpmn"));
         let process = get_first_process(&collaboration);
 
@@ -429,6 +445,7 @@ mod test {
 
     #[test]
     fn try_execute_link_events_connected_by_link_names() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/link_event.bpmn"));
         let process = get_first_process(&collaboration);
 
@@ -447,6 +464,7 @@ mod test {
 
     #[test]
     fn try_execute_message_start() {
+        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/message_start_event.bpmn"));
         let process = get_first_process(&collaboration);
@@ -490,6 +508,7 @@ mod test {
 
     #[test]
     fn safeness_unfulfilled() {
+        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "properties/safeness/unsafe.bpmn"));
 
@@ -508,17 +527,12 @@ mod test {
         );
 
         let unsafe_state = model_checking_result.get_state(&unsafe_state_hash).unwrap();
-        assert_eq!(
-            unsafe_state,
-            &State {
-                snapshots: vec![ProcessSnapshot {
-                    id: "process",
-                    tokens: BTreeMap::from([("Unsafe1", 2u16)]),
-                }],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
-            }
-        );
+        // Check that the state has the expected structure
+        assert_eq!(unsafe_state.snapshots.len(), 1);
+        assert_eq!(unsafe_state.snapshots[0].process_id, "process");
+        assert_eq!(unsafe_state.snapshots[0].tokens, BTreeMap::from([("Unsafe1", 2u16)]));
+        assert_eq!(unsafe_state.executed_end_event_counter, BTreeMap::new());
+        assert_eq!(unsafe_state.messages, BTreeMap::new());
 
         let path_to_unsafe =
             get_flow_nodes_executed_to_reach(&model_checking_result, unsafe_state_hash);
@@ -531,6 +545,7 @@ mod test {
 
     #[test]
     fn safeness_fulfilled() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let model_checking_result = collaboration.explore_state_space(vec![Property::Safeness]);
@@ -604,21 +619,17 @@ mod test {
         );
 
         let stuck_state = model_checking_result.get_state(&expected_hash).unwrap();
-        assert_eq!(
-            stuck_state,
-            &State {
-                snapshots: vec![ProcessSnapshot {
-                    id: "Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2",
-                    tokens: BTreeMap::from([("stuck", 1u16)]),
-                }],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
-            }
-        );
+        // Check that the state has the expected structure
+        assert_eq!(stuck_state.snapshots.len(), 1);
+        assert_eq!(stuck_state.snapshots[0].process_id, "Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2");
+        assert_eq!(stuck_state.snapshots[0].tokens, BTreeMap::from([("stuck", 1u16)]));
+        assert_eq!(stuck_state.executed_end_event_counter, BTreeMap::new());
+        assert_eq!(stuck_state.messages, BTreeMap::new());
     }
 
     #[test]
     fn option_to_complete_fulfilled() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let model_checking_result =
@@ -632,6 +643,7 @@ mod test {
 
     #[test]
     fn no_dead_activities_unfulfilled() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/no_dead_activities/dead-activities.bpmn"),
         );
@@ -657,6 +669,7 @@ mod test {
 
     #[test]
     fn no_dead_activities_fulfilled() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/no_dead_activities/no-dead-activities.bpmn"),
         );
@@ -780,11 +793,11 @@ mod test {
         snapshot
     }
 
-    fn get_snapshot_by_id<'a>(start_state: &'a State, id: &str) -> &'a ProcessSnapshot<'a> {
+    fn get_snapshot_by_process_id<'a>(start_state: &'a State, process_id: &str) -> &'a ProcessSnapshot<'a> {
         start_state
             .snapshots
             .iter()
-            .find(|snapshot| snapshot.id == id)
+            .find(|snapshot| snapshot.process_id == process_id)
             .unwrap()
     }
 

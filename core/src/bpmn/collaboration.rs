@@ -5,9 +5,10 @@ use crate::model_checking::properties::{
     check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
     PropertyResult,
 };
-use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
+use crate::states::state_space::{ProcessSnapshot, State, StateSpace, NEXT_SNAPSHOT_ID};
 use std::collections::hash_map::Entry::Vacant;
 use std::collections::{BTreeMap, HashMap, VecDeque};
+use std::sync::atomic::Ordering;
 
 #[derive(Debug, PartialEq)]
 pub struct Collaboration {
@@ -152,8 +153,10 @@ impl Collaboration {
                 }
             }
             if !tokens.is_empty() {
+                let snapshot_id = NEXT_SNAPSHOT_ID.fetch_add(1, Ordering::Relaxed);
                 start.snapshots.push(ProcessSnapshot {
-                    id: &process.id,
+                    id: snapshot_id,
+                    process_id: &process.id,
                     tokens,
                 });
             }
@@ -176,10 +179,10 @@ impl Collaboration {
             let process = self
                 .participants
                 .iter()
-                .find(|process| process.id == snapshot.id);
+                .find(|process| process.id == snapshot.process_id);
             match process {
                 None => {
-                    panic!("No process found for snapshot with id \"{}\"", snapshot.id)
+                    panic!("No process found for snapshot with process_id \"{}\"", snapshot.process_id)
                 }
                 Some(process) => {
                     for flow_node in
