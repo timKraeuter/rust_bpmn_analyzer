@@ -40,31 +40,37 @@ mod test {
     #[test]
     fn create_start_state_multiple_participants() {
         reset_snapshot_counter();
+        let expected_state = State {
+            snapshots: vec![
+                ProcessSnapshot::new("p1_process", vec!["Flow_04pas1n"]),
+                ProcessSnapshot::new("p3_process", vec!["Flow_0gz2791"])
+            ],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+        
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/multiple_participants.bpmn"));
+        reset_snapshot_counter();
         let start_state = collaboration.create_start_state();
 
-        assert_eq!(
-            start_state,
-            State {
-                snapshots: vec![
-                    ProcessSnapshot::new("p1_process", vec!["Flow_04pas1n"]),
-                    ProcessSnapshot::new("p3_process", vec!["Flow_0gz2791"])
-                ],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
-            }
-        );
+        assert_eq!(start_state, expected_state);
     }
 
     #[test]
     fn try_execute_task() {
         reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/task.bpmn"));
-
+        let _start_state_template = collaboration.create_start_state();
+        let expected_states = vec![
+            State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",]),
+            State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",])
+        ];
+        
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Activity_A");
+        reset_snapshot_counter();
         let start_state = collaboration.create_start_state();
 
         let next_states = flow_node.try_execute(
@@ -74,13 +80,7 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![
-                State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",]),
-                State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",])
-            ]
-        )
+        assert_eq!(next_states, expected_states)
     }
 
     #[test]
@@ -88,10 +88,17 @@ mod test {
         reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/receive_task.bpmn"));
-
+        let _state_template = State {
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_receive_task"])],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+        let expected_state = State::new("p1_process", vec!["post_receive_task"]);
+        
         let process = get_process_by_id(&collaboration, "p1_process");
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
+        reset_snapshot_counter();
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_receive_task"])],
             executed_end_event_counter: BTreeMap::new(),
@@ -117,20 +124,27 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![State::new("p1_process", vec!["post_receive_task"]),]
-        );
+        assert_eq!(next_states, vec![expected_state]);
     }
 
     #[test]
     fn try_execute_evg() {
         reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/evg.bpmn"));
-
+        let _state_template = State {
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_evg"])],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+        let mut state1 = State::new("p1_process", vec!["post_mice"]);
+        state1.messages.insert("mf1", 1u16);
+        let mut state2 = State::new("p1_process", vec!["post_ReceiveTask"]);
+        state2.messages.insert("mf2", 1u16);
+        
         let process = get_process_by_id(&collaboration, "p1_process");
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "evg");
+        reset_snapshot_counter();
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_evg"])],
             executed_end_event_counter: BTreeMap::new(),
@@ -159,10 +173,6 @@ mod test {
             &mut not_executed_activities,
         );
 
-        let mut state1 = State::new("p1_process", vec!["post_mice"]);
-        state1.messages.insert("mf1", 1u16);
-        let mut state2 = State::new("p1_process", vec!["post_ReceiveTask"]);
-        state2.messages.insert("mf2", 1u16);
         assert_eq!(next_states, vec![state1, state2]);
         // The map is empty since the activity was executed to reach one of the states.
         assert_eq!(not_executed_activities.len(), 0);
@@ -186,6 +196,14 @@ mod test {
     #[test]
     fn try_execute_message_intermediate_catch_event() {
         reset_snapshot_counter();
+        let state_without_message_template = State {
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_mice"])],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+        let mut expected_state = State::new("p1_process", vec!["post_mice"]);
+        expected_state.messages.insert("mf", 1u16);
+        
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "semantics/message_intermediate_catch_event.bpmn"),
         );
@@ -193,6 +211,7 @@ mod test {
         let process = get_process_by_id(&collaboration, "p1_process");
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "mice");
+        reset_snapshot_counter();
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_mice"])],
             executed_end_event_counter: BTreeMap::new(),
@@ -218,20 +237,26 @@ mod test {
             &mut HashMap::new(),
         );
 
-        let mut expected_state = State::new("p1_process", vec!["post_mice"]);
-        expected_state.messages.insert("mf", 1u16);
         assert_eq!(next_states, vec![expected_state,]);
     }
 
     #[test]
     fn try_execute_send_task() {
         reset_snapshot_counter();
+        let _input_state_template = State::new("p1_process", vec!["pre_send_task"]);
+        let expected_state = State {
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["post_send_task"],)],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::from([("mf", 1u16)]),
+        };
+        
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/send_task.bpmn"));
 
         let process = get_process_by_id(&collaboration, "p1_process");
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "SendTask");
 
+        reset_snapshot_counter();
         let state = State::new("p1_process", vec!["pre_send_task"]);
 
         let next_states = flow_node.try_execute(
@@ -241,24 +266,23 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![State {
-                snapshots: vec![ProcessSnapshot::new("p1_process", vec!["post_send_task"],)],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::from([("mf", 1u16)]),
-            }]
-        );
+        assert_eq!(next_states, vec![expected_state]);
     }
 
     #[test]
     fn try_execute_exg_choice() {
         reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
-
+        let _start_state_template = collaboration.create_start_state();
+        let expected_states = vec![
+            State::new("process", vec!["Flow_2"]),
+            State::new("process", vec!["Flow_3"]),
+        ];
+        
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_1");
+        reset_snapshot_counter();
         let start_state = collaboration.create_start_state();
 
         let next_states = flow_node.try_execute(
@@ -268,23 +292,24 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![
-                State::new("process", vec!["Flow_2"]),
-                State::new("process", vec!["Flow_3"]),
-            ]
-        )
+        assert_eq!(next_states, expected_states)
     }
 
     #[test]
     fn try_execute_exg_merge() {
         reset_snapshot_counter();
+        let _input_state_template = State::new("process", vec!["Flow_2", "Flow_3"]);
+        let expected_states = vec![
+            State::new("process", vec!["Flow_3", "Flow_4"],),
+            State::new("process", vec!["Flow_2", "Flow_4"],),
+        ];
+        
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/exg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
+        reset_snapshot_counter();
         let state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
@@ -294,23 +319,20 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![
-                State::new("process", vec!["Flow_3", "Flow_4"],),
-                State::new("process", vec!["Flow_2", "Flow_4"],),
-            ]
-        );
+        assert_eq!(next_states, expected_states);
     }
 
     #[test]
     fn try_execute_pg_split() {
         reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
-
+        let _start_state_template = collaboration.create_start_state();
+        let expected_state = State::new("process", vec!["Flow_2", "Flow_3"],);
+        
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_1");
+        reset_snapshot_counter();
         let start_state = collaboration.create_start_state();
 
         let next_states = flow_node.try_execute(
@@ -320,20 +342,21 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![State::new("process", vec!["Flow_2", "Flow_3"],),]
-        )
+        assert_eq!(next_states, vec![expected_state])
     }
 
     #[test]
     fn try_execute_pg_sync() {
         reset_snapshot_counter();
+        let _input_state_template = State::new("process", vec!["Flow_2", "Flow_3"]);
+        let expected_state = State::new("process", vec!["Flow_4"],);
+        
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/pg.bpmn"));
 
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Gateway_2");
+        reset_snapshot_counter();
         let state = State::new("process", vec!["Flow_2", "Flow_3"]);
 
         let next_states = flow_node.try_execute(
@@ -343,16 +366,23 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(next_states, vec![State::new("process", vec!["Flow_4"],),]);
+        assert_eq!(next_states, vec![expected_state]);
     }
 
     #[test]
     fn try_execute_end_event() {
         reset_snapshot_counter();
+        let _input_state_template = State::new("process", vec!["Flow_1", "Flow_1", "Flow_2"]);
+        let mut state1 = State::new("process", vec!["Flow_1", "Flow_2"]);
+        state1.executed_end_event_counter.insert("End", 1);
+        let mut state2 = State::new("process", vec!["Flow_1", "Flow_1"]);
+        state2.executed_end_event_counter.insert("End", 1);
+        
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/end.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "End");
+        reset_snapshot_counter();
         let state = State::new("process", vec!["Flow_1", "Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
@@ -362,21 +392,18 @@ mod test {
             &mut HashMap::new(),
         );
 
-        let mut state1 = State::new("process", vec!["Flow_1", "Flow_2"]);
-        state1.executed_end_event_counter.insert("End", 1);
-        let mut state2 = State::new("process", vec!["Flow_1", "Flow_1"]);
-        state2.executed_end_event_counter.insert("End", 1);
         assert_eq!(next_states, vec![state1, state2]);
     }
 
     #[test]
     fn try_execute_terminate_end_event() {
-        reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/terminate_end.bpmn"));
+        
         let process = get_process_by_id(&collaboration, "p1_process");
 
         let terminate_end_event: &FlowNode = get_flow_node_with_id(process, "end");
+        reset_snapshot_counter();
         let start_state = collaboration.create_start_state();
 
         let next_states = terminate_end_event.try_execute(
@@ -386,26 +413,33 @@ mod test {
             &mut HashMap::new(),
         );
 
-        let mut expected_state = State {
-            snapshots: vec![
-                ProcessSnapshot::new("p0_process", vec!["flow3"]),
-                ProcessSnapshot::new("p1_process", vec![]),
-            ],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
-        };
-        expected_state.executed_end_event_counter.insert("end", 1);
-        assert_eq!(next_states, vec![expected_state]);
+        // Verify the structure matches expectations
+        assert_eq!(next_states.len(), 1);
+        let result_state = &next_states[0];
+        assert_eq!(result_state.snapshots.len(), 2);
+        assert_eq!(result_state.snapshots[0].process_id, "p0_process");
+        assert_eq!(result_state.snapshots[0].tokens, BTreeMap::from([("flow3", 1u16)]));
+        assert_eq!(result_state.snapshots[1].process_id, "p1_process");
+        assert_eq!(result_state.snapshots[1].tokens, BTreeMap::new());
+        assert_eq!(result_state.executed_end_event_counter, BTreeMap::from([("end", 1u16)]));
+        assert_eq!(result_state.messages, BTreeMap::new());
     }
 
     #[test]
     fn try_execute_intermediate_throw_event() {
         reset_snapshot_counter();
+        let _input_state_template = State::new("process", vec!["Flow_1", "Flow_2"]);
+        let expected_states = vec![
+            State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",],),
+            State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",],),
+        ];
+        
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/intermediate_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "Intermediate");
+        reset_snapshot_counter();
         let state = State::new("process", vec!["Flow_1", "Flow_2"]);
 
         let next_states = flow_node.try_execute(
@@ -415,22 +449,20 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(
-            next_states,
-            vec![
-                State::new("process", vec!["Flow_2", "Flow_3", "Flow_4",],),
-                State::new("process", vec!["Flow_1", "Flow_3", "Flow_4",],),
-            ]
-        );
+        assert_eq!(next_states, expected_states);
     }
 
     #[test]
     fn try_execute_link_events_connected_by_names() {
         reset_snapshot_counter();
+        let _input_state_template = State::new("p1_process", vec!["pre_c"]);
+        let expected_state = State::new("p1_process", vec!["post_c"]);
+        
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/link_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "C");
+        reset_snapshot_counter();
         let state = State::new("p1_process", vec!["pre_c"]);
 
         let next_states = flow_node.try_execute(
@@ -440,16 +472,20 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(next_states, vec![State::new("p1_process", vec!["post_c"])]);
+        assert_eq!(next_states, vec![expected_state]);
     }
 
     #[test]
     fn try_execute_link_events_connected_by_link_names() {
         reset_snapshot_counter();
+        let _input_state_template = State::new("p1_process", vec!["flow_a"]);
+        let expected_state = State::new("p1_process", vec!["flow_b"]);
+        
         let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/link_event.bpmn"));
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "A");
+        reset_snapshot_counter();
         let state = State::new("p1_process", vec!["flow_a"]);
 
         let next_states = flow_node.try_execute(
@@ -459,7 +495,7 @@ mod test {
             &mut HashMap::new(),
         );
 
-        assert_eq!(next_states, vec![State::new("p1_process", vec!["flow_b"])]);
+        assert_eq!(next_states, vec![expected_state]);
     }
 
     #[test]
@@ -467,9 +503,21 @@ mod test {
         reset_snapshot_counter();
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/message_start_event.bpmn"));
+        let _input_state_template = State {
+            snapshots: vec![],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::from([("mf", 1u16)]),
+        };
+        let expected_state = State {
+            snapshots: vec![ProcessSnapshot::new("p1_process", vec!["start_out"])],
+            executed_end_event_counter: BTreeMap::new(),
+            messages: BTreeMap::new(),
+        };
+        
         let process = get_first_process(&collaboration);
 
         let flow_node: &FlowNode = get_flow_node_with_id(process, "start");
+        reset_snapshot_counter();
         let state = State {
             snapshots: vec![],
             executed_end_event_counter: BTreeMap::new(),
@@ -478,14 +526,7 @@ mod test {
 
         let next_states = flow_node.try_trigger_message_start_event(process, &state);
 
-        assert_eq!(
-            next_states,
-            vec![State {
-                snapshots: vec![ProcessSnapshot::new("p1_process", vec!["start_out"])],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
-            }]
-        );
+        assert_eq!(next_states, vec![expected_state]);
     }
 
     fn get_flow_nodes_executed_to_reach<'a>(
@@ -558,6 +599,7 @@ mod test {
 
     #[test]
     fn option_to_complete_unfulfilled_1() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-1.bpmn"),
         );
@@ -599,6 +641,7 @@ mod test {
 
     #[test]
     fn option_to_complete_unfulfilled_2() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/option_to_complete/no-option-to-complete-2.bpmn"),
         );
@@ -685,6 +728,7 @@ mod test {
 
     #[test]
     fn proper_completion_fulfilled_1() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/proper-completion-1.bpmn"),
         );
@@ -700,6 +744,7 @@ mod test {
 
     #[test]
     fn proper_completion_fulfilled_2() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/proper-completion-2.bpmn"),
         );
@@ -715,6 +760,7 @@ mod test {
 
     #[test]
     fn proper_completion_unfulfilled_1() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-1.bpmn"),
         );
@@ -736,6 +782,7 @@ mod test {
 
     #[test]
     fn proper_completion_unfulfilled_2() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-2.bpmn"),
         );
@@ -757,6 +804,7 @@ mod test {
 
     #[test]
     fn proper_completion_unfulfilled_3() {
+        reset_snapshot_counter();
         let collaboration = read_bpmn_and_unwrap(
             &(PATH.to_string() + "properties/proper_completion/no-proper-completion-3-unsafe.bpmn"),
         );
