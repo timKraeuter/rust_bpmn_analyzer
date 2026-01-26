@@ -3,8 +3,16 @@ use std::collections::hash_map::DefaultHasher;
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 const MAX_TOKEN: u16 = 50;
+
+pub static NEXT_SNAPSHOT_ID: AtomicUsize = AtomicUsize::new(0);
+
+/// Reset the snapshot ID counter to 0. This is primarily used in tests.
+pub fn reset_snapshot_counter() {
+    NEXT_SNAPSHOT_ID.store(0, Ordering::Relaxed);
+}
 
 #[derive(Debug)]
 pub struct StateSpace<'a> {
@@ -98,7 +106,7 @@ fn get_state_string(state: &State) -> String {
     state
         .snapshots
         .iter()
-        .map(|snapshot| format!("{}: {:?}", snapshot.id, snapshot.tokens))
+        .map(|snapshot| format!("{}({}): {:?}", snapshot.process_id, snapshot.id, snapshot.tokens))
         .collect::<Vec<String>>()
         .join(", ")
 }
@@ -167,22 +175,53 @@ impl<'a> State<'a> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone)]
 pub struct ProcessSnapshot<'a> {
-    pub id: &'a str,
+    pub id: usize,
+    pub process_id: &'a str,
     pub tokens: BTreeMap<&'a str, u16>,
 }
 
+// Custom Hash implementation that excludes the id field
+// This ensures that snapshots with the same process_id and tokens are considered equal
+// regardless of their instance ID
+impl<'a> Hash for ProcessSnapshot<'a> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.process_id.hash(state);
+        self.tokens.hash(state);
+    }
+}
+
+// Custom PartialEq implementation that excludes the id field
+// This must be consistent with Hash implementation
+impl<'a> PartialEq for ProcessSnapshot<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.process_id == other.process_id && self.tokens == other.tokens
+    }
+}
+
 impl<'a> ProcessSnapshot<'a> {
-    pub fn new(id: &'a str, tokens: Vec<&'a str>) -> ProcessSnapshot<'a> {
+    pub fn new(process_id: &'a str, tokens: Vec<&'a str>) -> ProcessSnapshot<'a> {
+        let id = NEXT_SNAPSHOT_ID.fetch_add(1, Ordering::Relaxed);
         let mut snapshot = ProcessSnapshot {
             id,
+            process_id,
             tokens: BTreeMap::new(),
         };
         for position in tokens {
             snapshot.add_token(position);
         }
         snapshot
+    }
+
+    /// Create a ProcessSnapshot with a specific ID. Only for testing.
+    #[cfg(test)]
+    pub fn new_with_id(id: usize, process_id: &'a str, tokens: BTreeMap<&'a str, u16>) -> ProcessSnapshot<'a> {
+        ProcessSnapshot {
+            id,
+            process_id,
+            tokens,
+        }
     }
 
     pub fn add_token(&mut self, position: &'a str) {

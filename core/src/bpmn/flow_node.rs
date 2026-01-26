@@ -1,7 +1,8 @@
 use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
-use crate::states::state_space::{ProcessSnapshot, State};
+use crate::states::state_space::{ProcessSnapshot, State, NEXT_SNAPSHOT_ID};
 use std::collections::{BTreeMap, HashMap};
+use std::sync::atomic::Ordering;
 
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
@@ -83,8 +84,10 @@ impl FlowNode {
         }
         // Clone all snapshots and tokens
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
+        let snapshot_id = NEXT_SNAPSHOT_ID.fetch_add(1, Ordering::Relaxed);
         let mut new_snapshot = ProcessSnapshot {
-            id: snapshot.id,
+            id: snapshot_id,
+            process_id: snapshot.process_id,
             tokens: snapshot.tokens.clone(),
         };
         // Remove incoming tokens
@@ -309,13 +312,15 @@ impl FlowNode {
         snapshot: &ProcessSnapshot<'a>,
         token: &str,
     ) -> ProcessSnapshot<'a> {
-        let mut snapshot = ProcessSnapshot {
-            id: snapshot.id,
+        let snapshot_id = NEXT_SNAPSHOT_ID.fetch_add(1, Ordering::Relaxed);
+        let mut new_snapshot = ProcessSnapshot {
+            id: snapshot_id,
+            process_id: snapshot.process_id,
             // Remove incoming token
             tokens: snapshot.tokens.clone(),
         };
-        snapshot.delete_token(token);
-        snapshot
+        new_snapshot.delete_token(token);
+        new_snapshot
     }
 
     fn try_execute_end_event<'a, 'b>(
@@ -356,8 +361,10 @@ impl FlowNode {
         current_state: &'b State<'a>,
     ) -> Vec<State<'a>> {
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
+        let snapshot_id = NEXT_SNAPSHOT_ID.fetch_add(1, Ordering::Relaxed);
         let new_snapshot = ProcessSnapshot {
-            id: snapshot.id,
+            id: snapshot_id,
+            process_id: snapshot.process_id,
             tokens: BTreeMap::new(), // All tokens are removed due to terminate.
         };
         new_state.snapshots.push(new_snapshot);
@@ -457,8 +464,10 @@ impl FlowNode {
                             messages: Self::clone_decrease_message(message_id, current_state),
                         };
                         // Create a new snapshot.
+                        let snapshot_id = NEXT_SNAPSHOT_ID.fetch_add(1, Ordering::Relaxed);
                         let mut new_snapshot = ProcessSnapshot {
-                            id: &process.id,
+                            id: snapshot_id,
+                            process_id: &process.id,
                             tokens: BTreeMap::new(),
                         };
                         // Add outgoing tokens
