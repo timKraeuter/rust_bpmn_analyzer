@@ -10,7 +10,6 @@ const MAX_TOKEN: u16 = 50;
 pub static NEXT_SNAPSHOT_ID: AtomicUsize = AtomicUsize::new(0);
 
 /// Reset the snapshot ID counter to 0. This is primarily used in tests.
-#[cfg(test)]
 pub fn reset_snapshot_counter() {
     NEXT_SNAPSHOT_ID.store(0, Ordering::Relaxed);
 }
@@ -176,11 +175,29 @@ impl<'a> State<'a> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone)]
 pub struct ProcessSnapshot<'a> {
     pub id: usize,
     pub process_id: &'a str,
     pub tokens: BTreeMap<&'a str, u16>,
+}
+
+// Custom Hash implementation that excludes the id field
+// This ensures that snapshots with the same process_id and tokens are considered equal
+// regardless of their instance ID
+impl<'a> Hash for ProcessSnapshot<'a> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.process_id.hash(state);
+        self.tokens.hash(state);
+    }
+}
+
+// Custom PartialEq implementation that excludes the id field
+// This must be consistent with Hash implementation
+impl<'a> PartialEq for ProcessSnapshot<'a> {
+    fn eq(&self, other: &Self) -> bool {
+        self.process_id == other.process_id && self.tokens == other.tokens
+    }
 }
 
 impl<'a> ProcessSnapshot<'a> {
