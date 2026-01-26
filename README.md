@@ -72,6 +72,15 @@ POR works best when:
 - No message passing between parallel activities
 - Branches don't share resources or synchronize until joining
 
+### Properties Preserved by POR
+
+| Property | Preserved? | Reason |
+|----------|------------|--------|
+| **Safeness** | Yes | Token counts are a state property. C1 (independence) ensures all reachable states are still reachable. If a state with unsafe token counts exists, POR will find it. |
+| **Option to Complete** | Yes | This is what POR was designed for. C1 + C3 (cycle proviso) guarantee that if a deadlock state exists, it will be reached. |
+| **Proper Completion** | Yes | End event execution counts are tracked in the state. Since all reachable states are preserved, any state where an end event executes multiple times will be found. |
+| **No Dead Activities** | Yes | C1 guarantees that skipped transitions remain enabled and will be explored in successor states. Every activity that can execute will eventually be explored. The implementation fully expands when messages are involved, avoiding order-dependent enabling. |
+
 # Webserver
 This binary crate provides a web server with a web service to analyze BPMN models.
 The webserver is available locally by running `main.rs`, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://rust-bpmn-analyzer.wittyrock-9d6a3c00.northeurope.azurecontainerapps.io).
