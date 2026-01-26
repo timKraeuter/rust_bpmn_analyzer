@@ -41,6 +41,37 @@ Build an optimized binary that can be used as shown above:
 cargo build --release
 ```
 
+## Partial Order Reduction (POR)
+
+The analyzer supports **Partial Order Reduction** using ample sets to dramatically reduce the state space for models with independent parallel activities. This is especially effective for BPMN models with parallel gateways where branches don't communicate.
+
+Enable POR with the `--por` flag:
+```bash
+cargo run -- -f benchmark_input/p17x01.bpmn -p safeness --por
+```
+
+To see detailed reduction statistics, add `--por-stats`:
+```bash
+cargo run -- -f benchmark_input/p17x01.bpmn -p safeness --por --por-stats
+```
+
+### Benchmark Results
+
+Results for `p17x01.bpmn` (17 parallel branches with one task each):
+
+| Metric | Without POR | With POR | Improvement |
+|--------|-------------|----------|-------------|
+| **Time** | 8.94s | 1.3ms | ~6,800x faster |
+| **States** | 131,075 | 21 | ~6,200x fewer |
+| **Transitions** | 1,114,115 | 20 | ~55,700x fewer |
+
+The property verification result is identical: **Safeness is fulfilled**.
+
+POR works best when:
+- Models have parallel gateways with independent branches
+- No message passing between parallel activities
+- Branches don't share resources or synchronize until joining
+
 # Webserver
 This binary crate provides a web server with a web service to analyze BPMN models.
 The webserver is available locally by running `main.rs`, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://rust-bpmn-analyzer.wittyrock-9d6a3c00.northeurope.azurecontainerapps.io).

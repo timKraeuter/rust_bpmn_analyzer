@@ -1,5 +1,6 @@
 use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
+use crate::states::independence::TransitionEffect;
 use crate::states::state_space::{ProcessSnapshot, State};
 use std::collections::{BTreeMap, HashMap};
 
@@ -538,6 +539,238 @@ impl FlowNode {
             }
         }
         new_states
+    }
+
+    /// Get the transition effect for this flow node.
+    ///
+    /// This describes what tokens/messages this node consumes and produces,
+    /// which is used for independence checking in partial order reduction.
+    ///
+    /// # Arguments
+    /// * `process_id` - The ID of the process this flow node belongs to
+    /// * `snapshot` - The current process snapshot (to determine which incoming flow has a token)
+    /// * `current_state` - The current state (to check message availability)
+    ///
+    /// # Returns
+    /// A `TransitionEffect` describing what this transition reads and writes
+    pub fn get_transition_effect<'a>(
+        &'a self,
+        process_id: &'a str,
+        snapshot: &ProcessSnapshot<'a>,
+        current_state: &State<'a>,
+    ) -> Option<TransitionEffect<'a>> {
+        // Start events are not transitions (they create the initial state)
+        if matches!(self.flow_node_type, FlowNodeType::StartEvent(_)) {
+            return None;
+        }
+
+        let mut effect = TransitionEffect::new(&self.id, process_id);
+
+        // Determine visibility based on flow node type
+        effect.is_visible = match &self.flow_node_type {
+            // Tasks are visible (for dead activity detection)
+            FlowNodeType::Task(_) => true,
+            // End events are visible (for proper completion)
+            FlowNodeType::EndEvent(_) => true,
+            // Gateways and intermediate events are generally invisible
+            _ => false,
+        };
+
+        match &self.flow_node_type {
+            FlowNodeType::StartEvent(_) => return None,
+
+            FlowNodeType::Task(task_type) => {
+                // Find which incoming flow has a token
+                for inc_flow in &self.incoming_flows {
+                    if snapshot.tokens.contains_key(inc_flow.id.as_str()) {
+                        effect.consumes_tokens.insert(inc_flow.id.as_str());
+                        break; // Tasks consume from one incoming flow
+                    }
+                }
+
+                // Check if this is a receive task that needs a message
+                if *task_type == TaskType::Receive {
+                    for inc_mf in &self.incoming_message_flows {
+                        if current_state.messages.contains_key(inc_mf.id.as_str()) {
+                            effect.consumes_messages.insert(inc_mf.id.as_str());
+                            break;
+                        }
+                    }
+                    // If no message available, this transition is not enabled
+                    if effect.consumes_messages.is_empty() {
+                        return None;
+                    }
+                }
+
+                // Add outgoing tokens
+                for out_flow in &self.outgoing_flows {
+                    effect.produces_tokens.insert(out_flow.id.as_str());
+                }
+
+                // Add outgoing messages
+                for out_mf in &self.outgoing_message_flows {
+                    effect.produces_messages.insert(out_mf.id.as_str());
+                }
+            }
+
+            FlowNodeType::ParallelGateway => {
+                // Parallel gateway requires ALL incoming tokens
+                for inc_flow in &self.incoming_flows {
+                    if !snapshot.tokens.contains_key(inc_flow.id.as_str()) {
+                        return None; // Not enabled
+                    }
+                    effect.consumes_tokens.insert(inc_flow.id.as_str());
+                }
+
+                // Produces tokens on all outgoing flows
+                for out_flow in &self.outgoing_flows {
+                    effect.produces_tokens.insert(out_flow.id.as_str());
+                }
+            }
+
+            FlowNodeType::ExclusiveGateway => {
+                // Exclusive gateway consumes one incoming token, produces one outgoing
+                for inc_flow in &self.incoming_flows {
+                    if snapshot.tokens.contains_key(inc_flow.id.as_str()) {
+                        effect.consumes_tokens.insert(inc_flow.id.as_str());
+                        break;
+                    }
+                }
+
+                // For independence analysis, we consider all possible outgoing tokens
+                // as potentially produced (conservative over-approximation)
+                for out_flow in &self.outgoing_flows {
+                    effect.produces_tokens.insert(out_flow.id.as_str());
+                }
+            }
+
+            FlowNodeType::EndEvent(event_type) => {
+                // Consumes incoming token
+                for inc_flow in &self.incoming_flows {
+                    if snapshot.tokens.contains_key(inc_flow.id.as_str()) {
+                        effect.consumes_tokens.insert(inc_flow.id.as_str());
+                        break;
+                    }
+                }
+
+                // Records end event execution
+                effect.records_end_events.insert(&self.id);
+
+                // Terminate end events are more complex but don't produce tokens
+                if *event_type == EventType::Terminate {
+                    // Terminate affects the entire process, making it dependent
+                    // with all other transitions in the same process
+                    // We handle this by marking it as visible
+                    effect.is_visible = true;
+                }
+
+                // Add outgoing messages (message end events)
+                for out_mf in &self.outgoing_message_flows {
+                    effect.produces_messages.insert(out_mf.id.as_str());
+                }
+            }
+
+            FlowNodeType::IntermediateThrowEvent(event_type) => {
+                // Consumes incoming token
+                for inc_flow in &self.incoming_flows {
+                    if snapshot.tokens.contains_key(inc_flow.id.as_str()) {
+                        effect.consumes_tokens.insert(inc_flow.id.as_str());
+                        break;
+                    }
+                }
+
+                match event_type {
+                    EventType::Link(_) => {
+                        // Link throw events produce tokens at the corresponding catch event
+                        // This is process-local, so we mark the outgoing positions
+                        // (The actual target is determined at execution time)
+                        for out_flow in &self.outgoing_flows {
+                            effect.produces_tokens.insert(out_flow.id.as_str());
+                        }
+                    }
+                    EventType::Message => {
+                        // Message throw events produce messages
+                        for out_mf in &self.outgoing_message_flows {
+                            effect.produces_messages.insert(out_mf.id.as_str());
+                        }
+                        for out_flow in &self.outgoing_flows {
+                            effect.produces_tokens.insert(out_flow.id.as_str());
+                        }
+                    }
+                    _ => {
+                        for out_flow in &self.outgoing_flows {
+                            effect.produces_tokens.insert(out_flow.id.as_str());
+                        }
+                    }
+                }
+            }
+
+            FlowNodeType::IntermediateCatchEvent(event_type) => {
+                // Consumes incoming token
+                for inc_flow in &self.incoming_flows {
+                    if snapshot.tokens.contains_key(inc_flow.id.as_str()) {
+                        effect.consumes_tokens.insert(inc_flow.id.as_str());
+                        break;
+                    }
+                }
+
+                if *event_type == EventType::Message {
+                    // Message catch events consume messages
+                    for inc_mf in &self.incoming_message_flows {
+                        if current_state.messages.contains_key(inc_mf.id.as_str()) {
+                            effect.consumes_messages.insert(inc_mf.id.as_str());
+                            break;
+                        }
+                    }
+                    // If no message available, not enabled
+                    if effect.consumes_messages.is_empty() {
+                        return None;
+                    }
+                }
+
+                for out_flow in &self.outgoing_flows {
+                    effect.produces_tokens.insert(out_flow.id.as_str());
+                }
+            }
+
+            FlowNodeType::EventBasedGateway => {
+                // Event-based gateway is triggered by message events
+                // It consumes incoming token and the message
+                for inc_flow in &self.incoming_flows {
+                    if snapshot.tokens.contains_key(inc_flow.id.as_str()) {
+                        effect.consumes_tokens.insert(inc_flow.id.as_str());
+                        break;
+                    }
+                }
+
+                // Check for available messages (similar to receive task)
+                let has_message = self.outgoing_flows.iter().any(|_out_flow| {
+                    // Would need to check the target event's incoming message flows
+                    // For now, we conservatively require messages to be available
+                    !current_state.messages.is_empty()
+                });
+
+                if !has_message {
+                    return None;
+                }
+
+                // Produces tokens based on which event triggers
+                for out_flow in &self.outgoing_flows {
+                    effect.produces_tokens.insert(out_flow.id.as_str());
+                }
+            }
+        }
+
+        // Only return effect if the transition is actually enabled
+        // (has something to consume)
+        if effect.consumes_tokens.is_empty()
+            && effect.consumes_messages.is_empty()
+            && !matches!(self.flow_node_type, FlowNodeType::StartEvent(_))
+        {
+            return None;
+        }
+
+        Some(effect)
     }
 }
 
