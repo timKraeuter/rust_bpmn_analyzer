@@ -136,7 +136,7 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
     ) -> Vec<ProcessSnapshot<'a>> {
-        let snapshots = current_state
+        current_state
             .snapshots
             .iter()
             .filter_map(|sp| {
@@ -146,8 +146,7 @@ impl FlowNode {
                     Some(sp.clone())
                 }
             })
-            .collect();
-        snapshots
+            .collect()
     }
 
     fn add_outgoing_tokens<'a>(&'a self, snapshot: &mut ProcessSnapshot<'a>) {
