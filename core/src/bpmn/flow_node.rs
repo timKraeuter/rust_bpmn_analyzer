@@ -1,6 +1,6 @@
 use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
-use crate::states::independence::TransitionEffect;
+use crate::model_checking::por::independence::TransitionEffect;
 use crate::states::state_space::{ProcessSnapshot, State};
 use std::collections::{BTreeMap, HashMap};
 
