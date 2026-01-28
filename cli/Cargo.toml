@@ -4,8 +4,8 @@ version = "2.0.0"
 edition = "2021"
 
 [dependencies]
-clap = { version = "4.5.47", features = ["derive"] }
-colored = "3.0.0"
+clap = { version = "4.5.55", features = ["derive"] }
+colored = "3.1.1"
 rust_bpmn_analyzer = { path = "../core" }
 
 [profile.release]

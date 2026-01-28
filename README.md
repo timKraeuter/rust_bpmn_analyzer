@@ -47,12 +47,12 @@ The analyzer supports **Partial Order Reduction** using ample sets to dramatical
 
 Enable POR with the `--por` flag:
 ```bash
-cargo run -- -f benchmark_input/p17x01.bpmn -p safeness --por
+cargo run -- -f benchmark_input/p17x01.bpmn -p safeness,option-to-complete,proper-completion,no-dead-activities --por
 ```
 
 To see detailed reduction statistics, add `--por-stats`:
 ```bash
-cargo run -- -f benchmark_input/p17x01.bpmn -p safeness --por --por-stats
+cargo run -- -f benchmark_input/p17x01.bpmn -p safeness,option-to-complete,proper-completion,no-dead-activities --por --por-stats
 ```
 
 ### Benchmark Results
