@@ -1,6 +1,6 @@
 use colored::Colorize;
-use rust_bpmn_analyzer::model_checking::properties::ModelCheckingResult;
 use rust_bpmn_analyzer::AmpleSetStats;
+use rust_bpmn_analyzer::model_checking::properties::ModelCheckingResult;
 use std::time::Duration;
 
 pub fn output_state_information(result: &ModelCheckingResult, runtime: Duration) {

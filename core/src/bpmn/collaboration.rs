@@ -2,10 +2,10 @@ use crate::bpmn::flow_node::FlowNodeType::StartEvent;
 use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow, TaskType};
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
-    check_on_the_fly_properties, determine_properties, ModelCheckingResult,
-    ModelCheckingResultWithStats, Property, PropertyResult,
+    ModelCheckingResult, ModelCheckingResultWithStats, Property, PropertyResult,
+    check_on_the_fly_properties, determine_properties,
 };
-use crate::states::ample_set::{compute_ample_set, AmpleSetConfig, AmpleSetStats};
+use crate::states::ample_set::{AmpleSetConfig, AmpleSetStats, compute_ample_set};
 use crate::states::independence::TransitionEffect;
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 use std::collections::hash_map::Entry::Vacant;
