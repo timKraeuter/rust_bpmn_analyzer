@@ -4,8 +4,7 @@
 //! ample sets to reduce the number of states explored.
 
 use crate::bpmn::collaboration::Collaboration;
-use crate::bpmn::flow_node::{EventType, FlowNodeType, TaskType};
-use crate::bpmn::process::Process;
+use crate::bpmn::flow_node::{EventType, FlowNodeType};
 use crate::model_checking::por::ample_set::{AmpleSetConfig, AmpleSetStats, compute_ample_set};
 use crate::model_checking::por::independence::TransitionEffect;
 use crate::model_checking::por::result::ModelCheckingResultWithStats;
@@ -13,7 +12,7 @@ use crate::model_checking::properties::{
     ModelCheckingResult, Property, PropertyResult, check_on_the_fly_properties,
     determine_properties,
 };
-use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
+use crate::states::state_space::{State, StateSpace};
 use std::collections::hash_map::Entry::Vacant;
 use std::collections::{HashMap, HashSet, VecDeque};
 
@@ -253,11 +252,13 @@ fn get_enabled_transitions<'a>(
             .find(|process| process.id == snapshot.id);
 
         if let Some(process) = process {
-            for flow_node in get_flow_node_indexes_with_incoming_tokens(snapshot, process)
-                .iter()
-                .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
+            for flow_node in
+                Collaboration::get_flow_node_indexes_with_incoming_tokens(snapshot, process)
+                    .iter()
+                    .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
             {
-                if let Some(effect) = flow_node.get_transition_effect(&process.id, snapshot, state)
+                if let Some(effect) =
+                    flow_node.get_transition_effect(&process.id, snapshot, state, process)
                 {
                     effects.push(effect);
                 }
@@ -298,15 +299,20 @@ fn explore_state_filtered<'a>(
                 panic!("No process found for snapshot with id \"{}\"", snapshot.id)
             }
             Some(process) => {
-                for flow_node in get_flow_node_indexes_with_incoming_tokens(snapshot, process)
-                    .iter()
-                    .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
-                    .filter(|flow_node| selected_flow_nodes.contains(flow_node.id.as_str()))
+                for flow_node in
+                    Collaboration::get_flow_node_indexes_with_incoming_tokens(snapshot, process)
+                        .iter()
+                        .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
+                        .filter(|flow_node| selected_flow_nodes.contains(flow_node.id.as_str()))
                 {
                     let new_states =
                         flow_node.try_execute(snapshot, state, process, not_executed_activities);
 
-                    record_executed_activities(not_executed_activities, flow_node, &new_states);
+                    Collaboration::record_executed_activities(
+                        not_executed_activities,
+                        flow_node,
+                        &new_states,
+                    );
 
                     unexplored_states.append(
                         &mut new_states
@@ -347,31 +353,4 @@ fn try_trigger_message_start_events_filtered<'a>(
                 );
             })
     });
-}
-
-fn get_flow_node_indexes_with_incoming_tokens<'a>(
-    snapshot: &ProcessSnapshot,
-    process: &'a Process,
-) -> Vec<&'a usize> {
-    let mut flow_node_indexes: Vec<&usize> = snapshot
-        .tokens
-        .iter()
-        .filter_map(|(&token_position, _)| process.sequence_flow_index.get(token_position))
-        .collect();
-    flow_node_indexes.sort();
-    flow_node_indexes.dedup(); // Do not try to execute a flow node twice.
-    flow_node_indexes
-}
-
-fn record_executed_activities(
-    not_executed_activities: &mut HashMap<&str, bool>,
-    flow_node: &crate::bpmn::flow_node::FlowNode,
-    new_states: &[State],
-) {
-    if (flow_node.flow_node_type == FlowNodeType::Task(TaskType::Default)
-        || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive))
-        && !new_states.is_empty()
-    {
-        not_executed_activities.remove(flow_node.id.as_str());
-    }
 }

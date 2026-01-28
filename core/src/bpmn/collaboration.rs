@@ -252,7 +252,7 @@ impl Collaboration {
         });
     }
 
-    fn record_executed_activities(
+    pub(crate) fn record_executed_activities(
         not_executed_activities: &mut HashMap<&str, bool>,
         flow_node: &FlowNode,
         new_states: &[State],

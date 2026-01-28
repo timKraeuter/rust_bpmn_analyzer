@@ -550,6 +550,7 @@ impl FlowNode {
     /// * `process_id` - The ID of the process this flow node belongs to
     /// * `snapshot` - The current process snapshot (to determine which incoming flow has a token)
     /// * `current_state` - The current state (to check message availability)
+    /// * `process` - The process containing this flow node (needed to look up target events for event-based gateways)
     ///
     /// # Returns
     /// A `TransitionEffect` describing what this transition reads and writes
@@ -558,6 +559,7 @@ impl FlowNode {
         process_id: &'a str,
         snapshot: &ProcessSnapshot<'a>,
         current_state: &State<'a>,
+        process: &'a Process,
     ) -> Option<TransitionEffect<'a>> {
         // Start events are not transitions (they create the initial state)
         if matches!(self.flow_node_type, FlowNodeType::StartEvent(_)) {
@@ -743,14 +745,25 @@ impl FlowNode {
                     }
                 }
 
-                // Check for available messages (similar to receive task)
-                let has_message = self.outgoing_flows.iter().any(|_out_flow| {
-                    // Would need to check the target event's incoming message flows
-                    // For now, we conservatively require messages to be available
-                    !current_state.messages.is_empty()
-                });
+                // Check for available messages by looking at the target events' incoming message flows
+                // This matches the logic in try_execute_evg
+                let mut has_matching_message = false;
+                for out_flow in &self.outgoing_flows {
+                    if let Some(target_flow_node) = process.flow_nodes.get(out_flow.target_idx) {
+                        let message_flows_with_messages =
+                            target_flow_node.get_message_flows_with_message(current_state);
+                        if !message_flows_with_messages.is_empty() {
+                            has_matching_message = true;
+                            // Track which messages could be consumed
+                            // (conservative: any message that matches a target event)
+                            for message_id in message_flows_with_messages {
+                                effect.consumes_messages.insert(message_id);
+                            }
+                        }
+                    }
+                }
 
-                if !has_message {
+                if !has_matching_message {
                     return None;
                 }
 
@@ -763,10 +776,9 @@ impl FlowNode {
 
         // Only return effect if the transition is actually enabled
         // (has something to consume)
-        if effect.consumes_tokens.is_empty()
-            && effect.consumes_messages.is_empty()
-            && !matches!(self.flow_node_type, FlowNodeType::StartEvent(_))
-        {
+        // Note: StartEvents already return None at the beginning of this function,
+        // so we don't need to check for them here.
+        if effect.consumes_tokens.is_empty() && effect.consumes_messages.is_empty() {
             return None;
         }
 
