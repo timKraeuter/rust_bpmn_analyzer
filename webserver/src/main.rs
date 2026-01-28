@@ -1,12 +1,19 @@
 mod dtos;
 
 use crate::dtos::{CheckBPMNRequest, CheckBPMNResponse};
-use axum::{http::StatusCode, routing::post, Json, Router};
+use axum::{Json, Router, http::StatusCode, routing::post};
 use clap::Parser;
-use rust_bpmn_analyzer::{read_bpmn_from_string, run, Property};
+use rust_bpmn_analyzer::{Property, read_bpmn_from_string, run};
 use std::net::SocketAddr;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
+use tracing_subscriber::EnvFilter;
+
+const LOG_LEVEL: &str = if cfg!(debug_assertions) {
+    "info"
+} else {
+    "warn"
+};
 
 /// CLI BPMN Analyzer written in Rust
 #[derive(Parser, Debug)]
@@ -20,12 +27,9 @@ pub struct Config {
 #[tokio::main]
 async fn main() {
     let config = Config::parse();
-    if cfg!(debug_assertions) {
-        std::env::set_var("RUST_LOG", "info");
-    } else {
-        std::env::set_var("RUST_LOG", "warn");
-    }
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::fmt()
+        .with_env_filter(EnvFilter::new(LOG_LEVEL))
+        .init();
 
     let checker = Router::new().route("/check_bpmn", post(check_bpmn));
     let webapp = serve_dir();

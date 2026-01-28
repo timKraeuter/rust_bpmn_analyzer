@@ -2,8 +2,8 @@ use crate::bpmn::flow_node::FlowNodeType::StartEvent;
 use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, MessageFlow, TaskType};
 use crate::bpmn::process::Process;
 use crate::model_checking::properties::{
-    check_on_the_fly_properties, determine_properties, ModelCheckingResult, Property,
-    PropertyResult,
+    ModelCheckingResult, Property, PropertyResult, check_on_the_fly_properties,
+    determine_properties,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 use std::collections::hash_map::Entry::Vacant;
@@ -214,7 +214,7 @@ impl Collaboration {
         unexplored_states
     }
 
-    fn get_flow_node_indexes_with_incoming_tokens<'a>(
+    pub(crate) fn get_flow_node_indexes_with_incoming_tokens<'a>(
         snapshot: &ProcessSnapshot,
         process: &'a Process,
     ) -> Vec<&'a usize> {
@@ -252,7 +252,7 @@ impl Collaboration {
         });
     }
 
-    fn record_executed_activities(
+    pub(crate) fn record_executed_activities(
         not_executed_activities: &mut HashMap<&str, bool>,
         flow_node: &FlowNode,
         new_states: &[State],

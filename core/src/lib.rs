@@ -5,6 +5,9 @@ pub mod states;
 use crate::bpmn::collaboration::Collaboration;
 use crate::bpmn::reader;
 use crate::bpmn::reader::UnsupportedBpmnElementsError;
+pub use crate::model_checking::por::{
+    AmpleSetConfig, AmpleSetStats, ModelCheckingResultWithStats, run_with_por,
+};
 pub use crate::model_checking::properties::{ModelCheckingResult, Property};
 
 pub fn run(collaboration: &Collaboration, properties: Vec<Property>) -> ModelCheckingResult<'_> {

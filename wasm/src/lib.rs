@@ -1,5 +1,5 @@
 use crate::dtos::CheckBPMNResponse;
-use rust_bpmn_analyzer::{read_bpmn_from_string, Property};
+use rust_bpmn_analyzer::{Property, read_bpmn_from_string};
 use wasm_bindgen::prelude::*;
 
 mod dtos;

@@ -41,6 +41,46 @@ Build an optimized binary that can be used as shown above:
 cargo build --release
 ```
 
+## Partial Order Reduction (POR)
+
+The analyzer supports **Partial Order Reduction** using ample sets to dramatically reduce the state space for models with independent parallel activities. This is especially effective for BPMN models with parallel gateways where branches don't communicate.
+
+Enable POR with the `--por` flag:
+```bash
+cargo run -- -f benchmark_input/p17x01.bpmn -p safeness,option-to-complete,proper-completion,no-dead-activities --por
+```
+
+To see detailed reduction statistics, add `--por-stats`:
+```bash
+cargo run -- -f benchmark_input/p17x01.bpmn -p safeness,option-to-complete,proper-completion,no-dead-activities --por --por-stats
+```
+
+### Benchmark Results
+
+Results for `p17x01.bpmn` (17 parallel branches with one task each):
+
+| Metric | Without POR | With POR | Improvement |
+|--------|-------------|----------|-------------|
+| **Time** | 8.94s | 1.3ms | ~6,800x faster |
+| **States** | 131,075 | 21 | ~6,200x fewer |
+| **Transitions** | 1,114,115 | 20 | ~55,700x fewer |
+
+The property verification result is identical: **Safeness is fulfilled**.
+
+POR works best when:
+- Models have parallel gateways with independent branches
+- No message passing between parallel activities
+- Branches don't share resources or synchronize until joining
+
+### Properties Preserved by POR
+
+| Property | Preserved? | Reason |
+|----------|------------|--------|
+| **Safeness** | Yes | Token counts are a state property. C1 (independence) ensures all reachable states are still reachable. If a state with unsafe token counts exists, POR will find it. |
+| **Option to Complete** | Yes | This is what POR was designed for. C1 + C3 (cycle proviso) guarantee that if a deadlock state exists, it will be reached. |
+| **Proper Completion** | Yes | End event execution counts are tracked in the state. Since all reachable states are preserved, any state where an end event executes multiple times will be found. |
+| **No Dead Activities** | Yes | C1 guarantees that skipped transitions remain enabled and will be explored in successor states. Every activity that can execute will eventually be explored. The implementation fully expands when messages are involved, avoiding order-dependent enabling. |
+
 # Webserver
 This binary crate provides a web server with a web service to analyze BPMN models.
 The webserver is available locally by running `main.rs`, using [docker](https://hub.docker.com/r/tkra/rust_bpmn_analyzer), or [online](https://rust-bpmn-analyzer.wittyrock-9d6a3c00.northeurope.azurecontainerapps.io).
