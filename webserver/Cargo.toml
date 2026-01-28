@@ -1,7 +1,7 @@
 [package]
 name = "rust_bpmn_analyzer_webserver"
 version = "2.0.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
 rust_bpmn_analyzer = { path = "../core" }
