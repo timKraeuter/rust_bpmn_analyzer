@@ -4,9 +4,9 @@ version = "2.0.0"
 edition = "2024"
 
 [dependencies]
-clap = { version = "4.5.55", features = ["derive"] }
+clap = { version = "4.5.59", features = ["derive"] }
 colored = "3.1.1"
-quick-xml = { version = "0.39.0" }
+quick-xml = { version = "0.39.1" }
 
 [dev-dependencies]
 rstest = "0.26.1"
