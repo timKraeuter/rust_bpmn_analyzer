@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 rust_bpmn_analyzer = { path = "../core" }
 
-clap = { version = "4.5.59", features = ["derive"] }
+clap = { version = "4.5.60", features = ["derive"] }
 axum = "0.8.8"
 serde = { version = "1.0.228", features = ["derive"] }
 tokio = { version = "1.49.0", features = ["full"] }
