@@ -1,7 +1,7 @@
 use axum::http::{Request, StatusCode};
 use http_body_util::BodyExt;
 use rust_bpmn_analyzer_webserver::app;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tower::ServiceExt;
 
 const PATH: &str = "tests/resources/";
@@ -19,7 +19,9 @@ async fn post_check_bpmn(bpmn_file: &str, properties: Value) -> (StatusCode, Val
         .method("POST")
         .uri("/check_bpmn")
         .header("Content-Type", "application/json")
-        .body(axum::body::Body::from(serde_json::to_string(&body).unwrap()))
+        .body(axum::body::Body::from(
+            serde_json::to_string(&body).unwrap(),
+        ))
         .unwrap();
 
     let response = app().oneshot(request).await.unwrap();
@@ -32,7 +34,12 @@ async fn post_check_bpmn(bpmn_file: &str, properties: Value) -> (StatusCode, Val
 }
 
 fn all_properties() -> Value {
-    json!(["Safeness", "OptionToComplete", "ProperCompletion", "NoDeadActivities"])
+    json!([
+        "Safeness",
+        "OptionToComplete",
+        "ProperCompletion",
+        "NoDeadActivities"
+    ])
 }
 
 /// Find a property result by name in the response.
@@ -46,7 +53,10 @@ fn find_property<'a>(results: &'a [Value], name: &str) -> &'a Value {
 /// Assert that a state DTO has the expected structure:
 /// { "snapshots": [...], "messages": {...}, "executed_end_event_counter": {...} }
 fn assert_state_structure(state: &Value) {
-    assert!(state["snapshots"].is_array(), "snapshots should be an array");
+    assert!(
+        state["snapshots"].is_array(),
+        "snapshots should be an array"
+    );
     let snapshots = state["snapshots"].as_array().unwrap();
     for snapshot in snapshots {
         assert!(snapshot["id"].is_string(), "snapshot.id should be a string");
