@@ -560,9 +560,12 @@ version = "2.0.0"
 dependencies = [
  "axum",
  "clap",
+ "http-body-util",
  "rust_bpmn_analyzer",
  "serde",
+ "serde_json",
  "tokio",
+ "tower",
  "tower-http",
  "tracing",
  "tracing-subscriber",

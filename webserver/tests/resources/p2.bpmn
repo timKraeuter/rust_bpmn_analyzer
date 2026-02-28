@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1vfhl3g" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.16.0" modeler:executionPlatform="Camunda Cloud" modeler:executionPlatformVersion="8.3.0">
+  <bpmn:process id="Process_1ugsmxf" isExecutable="true">
+    <bpmn:startEvent id="Start">
+      <bpmn:outgoing>start</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="start" sourceRef="Start" targetRef="p_split" />
+    <bpmn:parallelGateway id="p_split">
+      <bpmn:incoming>start</bpmn:incoming>
+      <bpmn:outgoing>A1</bpmn:outgoing>
+      <bpmn:outgoing>B1</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:sequenceFlow id="A1" sourceRef="p_split" targetRef="A" />
+    <bpmn:sequenceFlow id="B1" sourceRef="p_split" targetRef="B" />
+    <bpmn:endEvent id="End">
+      <bpmn:incoming>end</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="end" sourceRef="p_join" targetRef="End" />
+    <bpmn:parallelGateway id="p_join">
+      <bpmn:incoming>B2</bpmn:incoming>
+      <bpmn:incoming>A2</bpmn:incoming>
+      <bpmn:outgoing>end</bpmn:outgoing>
+    </bpmn:parallelGateway>
+    <bpmn:task id="B" name="B">
+      <bpmn:incoming>B1</bpmn:incoming>
+      <bpmn:outgoing>B2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="B2" sourceRef="B" targetRef="p_join" />
+    <bpmn:task id="A" name="A">
+      <bpmn:incoming>A1</bpmn:incoming>
+      <bpmn:outgoing>A2</bpmn:outgoing>
+    </bpmn:task>
+    <bpmn:sequenceFlow id="A2" sourceRef="A" targetRef="p_join" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1ugsmxf">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="Start">
+        <dc:Bounds x="179" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_05dg7j6_di" bpmnElement="p_split">
+        <dc:Bounds x="265" y="92" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_19cszgd_di" bpmnElement="End">
+        <dc:Bounds x="632" y="99" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_10j7ely_di" bpmnElement="p_join">
+        <dc:Bounds x="525" y="92" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1c2p1j8_di" bpmnElement="B">
+        <dc:Bounds x="370" y="190" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0c1a2gm_di" bpmnElement="A">
+        <dc:Bounds x="370" y="77" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1htc4tb_di" bpmnElement="start">
+        <di:waypoint x="215" y="117" />
+        <di:waypoint x="265" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15h7ucw_di" bpmnElement="A1">
+        <di:waypoint x="315" y="117" />
+        <di:waypoint x="370" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1y6rb4n_di" bpmnElement="B1">
+        <di:waypoint x="290" y="142" />
+        <di:waypoint x="290" y="230" />
+        <di:waypoint x="370" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0wta15p_di" bpmnElement="end">
+        <di:waypoint x="575" y="117" />
+        <di:waypoint x="632" y="117" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1bjc0yk_di" bpmnElement="B2">
+        <di:waypoint x="470" y="230" />
+        <di:waypoint x="550" y="230" />
+        <di:waypoint x="550" y="142" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0j7jjzo_di" bpmnElement="A2">
+        <di:waypoint x="470" y="117" />
+        <di:waypoint x="525" y="117" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
