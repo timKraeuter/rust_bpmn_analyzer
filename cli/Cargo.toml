@@ -8,6 +8,10 @@ clap = { version = "4.5.60", features = ["derive"] }
 colored = "3.1.1"
 rust_bpmn_analyzer = { path = "../core" }
 
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+
 [profile.release]
 codegen-units = 1
 lto = "fat"
