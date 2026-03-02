@@ -28,7 +28,13 @@ jobs:
       - name: Build APP
         run: cargo build --release
       - uses: bencherdev/bencher@main
+        if: ${{ env.BENCHER_API_TOKEN != '' }}
+        env:
+          BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
       - name: Track Benchmarks with Bencher using hyperfine
+        if: ${{ env.BENCHER_API_TOKEN != '' }}
+        env:
+          BENCHER_API_TOKEN: ${{ secrets.BENCHER_API_TOKEN }}
         run: |
           bencher run \
           --file results.json \
