@@ -1,0 +1,22 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "cargo"
+    directory: "/core"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "cargo"
+    directory: "/cli"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "cargo"
+    directory: "/wasm"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "cargo"
+    directory: "/webserver"
+    schedule:
+      interval: "monthly"
