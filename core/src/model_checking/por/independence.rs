@@ -75,11 +75,14 @@ impl<'a> TransitionEffect<'a> {
 pub fn are_independent(t1: &TransitionEffect, t2: &TransitionEffect) -> bool {
     // Check token position conflicts
     // Two transitions conflict if one consumes/produces a token position
-    // that the other also consumes/produces
-    let t1_tokens = t1.all_token_positions();
-    let t2_tokens = t2.all_token_positions();
-
-    if !t1_tokens.is_disjoint(&t2_tokens) {
+    // that the other also consumes/produces.
+    // We check pairwise disjointness directly instead of allocating union sets,
+    // since this is called frequently during ample set computation.
+    if !t1.consumes_tokens.is_disjoint(&t2.consumes_tokens)
+        || !t1.consumes_tokens.is_disjoint(&t2.produces_tokens)
+        || !t1.produces_tokens.is_disjoint(&t2.consumes_tokens)
+        || !t1.produces_tokens.is_disjoint(&t2.produces_tokens)
+    {
         return false;
     }
 

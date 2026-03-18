@@ -142,12 +142,7 @@ impl<'a> State<'a> {
     }
 
     pub fn add_message<'b>(&'b mut self, position: &'a str) {
-        let count = self.messages.get_mut(position);
-        if let Some(count) = count {
-            *count += 1;
-        } else {
-            self.messages.insert(position, 1);
-        }
+        *self.messages.entry(position).or_insert(0) += 1;
     }
     pub fn delete_message(&mut self, position: &str) {
         match self.messages.get_mut(position) {
@@ -186,12 +181,7 @@ impl<'a> ProcessSnapshot<'a> {
     }
 
     pub fn add_token(&mut self, position: &'a str) {
-        let count = self.tokens.get_mut(position);
-        if let Some(count) = count {
-            *count += 1;
-        } else {
-            self.tokens.insert(position, 1);
-        }
+        *self.tokens.entry(position).or_insert(0) += 1;
     }
     pub fn delete_token(&mut self, position: &str) {
         match self.tokens.get_mut(position) {
