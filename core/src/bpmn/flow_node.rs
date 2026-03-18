@@ -426,12 +426,10 @@ impl FlowNode {
     }
 
     fn record_end_event_execution<'a>(&'a self, new_state: &mut State<'a>) {
-        match new_state.executed_end_event_counter.get(self.id.as_str()) {
-            None => new_state.executed_end_event_counter.insert(&self.id, 1),
-            Some(count) => new_state
-                .executed_end_event_counter
-                .insert(&self.id, count + 1),
-        };
+        *new_state
+            .executed_end_event_counter
+            .entry(&self.id)
+            .or_insert(0) += 1;
     }
     pub fn try_trigger_message_start_event<'a>(
         &'a self,
