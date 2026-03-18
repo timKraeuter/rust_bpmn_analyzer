@@ -1,0 +1,7 @@
+[advisories]
+vulnerability = "deny"
+unmaintained = "warn"
+yanked = "warn"
+
+[licenses]
+unlicensed = "allow"
