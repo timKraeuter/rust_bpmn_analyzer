@@ -13,7 +13,6 @@ use crate::model_checking::properties::{
     determine_properties,
 };
 use crate::states::state_space::{State, StateSpace};
-use std::collections::hash_map::Entry::Vacant;
 use std::collections::{HashMap, HashSet, VecDeque};
 
 /// Run the model checker with partial order reduction enabled.
@@ -58,10 +57,10 @@ pub fn explore_state_space_with_por<'a>(
     let mut not_executed_activities = collaboration.get_all_tasks();
     let mut ample_stats = AmpleSetStats::default();
 
-    let mut seen_state_hashes: HashMap<u64, bool> = HashMap::new();
+    let mut seen_state_hashes: HashSet<u64> = HashSet::new();
     let start_state = collaboration.create_start_state();
     let start_state_hash = start_state.calc_hash();
-    seen_state_hashes.insert(start_state_hash, true);
+    seen_state_hashes.insert(start_state_hash);
 
     let mut state_space = StateSpace {
         start_state_hash,
@@ -114,9 +113,8 @@ pub fn explore_state_space_with_por<'a>(
         for (flow_node_id, new_state) in potentially_unexplored_states {
             let new_hash = new_state.calc_hash();
             // Check if we know the state already
-            if let Vacant(e) = seen_state_hashes.entry(new_hash) {
+            if seen_state_hashes.insert(new_hash) {
                 // State is new.
-                e.insert(true);
                 unexplored_states.push_back((new_hash, new_state));
             } else {
                 // This is a back edge to an already-seen state
@@ -157,8 +155,7 @@ pub fn explore_state_space_with_por<'a>(
 
                 for (flow_node_id, new_state) in additional_states {
                     let new_hash = new_state.calc_hash();
-                    if let Vacant(e) = seen_state_hashes.entry(new_hash) {
-                        e.insert(true);
+                    if seen_state_hashes.insert(new_hash) {
                         unexplored_states.push_back((new_hash, new_state));
                     }
                     transitions.push((flow_node_id, new_hash));
@@ -273,7 +270,7 @@ fn get_enabled_transitions<'a>(
 fn explore_state_filtered<'a>(
     collaboration: &'a Collaboration,
     state: &State<'a>,
-    not_executed_activities: &mut HashMap<&str, bool>,
+    not_executed_activities: &mut HashSet<&str>,
     selected_flow_nodes: &HashSet<&str>,
 ) -> Vec<(&'a str, State<'a>)> {
     let mut unexplored_states: Vec<(&str, State)> = vec![];
@@ -314,11 +311,10 @@ fn explore_state_filtered<'a>(
                         &new_states,
                     );
 
-                    unexplored_states.append(
-                        &mut new_states
+                    unexplored_states.extend(
+                        new_states
                             .into_iter()
-                            .map(|state| (flow_node.id.as_str(), state))
-                            .collect(),
+                            .map(|state| (flow_node.id.as_str(), state)),
                     );
                 }
             }
@@ -345,11 +341,10 @@ fn try_trigger_message_start_events_filtered<'a>(
             .for_each(|message_start_event| {
                 let new_states =
                     message_start_event.try_trigger_message_start_event(process, state);
-                unexplored_states.append(
-                    &mut new_states
+                unexplored_states.extend(
+                    new_states
                         .into_iter()
-                        .map(|state| (message_start_event.id.as_str(), state))
-                        .collect(),
+                        .map(|state| (message_start_event.id.as_str(), state)),
                 );
             })
     });

@@ -1,6 +1,6 @@
 use crate::model_checking::properties::LiveLockError;
 use std::collections::hash_map::DefaultHasher;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -32,7 +32,7 @@ impl StateSpace<'_> {
         if self.start_state_hash == state_hash {
             return Some(vec![]);
         }
-        self.get_path(self.start_state_hash, state_hash, &mut HashMap::new())
+        self.get_path(self.start_state_hash, state_hash, &mut HashSet::new())
             .map(|mut path| {
                 path.reverse();
                 path
@@ -42,19 +42,19 @@ impl StateSpace<'_> {
         &self,
         from_state_hash: u64,
         to_state_hash: u64,
-        seen_states: &mut HashMap<u64, bool>,
+        seen_states: &mut HashSet<u64>,
     ) -> Option<Vec<(&str, u64)>> {
         match self.transitions.get(&from_state_hash) {
             None => None,
             Some(next_states) => {
                 for (flow_node_id, next_state_hash) in next_states {
-                    if seen_states.contains_key(next_state_hash) {
+                    if seen_states.contains(next_state_hash) {
                         continue;
                     }
                     if *next_state_hash == to_state_hash {
                         return Some(vec![(flow_node_id, *next_state_hash)]);
                     }
-                    seen_states.insert(*next_state_hash, true);
+                    seen_states.insert(*next_state_hash);
                     match self.get_path(*next_state_hash, to_state_hash, seen_states) {
                         None => {}
                         Some(mut path) => {
