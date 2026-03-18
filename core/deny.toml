@@ -1,0 +1,3 @@
+[advisories]
+# Advisory IDs to ignore (e.g., "RUSTSEC-0000-0000")
+ignore = []
