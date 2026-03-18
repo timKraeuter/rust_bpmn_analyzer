@@ -1,7 +1,3 @@
 [advisories]
-vulnerability = "deny"
-unmaintained = "warn"
-yanked = "warn"
-
-[licenses]
-unlicensed = "allow"
+# Advisory IDs to ignore (e.g., "RUSTSEC-0000-0000")
+ignore = []
