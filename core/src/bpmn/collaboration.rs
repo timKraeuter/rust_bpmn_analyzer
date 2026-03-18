@@ -6,8 +6,7 @@ use crate::model_checking::properties::{
     determine_properties,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
-use std::collections::hash_map::Entry::Vacant;
-use std::collections::{BTreeMap, HashMap, VecDeque};
+use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
 
 #[derive(Debug, PartialEq)]
 pub struct Collaboration {
@@ -37,10 +36,10 @@ impl Collaboration {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_tasks();
 
-        let mut seen_state_hashes = HashMap::new();
+        let mut seen_state_hashes = HashSet::new();
         let start_state = self.create_start_state();
         let start_state_hash = start_state.calc_hash();
-        seen_state_hashes.insert(start_state_hash, true);
+        seen_state_hashes.insert(start_state_hash);
 
         let mut state_space = StateSpace {
             start_state_hash,
@@ -64,9 +63,8 @@ impl Collaboration {
                     for (flow_node_id, new_state) in potentially_unexplored_states {
                         let new_hash = new_state.calc_hash();
                         // Check if we know the state already
-                        if let Vacant(e) = seen_state_hashes.entry(new_hash) {
+                        if seen_state_hashes.insert(new_hash) {
                             // State is new.
-                            e.insert(true);
                             unexplored_states.push_back((new_hash, new_state));
                         }
                         // Remember states to make transitions.
@@ -117,8 +115,8 @@ impl Collaboration {
         }
     }
 
-    pub fn get_all_tasks(&self) -> HashMap<&str, bool> {
-        let mut flow_nodes = HashMap::new();
+    pub fn get_all_tasks(&self) -> HashSet<&str> {
+        let mut flow_nodes = HashSet::new();
         self.participants.iter().for_each(|process| {
             process
                 .flow_nodes
@@ -128,8 +126,7 @@ impl Collaboration {
                         || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive)
                 })
                 .for_each(|flow_node| {
-                    // Cloned id here. Could use RC smart pointer instead.
-                    flow_nodes.insert(flow_node.id.as_str(), true);
+                    flow_nodes.insert(flow_node.id.as_str());
                 })
         });
         flow_nodes
@@ -164,7 +161,7 @@ impl Collaboration {
     fn explore_state<'a>(
         &'a self,
         state: &State<'a>,
-        not_executed_activities: &mut HashMap<&str, bool>,
+        not_executed_activities: &mut HashSet<&str>,
     ) -> Vec<(&'a str, State<'a>)> {
         let mut unexplored_states: Vec<(&str, State)> = vec![];
         if !state.messages.is_empty() {
@@ -201,11 +198,10 @@ impl Collaboration {
                         );
 
                         // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
-                        unexplored_states.append(
-                            &mut new_states
+                        unexplored_states.extend(
+                            new_states
                                 .into_iter()
-                                .map(|state| (flow_node.id.as_str(), state))
-                                .collect(),
+                                .map(|state| (flow_node.id.as_str(), state)),
                         );
                     }
                 }
@@ -242,18 +238,17 @@ impl Collaboration {
                     let new_states =
                         message_start_event.try_trigger_message_start_event(process, state);
                     // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
-                    unexplored_states.append(
-                        &mut new_states
+                    unexplored_states.extend(
+                        new_states
                             .into_iter()
-                            .map(|state| (message_start_event.id.as_str(), state))
-                            .collect(),
+                            .map(|state| (message_start_event.id.as_str(), state)),
                     );
                 })
         });
     }
 
     pub(crate) fn record_executed_activities(
-        not_executed_activities: &mut HashMap<&str, bool>,
+        not_executed_activities: &mut HashSet<&str>,
         flow_node: &FlowNode,
         new_states: &[State],
     ) {

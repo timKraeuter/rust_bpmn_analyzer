@@ -1,7 +1,7 @@
 use crate::states::state_space::{State, StateSpace};
 use clap::ValueEnum;
 use colored::{ColoredString, Colorize};
-use std::collections::HashMap;
+use std::collections::HashSet;
 use std::fmt;
 use std::fmt::{Display, Formatter};
 
@@ -96,7 +96,7 @@ impl PropertyResult {
 pub fn determine_properties(
     properties: &[Property],
     property_results: &mut Vec<PropertyResult>,
-    never_executed_activities: HashMap<&str, bool>,
+    never_executed_activities: HashSet<&str>,
     state_space: &StateSpace,
 ) {
     if properties.contains(&Property::Safeness)
@@ -132,7 +132,7 @@ pub fn determine_properties(
     if properties.contains(&Property::NoDeadActivities) {
         if !never_executed_activities.is_empty() {
             let mut dead_activities: Vec<String> = never_executed_activities
-                .keys()
+                .iter()
                 .map(|activity_id| activity_id.to_string())
                 .collect();
             dead_activities.sort();

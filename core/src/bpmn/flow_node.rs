@@ -2,7 +2,7 @@ use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
 use crate::model_checking::por::independence::TransitionEffect;
 use crate::states::state_space::{ProcessSnapshot, State};
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, HashSet};
 
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
@@ -54,7 +54,7 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
         process: &'a Process,
-        not_executed_activities: &mut HashMap<&str, bool>,
+        not_executed_activities: &mut HashSet<&str>,
     ) -> Vec<State<'a>> {
         match &self.flow_node_type {
             FlowNodeType::StartEvent(_) => vec![],
@@ -489,7 +489,7 @@ impl FlowNode {
         snapshot: &'b ProcessSnapshot<'a>,
         current_state: &'b State<'a>,
         process: &'a Process,
-        not_executed_activities: &mut HashMap<&str, bool>,
+        not_executed_activities: &mut HashSet<&str>,
     ) -> Vec<State<'a>> {
         // Currently only messages can trigger evgs.
         if current_state.messages.is_empty() {
