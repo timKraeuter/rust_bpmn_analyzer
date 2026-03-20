@@ -1,15 +1,16 @@
 <!doctype html>
 <html lang="EN">
   <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>BPMN Analyzer 2.0</title>
-
-    <link rel="stylesheet" href="./css/bpmn-js-token-simulation.css" />
-    <link rel="stylesheet" href="./css/app.css" />
-    <link rel="stylesheet" href="diagram-js.css" />
-    <link rel="stylesheet" href="bpmn-js.css" />
-    <link rel="stylesheet" href="bpmn-font/css/bpmn-embedded.css" />
-    <link rel="icon" href="./favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <script type="module" crossorigin src="/app.js"></script>
+    <link rel="modulepreload" crossorigin href="/rolldown-runtime.js">
+    <link rel="modulepreload" crossorigin href="/diagram-vendor.js">
+    <link rel="modulepreload" crossorigin href="/bpmn-vendor.js">
+    <link rel="modulepreload" crossorigin href="/vendor.js">
+    <link rel="stylesheet" crossorigin href="/bpmn-vendor.css">
+    <link rel="stylesheet" crossorigin href="/index.css">
   </head>
   <body>
     <div id="io-dialog-main" class="io-dialog io-dialog-open">
@@ -96,6 +97,6 @@
         </div>
       </div>
     </div>
+
   </body>
-  <script src="./app.js"></script>
 </html>
