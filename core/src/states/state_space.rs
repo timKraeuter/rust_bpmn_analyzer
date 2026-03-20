@@ -1,6 +1,6 @@
 use crate::model_checking::properties::LiveLockError;
 use rustc_hash::{FxHashMap, FxHasher};
-use std::collections::{BTreeMap, HashSet};
+use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -76,11 +76,38 @@ impl StateSpace<'_> {
     }
 }
 
-#[derive(Debug, Hash, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct State<'a> {
     pub snapshots: Vec<ProcessSnapshot<'a>>,
-    pub messages: BTreeMap<&'a str, u16>,
-    pub executed_end_event_counter: BTreeMap<&'a str, u16>,
+    pub messages: FxHashMap<&'a str, u16>,
+    pub executed_end_event_counter: FxHashMap<&'a str, u16>,
+}
+
+impl Hash for State<'_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.snapshots.hash(state);
+        hash_map_deterministic(&self.messages, state);
+        hash_map_deterministic(&self.executed_end_event_counter, state);
+    }
+}
+
+/// Hash an FxHashMap deterministically by sorting entries first.
+/// Maps in this domain are typically small (2-5 entries), so sorting is fast.
+fn hash_map_deterministic<H: Hasher>(map: &FxHashMap<&str, u16>, state: &mut H) {
+    map.len().hash(state);
+    if map.len() <= 1 {
+        for (&k, &v) in map {
+            k.hash(state);
+            v.hash(state);
+        }
+    } else {
+        let mut entries: Vec<_> = map.iter().collect();
+        entries.sort_unstable_by_key(|&(&k, _)| k);
+        for (&k, &v) in entries {
+            k.hash(state);
+            v.hash(state);
+        }
+    }
 }
 
 impl Display for State<'_> {
@@ -107,8 +134,8 @@ impl<'a> State<'a> {
     pub fn new(snapshot_id: &'a str, tokens: Vec<&'a str>) -> State<'a> {
         State {
             snapshots: vec![ProcessSnapshot::new(snapshot_id, tokens)],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
+            executed_end_event_counter: FxHashMap::default(),
+            messages: FxHashMap::default(),
         }
     }
 
@@ -162,17 +189,24 @@ impl<'a> State<'a> {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ProcessSnapshot<'a> {
     pub id: &'a str,
-    pub tokens: BTreeMap<&'a str, u16>,
+    pub tokens: FxHashMap<&'a str, u16>,
+}
+
+impl Hash for ProcessSnapshot<'_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        hash_map_deterministic(&self.tokens, state);
+    }
 }
 
 impl<'a> ProcessSnapshot<'a> {
     pub fn new(id: &'a str, tokens: Vec<&'a str>) -> ProcessSnapshot<'a> {
         let mut snapshot = ProcessSnapshot {
             id,
-            tokens: BTreeMap::new(),
+            tokens: FxHashMap::default(),
         };
         for position in tokens {
             snapshot.add_token(position);

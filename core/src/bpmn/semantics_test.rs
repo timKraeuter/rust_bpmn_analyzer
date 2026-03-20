@@ -7,7 +7,8 @@ mod test {
     use crate::bpmn::reader::read_bpmn_from_file;
     use crate::model_checking::properties::{ModelCheckingResult, PropertyResult};
     use crate::states::state_space::{ProcessSnapshot, State};
-    use std::collections::{BTreeMap, HashSet};
+    use rustc_hash::FxHashMap;
+    use std::collections::HashSet;
 
     const PATH: &str = "tests/resources/unit/";
 
@@ -30,8 +31,8 @@ mod test {
             start_state,
             State {
                 snapshots: vec![ProcessSnapshot::new("process", vec!["Flow_1", "Flow_2"],)],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
+                executed_end_event_counter: FxHashMap::default(),
+                messages: FxHashMap::default(),
             }
         );
     }
@@ -49,8 +50,8 @@ mod test {
                     ProcessSnapshot::new("p1_process", vec!["Flow_04pas1n"]),
                     ProcessSnapshot::new("p3_process", vec!["Flow_0gz2791"])
                 ],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
+                executed_end_event_counter: FxHashMap::default(),
+                messages: FxHashMap::default(),
             }
         );
     }
@@ -90,8 +91,8 @@ mod test {
         let flow_node: &FlowNode = get_flow_node_with_id(process, "ReceiveTask");
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_receive_task"])],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
+            executed_end_event_counter: FxHashMap::default(),
+            messages: FxHashMap::default(),
         };
 
         let next_states = flow_node.try_execute(
@@ -128,8 +129,8 @@ mod test {
         let flow_node: &FlowNode = get_flow_node_with_id(process, "evg");
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_evg"])],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
+            executed_end_event_counter: FxHashMap::default(),
+            messages: FxHashMap::default(),
         };
 
         let next_states = flow_node.try_execute(
@@ -188,8 +189,8 @@ mod test {
         let flow_node: &FlowNode = get_flow_node_with_id(process, "mice");
         let state_without_message = State {
             snapshots: vec![ProcessSnapshot::new("p1_process", vec!["pre_mice"])],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
+            executed_end_event_counter: FxHashMap::default(),
+            messages: FxHashMap::default(),
         };
 
         let next_states = flow_node.try_execute(
@@ -237,8 +238,8 @@ mod test {
             next_states,
             vec![State {
                 snapshots: vec![ProcessSnapshot::new("p1_process", vec!["post_send_task"],)],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::from([("mf", 1u16)]),
+                executed_end_event_counter: FxHashMap::default(),
+                messages: FxHashMap::from_iter([("mf", 1u16)]),
             }]
         );
     }
@@ -377,8 +378,8 @@ mod test {
                 ProcessSnapshot::new("p0_process", vec!["flow3"]),
                 ProcessSnapshot::new("p1_process", vec![]),
             ],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
+            executed_end_event_counter: FxHashMap::default(),
+            messages: FxHashMap::default(),
         };
         expected_state.executed_end_event_counter.insert("end", 1);
         assert_eq!(next_states, vec![expected_state]);
@@ -454,8 +455,8 @@ mod test {
         let flow_node: &FlowNode = get_flow_node_with_id(process, "start");
         let state = State {
             snapshots: vec![],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::from([("mf", 1u16)]),
+            executed_end_event_counter: FxHashMap::default(),
+            messages: FxHashMap::from_iter([("mf", 1u16)]),
         };
 
         let next_states = flow_node.try_trigger_message_start_event(process, &state);
@@ -464,8 +465,8 @@ mod test {
             next_states,
             vec![State {
                 snapshots: vec![ProcessSnapshot::new("p1_process", vec!["start_out"])],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
+                executed_end_event_counter: FxHashMap::default(),
+                messages: FxHashMap::default(),
             }]
         );
     }
@@ -513,10 +514,10 @@ mod test {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: "process",
-                    tokens: BTreeMap::from([("Unsafe1", 2u16)]),
+                    tokens: FxHashMap::from_iter([("Unsafe1", 2u16)]),
                 }],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
+                executed_end_event_counter: FxHashMap::default(),
+                messages: FxHashMap::default(),
             }
         );
 
@@ -609,10 +610,10 @@ mod test {
             &State {
                 snapshots: vec![ProcessSnapshot {
                     id: "Process_dc137d1f-9555-4446-bfd0-adebe6a3bdb2",
-                    tokens: BTreeMap::from([("stuck", 1u16)]),
+                    tokens: FxHashMap::from_iter([("stuck", 1u16)]),
                 }],
-                executed_end_event_counter: BTreeMap::new(),
-                messages: BTreeMap::new(),
+                executed_end_event_counter: FxHashMap::default(),
+                messages: FxHashMap::default(),
             }
         );
     }

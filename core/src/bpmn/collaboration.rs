@@ -7,7 +7,7 @@ use crate::model_checking::properties::{
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
 use rustc_hash::FxHashMap;
-use std::collections::{BTreeMap, HashSet, VecDeque};
+use std::collections::{HashSet, VecDeque};
 
 #[derive(Debug, PartialEq)]
 pub struct Collaboration {
@@ -136,11 +136,11 @@ impl Collaboration {
     pub fn create_start_state(&self) -> State<'_> {
         let mut start = State {
             snapshots: vec![],
-            executed_end_event_counter: BTreeMap::new(),
-            messages: BTreeMap::new(),
+            executed_end_event_counter: FxHashMap::default(),
+            messages: FxHashMap::default(),
         };
         for process in &self.participants {
-            let mut tokens = BTreeMap::new();
+            let mut tokens = FxHashMap::default();
             for flow_node in &process.flow_nodes {
                 if flow_node.flow_node_type == FlowNodeType::StartEvent(EventType::None) {
                     for out_sf in flow_node.outgoing_flows.iter() {

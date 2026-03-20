@@ -2,7 +2,8 @@ use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
 use crate::model_checking::por::independence::TransitionEffect;
 use crate::states::state_space::{ProcessSnapshot, State};
-use std::collections::{BTreeMap, HashSet};
+use rustc_hash::FxHashMap;
+use std::collections::HashSet;
 
 #[derive(Debug, PartialEq)]
 pub struct SequenceFlow {
@@ -358,7 +359,7 @@ impl FlowNode {
         let mut new_state = Self::create_new_state_without_snapshot(snapshot, current_state);
         let new_snapshot = ProcessSnapshot {
             id: snapshot.id,
-            tokens: BTreeMap::new(), // All tokens are removed due to terminate.
+            tokens: FxHashMap::default(), // All tokens are removed due to terminate.
         };
         new_state.snapshots.push(new_snapshot);
         self.record_end_event_execution(&mut new_state);
@@ -457,7 +458,7 @@ impl FlowNode {
                         // Create a new snapshot.
                         let mut new_snapshot = ProcessSnapshot {
                             id: &process.id,
-                            tokens: BTreeMap::new(),
+                            tokens: FxHashMap::default(),
                         };
                         // Add outgoing tokens
                         self.add_outgoing_tokens(&mut new_snapshot);
@@ -470,7 +471,7 @@ impl FlowNode {
         next_states
     }
 
-    fn clone_decrease_message<'a>(message_id: &str, state: &State<'a>) -> BTreeMap<&'a str, u16> {
+    fn clone_decrease_message<'a>(message_id: &str, state: &State<'a>) -> FxHashMap<&'a str, u16> {
         let mut messages = state.messages.clone();
         match messages.get_mut(message_id) {
             None => {
