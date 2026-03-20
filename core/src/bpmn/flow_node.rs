@@ -471,16 +471,21 @@ impl FlowNode {
     }
 
     fn clone_decrease_message<'a>(message_id: &str, state: &State<'a>) -> BTreeMap<&'a str, u16> {
-        let mut messages = BTreeMap::new();
-        state.messages.iter().for_each(|(&message, count)| {
-            if message == message_id {
-                if *count > 1 {
-                    messages.insert(message, *count - 1);
-                }
-            } else {
-                messages.insert(message, *count);
+        let mut messages = state.messages.clone();
+        match messages.get_mut(message_id) {
+            None => {
+                panic!(
+                    "Message {} should be decreased but was not present!",
+                    message_id
+                )
             }
-        });
+            Some(count) => {
+                *count -= 1;
+                if *count == 0 {
+                    messages.remove(message_id);
+                }
+            }
+        }
         messages
     }
 

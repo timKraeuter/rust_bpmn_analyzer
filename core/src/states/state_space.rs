@@ -1,6 +1,6 @@
 use crate::model_checking::properties::LiveLockError;
-use std::collections::hash_map::DefaultHasher;
-use std::collections::{BTreeMap, HashMap, HashSet};
+use rustc_hash::{FxHashMap, FxHasher};
+use std::collections::{BTreeMap, HashSet};
 use std::fmt::{Display, Formatter};
 use std::hash::{Hash, Hasher};
 
@@ -10,9 +10,9 @@ const MAX_TOKEN: u16 = 50;
 pub struct StateSpace<'a> {
     pub start_state_hash: u64,
     pub terminated_state_hashes: Vec<u64>,
-    pub states: HashMap<u64, State<'a>>,
+    pub states: FxHashMap<u64, State<'a>>,
     // Outgoing transitions (executed flow node id, target state hash)
-    pub transitions: HashMap<u64, Vec<(&'a str, u64)>>,
+    pub transitions: FxHashMap<u64, Vec<(&'a str, u64)>>,
 }
 
 impl StateSpace<'_> {
@@ -113,7 +113,7 @@ impl<'a> State<'a> {
     }
 
     pub fn calc_hash(&self) -> u64 {
-        let mut s = DefaultHasher::new();
+        let mut s = FxHasher::default();
         self.hash(&mut s);
         s.finish()
     }

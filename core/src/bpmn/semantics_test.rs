@@ -495,7 +495,7 @@ mod test {
 
         let model_checking_result = collaboration.explore_state_space(vec![Property::Safeness]);
 
-        let unsafe_state_hash: u64 = 3842228032089975966;
+        let unsafe_state_hash: u64 = 3896914192638537138;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -503,7 +503,7 @@ mod test {
                 property: Property::Safeness,
                 fulfilled: false,
                 problematic_elements: vec![String::from("Unsafe1"), String::from("Unsafe2")],
-                problematic_state_hashes: vec![unsafe_state_hash, 10963063677454573590]
+                problematic_state_hashes: vec![unsafe_state_hash, 5858696718627444116]
             }]
         );
 
@@ -550,8 +550,8 @@ mod test {
         let model_checking_result =
             collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
-        let not_terminated_state_hash_1 = 9452229757242377755;
-        let not_terminated_state_hash_2 = 6735018309777973944;
+        let not_terminated_state_hash_1 = 3513373295245955780;
+        let not_terminated_state_hash_2 = 12908611872386305798;
         assert_eq!(
             model_checking_result.property_results,
             vec![PropertyResult {
@@ -591,7 +591,7 @@ mod test {
         let model_checking_result =
             collaboration.explore_state_space(vec![Property::OptionToComplete]);
 
-        let expected_hash: u64 = 12581154331755844142;
+        let expected_hash: u64 = 10797639389964380801;
 
         assert_eq!(
             model_checking_result.property_results,
@@ -716,7 +716,7 @@ mod test {
                 property: Property::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
-                problematic_state_hashes: vec![12782631182175227902],
+                problematic_state_hashes: vec![781029153653188147],
             }
         );
     }
@@ -737,7 +737,7 @@ mod test {
                 property: Property::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
-                problematic_state_hashes: vec![12782631182175227902],
+                problematic_state_hashes: vec![781029153653188147],
             }
         );
     }
@@ -758,7 +758,7 @@ mod test {
                 property: Property::ProperCompletion,
                 fulfilled: false,
                 problematic_elements: vec!["EndEvent_1".to_string()],
-                problematic_state_hashes: vec![5271536939354034460],
+                problematic_state_hashes: vec![12479193190871314247],
             }
         );
     }
