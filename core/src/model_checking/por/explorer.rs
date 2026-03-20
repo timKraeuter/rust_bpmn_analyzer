@@ -13,7 +13,8 @@ use crate::model_checking::properties::{
     determine_properties,
 };
 use crate::states::state_space::{State, StateSpace};
-use std::collections::{HashMap, HashSet, VecDeque};
+use rustc_hash::FxHashMap;
+use std::collections::{HashSet, VecDeque};
 
 /// Run the model checker with partial order reduction enabled.
 ///
@@ -65,8 +66,8 @@ pub fn explore_state_space_with_por<'a>(
     let mut state_space = StateSpace {
         start_state_hash,
         terminated_state_hashes: vec![],
-        states: HashMap::new(),
-        transitions: HashMap::new(),
+        states: FxHashMap::default(),
+        transitions: FxHashMap::default(),
     };
 
     let mut unexplored_states = VecDeque::new();

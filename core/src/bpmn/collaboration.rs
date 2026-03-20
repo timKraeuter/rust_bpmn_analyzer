@@ -6,7 +6,8 @@ use crate::model_checking::properties::{
     determine_properties,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
-use std::collections::{BTreeMap, HashMap, HashSet, VecDeque};
+use rustc_hash::FxHashMap;
+use std::collections::{BTreeMap, HashSet, VecDeque};
 
 #[derive(Debug, PartialEq)]
 pub struct Collaboration {
@@ -44,8 +45,8 @@ impl Collaboration {
         let mut state_space = StateSpace {
             start_state_hash,
             terminated_state_hashes: vec![],
-            states: HashMap::new(),
-            transitions: HashMap::new(),
+            states: FxHashMap::default(),
+            transitions: FxHashMap::default(),
         };
 
         let mut unexplored_states = VecDeque::new();
