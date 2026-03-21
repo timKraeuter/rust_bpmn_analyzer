@@ -188,7 +188,7 @@ dependencies = [
 
 [[package]]
 name = "rust_bpmn_analyzer"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "clap",
  "colored",
@@ -198,7 +198,7 @@ dependencies = [
 
 [[package]]
 name = "rust_bpmn_analyzer_wasm"
-version = "2.0.0"
+version = "2.0.1"
 dependencies = [
  "rust_bpmn_analyzer",
  "serde",
