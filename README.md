@@ -41,7 +41,7 @@ Build an optimized binary that can be used as shown above:
 cargo build --release
 ```
 
-## Partial Order Reduction (POR)
+## Partial Order Reduction (POR) (experimental)
 
 The analyzer supports **Partial Order Reduction** using ample sets to dramatically reduce the state space for models with independent parallel activities. This is especially effective for BPMN models with parallel gateways where branches don't communicate.
 
