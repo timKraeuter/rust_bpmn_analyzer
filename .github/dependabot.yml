@@ -4,19 +4,29 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+      time: "10:00"
+      timezone: "Europe/Amsterdam"
   - package-ecosystem: "cargo"
     directory: "/core"
     schedule:
       interval: "monthly"
+      time: "10:00"
+      timezone: "Europe/Amsterdam"
   - package-ecosystem: "cargo"
     directory: "/cli"
     schedule:
       interval: "monthly"
+      time: "10:00"
+      timezone: "Europe/Amsterdam"
   - package-ecosystem: "cargo"
     directory: "/wasm"
     schedule:
       interval: "monthly"
+      time: "10:00"
+      timezone: "Europe/Amsterdam"
   - package-ecosystem: "cargo"
     directory: "/webserver"
     schedule:
       interval: "monthly"
+      time: "10:00"
+      timezone: "Europe/Amsterdam"
