@@ -18,7 +18,7 @@ jobs:
     env:
       BENCHER_PROJECT: rust-bpmn-analyzer
       BENCHER_TESTBED: ubuntu-latest
-      BENCHER_ADAPTER: shell
+      BENCHER_ADAPTER: shell_hyperfine
 
     steps:
       - uses: actions/checkout@v6
