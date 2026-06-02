@@ -445,26 +445,25 @@ impl FlowNode {
             let message_count = current_state.messages.get(message_id);
             match message_count {
                 None => {}
-                Some(count) => {
-                    if *count > 0 {
-                        let mut new_state = State {
-                            snapshots: current_state.snapshots.clone(),
-                            executed_end_event_counter: current_state
-                                .executed_end_event_counter
-                                .clone(),
-                            messages: Self::clone_decrease_message(message_id, current_state),
-                        };
-                        // Create a new snapshot.
-                        let mut new_snapshot = ProcessSnapshot {
-                            id: &process.id,
-                            tokens: BTreeMap::new(),
-                        };
-                        // Add outgoing tokens
-                        self.add_outgoing_tokens(&mut new_snapshot);
-                        new_state.snapshots.push(new_snapshot);
-                        next_states.push(new_state);
-                    }
+                Some(count) if *count > 0 => {
+                    let mut new_state = State {
+                        snapshots: current_state.snapshots.clone(),
+                        executed_end_event_counter: current_state
+                            .executed_end_event_counter
+                            .clone(),
+                        messages: Self::clone_decrease_message(message_id, current_state),
+                    };
+                    // Create a new snapshot.
+                    let mut new_snapshot = ProcessSnapshot {
+                        id: &process.id,
+                        tokens: BTreeMap::new(),
+                    };
+                    // Add outgoing tokens
+                    self.add_outgoing_tokens(&mut new_snapshot);
+                    new_state.snapshots.push(new_snapshot);
+                    next_states.push(new_state);
                 }
+                Some(_) => {}
             }
         }
         next_states
