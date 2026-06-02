@@ -10,7 +10,7 @@ colored = "3.1.1"
 rust_bpmn_analyzer = { path = "../core" }
 
 [dev-dependencies]
-assert_cmd = "2"
+assert_cmd = "2.2.2"
 predicates = "3"
 
 [profile.release]
