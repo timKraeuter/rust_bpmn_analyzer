@@ -49,11 +49,11 @@ pub fn read_bpmn_from_string(
     loop {
         match reader.read_event() {
             Ok(Event::Start(e)) => match e.local_name().as_ref() {
-                b"process" => {
+                "process" => {
                     add_participant(&mut collaboration, &e);
                     current_participant = Some(get_attribute_value_or_panic(&e, "id"));
                 }
-                b"subProcess" => {
+                "subProcess" => {
                     if has_true_attribute_value(&e, "triggeredByEvent") {
                         // Event subprocesses not supported.
                         unsupported_elements.push(e);
@@ -66,45 +66,42 @@ pub fn read_bpmn_from_string(
                         )
                     }
                 }
-                b"task" | b"sendTask" | b"serviceTask" | b"userTask" | b"manualTask"
-                | b"businessRuleTask" | b"scriptTask" => add_flow_node(
+                "task" | "sendTask" | "serviceTask" | "userTask" | "manualTask"
+                | "businessRuleTask" | "scriptTask" => add_flow_node(
                     &mut collaboration,
                     &e,
                     FlowNodeType::Task(TaskType::Default),
                 ),
-                b"receiveTask" => add_flow_node(
+                "receiveTask" => add_flow_node(
                     &mut collaboration,
                     &e,
                     FlowNodeType::Task(TaskType::Receive),
                 ),
-                b"startEvent"
-                | b"intermediateCatchEvent"
-                | b"intermediateThrowEvent"
-                | b"endEvent" => {
+                "startEvent" | "intermediateCatchEvent" | "intermediateThrowEvent" | "endEvent" => {
                     last_event_start_bytes = Some(e);
                 }
-                b"parallelGateway" => {
+                "parallelGateway" => {
                     add_flow_node(&mut collaboration, &e, FlowNodeType::ParallelGateway)
                 }
-                b"exclusiveGateway" => {
+                "exclusiveGateway" => {
                     add_flow_node(&mut collaboration, &e, FlowNodeType::ExclusiveGateway)
                 }
-                b"eventBasedGateway" => {
+                "eventBasedGateway" => {
                     add_flow_node(&mut collaboration, &e, FlowNodeType::EventBasedGateway)
                 }
-                b"sequenceFlow" => {
+                "sequenceFlow" => {
                     sfs.push(e);
                 }
-                b"messageFlow" => {
+                "messageFlow" => {
                     mfs.push(e);
                 }
-                b"callActivity" | b"inclusiveGateway" | b"complexGateway" => {
+                "callActivity" | "inclusiveGateway" | "complexGateway" => {
                     unsupported_elements.push(e)
                 }
                 _ => (),
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
-                b"process" => {
+                "process" => {
                     if unsupported_elements.is_empty() {
                         sfs.iter().for_each(|sf| match &current_participant {
                             None => {
@@ -117,10 +114,7 @@ pub fn read_bpmn_from_string(
                     }
                     sfs = vec![];
                 }
-                b"startEvent"
-                | b"intermediateCatchEvent"
-                | b"intermediateThrowEvent"
-                | b"endEvent" => {
+                "startEvent" | "intermediateCatchEvent" | "intermediateThrowEvent" | "endEvent" => {
                     let last_event_bytes = last_event_start_bytes.unwrap();
                     match last_event_type {
                         None => {
@@ -136,19 +130,19 @@ pub fn read_bpmn_from_string(
                 _ => (),
             },
             Ok(Event::Empty(e)) => match e.local_name().as_ref() {
-                b"sequenceFlow" => {
+                "sequenceFlow" => {
                     sfs.push(e);
                 }
-                b"messageFlow" => {
+                "messageFlow" => {
                     mfs.push(e);
                 }
-                b"messageEventDefinition" => {
+                "messageEventDefinition" => {
                     last_event_type = Some(EventType::Message);
                 }
-                b"terminateEventDefinition" => {
+                "terminateEventDefinition" => {
                     last_event_type = Some(EventType::Terminate);
                 }
-                b"linkEventDefinition" => {
+                "linkEventDefinition" => {
                     let mut link_name = get_attribute_value(&e, "name");
                     if link_name.is_none() {
                         // Fallback to link event name.
@@ -158,28 +152,28 @@ pub fn read_bpmn_from_string(
                     }
                     last_event_type = Some(EventType::Link(link_name.unwrap_or_default()));
                 }
-                b"signalEventDefinition"
-                | b"timerEventDefinition"
-                | b"escalationEventDefinition"
-                | b"errorEventDefinition"
-                | b"compensateEventDefinition" => {
+                "signalEventDefinition"
+                | "timerEventDefinition"
+                | "escalationEventDefinition"
+                | "errorEventDefinition"
+                | "compensateEventDefinition" => {
                     last_event_type = None; // Set to none since these are unsupported.
                 }
-                b"task" | b"sendTask" | b"serviceTask" | b"userTask" | b"manualTask"
-                | b"businessRuleTask" | b"scriptTask" => add_flow_node(
+                "task" | "sendTask" | "serviceTask" | "userTask" | "manualTask"
+                | "businessRuleTask" | "scriptTask" => add_flow_node(
                     &mut collaboration,
                     &e,
                     FlowNodeType::Task(TaskType::Default),
                 ),
-                b"receiveTask" => add_flow_node(
+                "receiveTask" => add_flow_node(
                     &mut collaboration,
                     &e,
                     FlowNodeType::Task(TaskType::Receive),
                 ),
-                b"eventBasedGateway" => {
+                "eventBasedGateway" => {
                     add_flow_node(&mut collaboration, &e, FlowNodeType::EventBasedGateway)
                 }
-                b"callActivity" | b"inclusiveGateway" | b"complexGateway" => {
+                "callActivity" | "inclusiveGateway" | "complexGateway" => {
                     unsupported_elements.push(e)
                 }
                 _ => (),
@@ -232,10 +226,10 @@ fn add_event(
     event_type: EventType,
 ) {
     let event_type = match flow_node_bytes.local_name().as_ref() {
-        b"startEvent" => FlowNodeType::StartEvent(event_type),
-        b"intermediateCatchEvent" => FlowNodeType::IntermediateCatchEvent(event_type),
-        b"intermediateThrowEvent" => FlowNodeType::IntermediateThrowEvent(event_type),
-        b"endEvent" => FlowNodeType::EndEvent(event_type),
+        "startEvent" => FlowNodeType::StartEvent(event_type),
+        "intermediateCatchEvent" => FlowNodeType::IntermediateCatchEvent(event_type),
+        "intermediateThrowEvent" => FlowNodeType::IntermediateThrowEvent(event_type),
+        "endEvent" => FlowNodeType::EndEvent(event_type),
         _ => panic!("Should not happen!"),
     };
     add_flow_node(collaboration, flow_node_bytes, event_type);
@@ -294,10 +288,7 @@ fn get_attribute_value(e: &BytesStart, key: &str) -> Option<String> {
     match e.try_get_attribute(key) {
         Ok(attribute) => match attribute {
             None => None,
-            Some(x) => Some(
-                String::from_utf8(x.value.into_owned())
-                    .unwrap_or_else(|e| panic!("UTF8 Error. {}", e)),
-            ),
+            Some(x) => Some(x.value.into_owned()),
         },
         Err(e) => {
             panic!("Could not get attribute! {}", e)
@@ -309,7 +300,7 @@ fn has_true_attribute_value(e: &BytesStart, key: &str) -> bool {
     match e.try_get_attribute(key) {
         Ok(attribute) => match attribute {
             None => false,
-            Some(x) => x.value.as_ref() == b"true",
+            Some(x) => x.value.as_ref() == "true",
         },
         Err(_) => false,
     }
