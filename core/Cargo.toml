@@ -11,4 +11,4 @@ quick-xml = { version = "0.42.0" }
 rustc-hash = "2"
 
 [dev-dependencies]
-rstest = "0.26.1"
+rstest = "0.27.0"
