@@ -6,27 +6,67 @@ updates:
       interval: "monthly"
       time: "10:00"
       timezone: "Europe/Amsterdam"
+    groups:
+      minor-and-patch:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "cargo"
     directory: "/core"
     schedule:
       interval: "monthly"
       time: "10:00"
       timezone: "Europe/Amsterdam"
+    groups:
+      minor-and-patch:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "cargo"
     directory: "/cli"
     schedule:
       interval: "monthly"
       time: "10:00"
       timezone: "Europe/Amsterdam"
+    groups:
+      minor-and-patch:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "cargo"
     directory: "/wasm"
     schedule:
       interval: "monthly"
       time: "10:00"
       timezone: "Europe/Amsterdam"
+    groups:
+      minor-and-patch:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
   - package-ecosystem: "cargo"
     directory: "/webserver"
     schedule:
       interval: "monthly"
       time: "10:00"
       timezone: "Europe/Amsterdam"
+    groups:
+      minor-and-patch:
+        applies-to: "version-updates"
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
