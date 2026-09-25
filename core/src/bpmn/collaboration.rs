@@ -6,7 +6,7 @@ use crate::model_checking::properties::{
     determine_properties,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::{BTreeMap, HashSet, VecDeque};
 
 #[derive(Debug, PartialEq)]
@@ -37,7 +37,7 @@ impl Collaboration {
         let mut property_results = vec![];
         let mut not_executed_activities = self.get_all_tasks();
 
-        let mut seen_state_hashes = HashSet::new();
+        let mut seen_state_hashes = FxHashSet::default();
         let start_state = self.create_start_state();
         let start_state_hash = start_state.calc_hash();
         seen_state_hashes.insert(start_state_hash);
@@ -51,17 +51,21 @@ impl Collaboration {
 
         let mut unexplored_states = VecDeque::new();
         unexplored_states.push_back((start_state_hash, start_state));
+        let mut potentially_unexplored_states = vec![];
 
         while !unexplored_states.is_empty() {
             match unexplored_states.pop_front() {
                 None => {}
                 Some((current_state_hash, current_state)) => {
                     // Explore the state
-                    let potentially_unexplored_states =
-                        self.explore_state(&current_state, &mut not_executed_activities);
+                    self.explore_state(
+                        &current_state,
+                        &mut not_executed_activities,
+                        &mut potentially_unexplored_states,
+                    );
 
-                    let mut transitions = vec![];
-                    for (flow_node_id, new_state) in potentially_unexplored_states {
+                    let mut transitions = Vec::with_capacity(potentially_unexplored_states.len());
+                    for (flow_node_id, new_state) in potentially_unexplored_states.drain(..) {
                         let new_hash = new_state.calc_hash();
                         // Check if we know the state already
                         if seen_state_hashes.insert(new_hash) {
@@ -163,10 +167,10 @@ impl Collaboration {
         &'a self,
         state: &State<'a>,
         not_executed_activities: &mut HashSet<&str>,
-    ) -> Vec<(&'a str, State<'a>)> {
-        let mut unexplored_states: Vec<(&str, State)> = vec![];
+        unexplored_states: &mut Vec<(&'a str, State<'a>)>,
+    ) {
         if !state.messages.is_empty() {
-            self.try_trigger_message_start_events(state, &mut unexplored_states);
+            self.try_trigger_message_start_events(state, unexplored_states);
         }
 
         for snapshot in &state.snapshots {
@@ -208,7 +212,6 @@ impl Collaboration {
                 }
             }
         }
-        unexplored_states
     }
 
     pub(crate) fn get_flow_node_indexes_with_incoming_tokens<'a>(

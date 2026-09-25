@@ -13,7 +13,7 @@ use crate::model_checking::properties::{
     determine_properties,
 };
 use crate::states::state_space::{State, StateSpace};
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::{HashSet, VecDeque};
 
 /// Run the model checker with partial order reduction enabled.
@@ -58,7 +58,7 @@ pub fn explore_state_space_with_por<'a>(
     let mut not_executed_activities = collaboration.get_all_tasks();
     let mut ample_stats = AmpleSetStats::default();
 
-    let mut seen_state_hashes: HashSet<u64> = HashSet::new();
+    let mut seen_state_hashes = FxHashSet::default();
     let start_state = collaboration.create_start_state();
     let start_state_hash = start_state.calc_hash();
     seen_state_hashes.insert(start_state_hash);
@@ -72,6 +72,7 @@ pub fn explore_state_space_with_por<'a>(
 
     let mut unexplored_states = VecDeque::new();
     unexplored_states.push_back((start_state_hash, start_state));
+    let mut potentially_unexplored_states = vec![];
 
     // Track states that need re-exploration with full expansion (for sticky proviso)
     let mut needs_full_expansion: HashSet<u64> = HashSet::new();
@@ -101,17 +102,18 @@ pub fn explore_state_space_with_por<'a>(
             .map(|t| t.flow_node_id)
             .collect();
 
-        let potentially_unexplored_states = explore_state_filtered(
+        explore_state_filtered(
             collaboration,
             &current_state,
             &mut not_executed_activities,
             &selected_flow_node_ids,
+            &mut potentially_unexplored_states,
         );
 
-        let mut transitions = vec![];
+        let mut transitions = Vec::with_capacity(potentially_unexplored_states.len());
         let mut has_back_edge = false;
 
-        for (flow_node_id, new_state) in potentially_unexplored_states {
+        for (flow_node_id, new_state) in potentially_unexplored_states.drain(..) {
             let new_hash = new_state.calc_hash();
             // Check if we know the state already
             if seen_state_hashes.insert(new_hash) {
@@ -147,14 +149,15 @@ pub fn explore_state_space_with_por<'a>(
                 .collect();
 
             if !missing_flow_node_ids.is_empty() {
-                let additional_states = explore_state_filtered(
+                explore_state_filtered(
                     collaboration,
                     &current_state,
                     &mut not_executed_activities,
                     &missing_flow_node_ids,
+                    &mut potentially_unexplored_states,
                 );
 
-                for (flow_node_id, new_state) in additional_states {
+                for (flow_node_id, new_state) in potentially_unexplored_states.drain(..) {
                     let new_hash = new_state.calc_hash();
                     if seen_state_hashes.insert(new_hash) {
                         unexplored_states.push_back((new_hash, new_state));
@@ -273,15 +276,14 @@ fn explore_state_filtered<'a>(
     state: &State<'a>,
     not_executed_activities: &mut HashSet<&str>,
     selected_flow_nodes: &HashSet<&str>,
-) -> Vec<(&'a str, State<'a>)> {
-    let mut unexplored_states: Vec<(&str, State)> = vec![];
-
+    unexplored_states: &mut Vec<(&'a str, State<'a>)>,
+) {
     // Handle message start events
     if !state.messages.is_empty() {
         try_trigger_message_start_events_filtered(
             collaboration,
             state,
-            &mut unexplored_states,
+            unexplored_states,
             selected_flow_nodes,
         );
     }
@@ -321,7 +323,6 @@ fn explore_state_filtered<'a>(
             }
         }
     }
-    unexplored_states
 }
 
 /// Try to trigger message start events, but only for selected flow nodes.

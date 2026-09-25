@@ -188,6 +188,8 @@ fn test_por_preserves_properties(#[case] filename: &str, #[case] description: &s
 #[case("integration/p2.bpmn")]
 #[case("integration/p6_stuck.bpmn")]
 #[case("integration/e020.bpmn")]
+#[case("integration/p10.bpmn")]
+#[case("integration/message_persistence.bpmn")]
 fn test_por_disabled_matches_full(#[case] filename: &str) {
     let file_path = PATH.to_string() + filename;
     let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();
@@ -215,6 +217,19 @@ fn test_por_disabled_matches_full(#[case] filename: &str) {
         result_por.result.state_space.count_transitions(),
         "Disabled POR should produce same transition count for {}",
         filename
+    );
+
+    assert_eq!(
+        result_full.state_space.states,
+        result_por.result.state_space.states
+    );
+    assert_eq!(
+        result_full.state_space.transitions,
+        result_por.result.state_space.transitions
+    );
+    assert_eq!(
+        result_full.state_space.terminated_state_hashes,
+        result_por.result.state_space.terminated_state_hashes
     );
 
     // Property results should be identical
