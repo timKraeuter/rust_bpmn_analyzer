@@ -247,14 +247,21 @@ mod tests {
         assert_eq!(error.unsupported_elements, vec!["unsupported"]);
     }
 
-    #[test]
-    fn reject_nested_error_end_event() {
-        let xml = r#"<definitions><process id="process">
-            <subProcess id="subprocess">
-                <endEvent id="nestedError"><errorEventDefinition/></endEvent>
-            </subProcess>
-        </process></definitions>"#;
-        let error = read_bpmn_from_string(xml).unwrap_err();
+    #[rstest]
+    #[case("subProcess")]
+    #[case("transaction")]
+    #[case("adHocSubProcess")]
+    fn reject_nested_error_end_event(#[case] subprocess: &str) {
+        let xml = format!(
+            r#"<definitions><process id="process">
+                <startEvent id="start"></startEvent>
+                <{subprocess} id="subprocess">
+                    <endEvent id="nestedError"><errorEventDefinition/></endEvent>
+                </{subprocess}>
+                <sequenceFlow id="flow" sourceRef="start" targetRef="subprocess"/>
+            </process></definitions>"#
+        );
+        let error = read_bpmn_from_string(&xml).unwrap_err();
         assert_eq!(error.unsupported_elements, vec!["nestedError"]);
     }
 

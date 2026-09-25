@@ -54,6 +54,9 @@ pub fn read_bpmn_from_string(
                     add_participant(&mut collaboration, &e);
                     current_participant = Some(get_attribute_value_or_panic(&e, "id"));
                 }
+                "transaction" | "adHocSubProcess" => {
+                    subprocess_depth += 1;
+                }
                 "subProcess" => {
                     subprocess_depth += 1;
                     if has_true_attribute_value(&e, "triggeredByEvent") {
@@ -110,7 +113,7 @@ pub fn read_bpmn_from_string(
                 _ => (),
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
-                "subProcess" => {
+                "subProcess" | "transaction" | "adHocSubProcess" => {
                     subprocess_depth -= 1;
                 }
                 "process" => {
