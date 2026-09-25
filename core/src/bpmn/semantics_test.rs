@@ -385,6 +385,92 @@ mod test {
     }
 
     #[test]
+    fn try_execute_error_end_event() {
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/error_end.bpmn"));
+        let process = get_process_by_id(&collaboration, "process");
+        let error_end = get_flow_node_with_id(process, "errorEnd");
+        let mut state = collaboration.create_start_state();
+        state.snapshots[0].add_token("errorFlow");
+        state.messages.insert("pendingMessage", 1);
+        state.executed_end_event_counter.insert("normalEnd", 1);
+
+        let next_states = error_end.try_execute(
+            get_snapshot_by_id(&state, "process"),
+            &state,
+            process,
+            &mut HashSet::new(),
+        );
+
+        assert_eq!(
+            next_states,
+            vec![State {
+                snapshots: vec![
+                    ProcessSnapshot::new("otherProcess", vec!["otherFlow"]),
+                    ProcessSnapshot::new("process", vec![]),
+                ],
+                messages: BTreeMap::from([("pendingMessage", 1)]),
+                executed_end_event_counter: BTreeMap::from([("normalEnd", 1), ("errorEnd", 1)]),
+            }]
+        );
+        assert_eq!(state.snapshots[0].tokens["errorFlow"], 2);
+        assert!(
+            error_end
+                .try_execute(
+                    get_snapshot_by_id(&next_states[0], "process"),
+                    &next_states[0],
+                    process,
+                    &mut HashSet::new(),
+                )
+                .is_empty()
+        );
+    }
+
+    #[test]
+    fn error_end_event_requires_an_incoming_token() {
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/error_end.bpmn"));
+        let process = get_process_by_id(&collaboration, "process");
+        let error_end = get_flow_node_with_id(process, "errorEnd");
+        let state = State::new("process", vec!["taskFlow"]);
+        let snapshot = get_first_snapshot(&state);
+
+        assert!(
+            error_end
+                .try_execute(snapshot, &state, process, &mut HashSet::new(),)
+                .is_empty()
+        );
+        assert!(
+            error_end
+                .get_transition_effect(&process.id, snapshot, &state, process,)
+                .is_none()
+        );
+    }
+
+    #[test]
+    fn error_end_event_effect_consumes_all_process_tokens() {
+        let collaboration = read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/error_end.bpmn"));
+        let process = get_process_by_id(&collaboration, "process");
+        let error_end = get_flow_node_with_id(process, "errorEnd");
+        let state = collaboration.create_start_state();
+        let effect = error_end
+            .get_transition_effect(
+                &process.id,
+                get_snapshot_by_id(&state, "process"),
+                &state,
+                process,
+            )
+            .unwrap();
+
+        assert_eq!(
+            effect.consumes_tokens,
+            HashSet::from(["errorFlow", "taskFlow"])
+        );
+        assert_eq!(effect.records_end_events, HashSet::from(["errorEnd"]));
+        assert!(effect.produces_tokens.is_empty());
+        assert!(effect.produces_messages.is_empty());
+        assert!(effect.is_visible);
+    }
+
+    #[test]
     fn try_execute_intermediate_throw_event() {
         let collaboration =
             read_bpmn_and_unwrap(&(PATH.to_string() + "semantics/intermediate_event.bpmn"));

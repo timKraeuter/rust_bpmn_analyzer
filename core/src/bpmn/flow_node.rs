@@ -140,7 +140,8 @@ impl FlowNode {
             .snapshots
             .iter()
             .filter_map(|sp| {
-                if sp.id == snapshot.id {
+                // The process ID is shared by instances; remove only the executing snapshot.
+                if std::ptr::eq(sp, snapshot) {
                     None
                 } else {
                     Some(sp.clone())
@@ -329,7 +330,9 @@ impl FlowNode {
             match snapshot.tokens.get(inc_flow.id.as_str()) {
                 None => {}
                 Some(_) => {
-                    if event_type == &EventType::Terminate {
+                    if matches!(event_type, EventType::Terminate | EventType::Error) {
+                        // BPMN 2.0.2 Table 10.88 leaves unhandled errors to the engine.
+                        // We choose to terminate the throwing instance, not other instances.
                         return self.execute_terminate_end_event(snapshot, current_state);
                     }
 
@@ -659,6 +662,16 @@ impl FlowNode {
                 // Records end event execution
                 effect.records_end_events.insert(&self.id);
 
+                if *event_type == EventType::Error {
+                    if effect.consumes_tokens.is_empty() {
+                        return None;
+                    }
+                    effect
+                        .consumes_tokens
+                        .extend(snapshot.tokens.keys().copied());
+                    return Some(effect);
+                }
+
                 // Terminate end events are more complex but don't produce tokens
                 if *event_type == EventType::Terminate {
                     // Terminate affects the entire process, making it dependent
@@ -804,6 +817,7 @@ pub enum EventType {
     None,
     Message,
     Terminate,
+    Error,
     Link(String),
 }
 

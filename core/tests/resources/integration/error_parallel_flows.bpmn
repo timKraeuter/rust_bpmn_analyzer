@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="definitions" targetNamespace="http://example.org/error-events">
+  <error id="failure" errorCode="failure" />
+  <process id="process">
+    <startEvent id="start">
+      <outgoing>toSplit</outgoing>
+    </startEvent>
+    <parallelGateway id="split">
+      <incoming>toSplit</incoming>
+      <outgoing>directError</outgoing>
+      <outgoing>deferredError</outgoing>
+      <outgoing>blockedFlow</outgoing>
+    </parallelGateway>
+    <task id="beforeError" />
+    <receiveTask id="blocked" />
+    <endEvent id="errorEnd">
+      <incoming>directError</incoming>
+      <incoming>secondError</incoming>
+      <errorEventDefinition errorRef="failure" />
+    </endEvent>
+    <endEvent id="normalEnd">
+      <incoming>toNormalEnd</incoming>
+    </endEvent>
+    <sequenceFlow id="toSplit" sourceRef="start" targetRef="split" />
+    <sequenceFlow id="directError" sourceRef="split" targetRef="errorEnd" />
+    <sequenceFlow id="deferredError" sourceRef="split" targetRef="beforeError" />
+    <sequenceFlow id="secondError" sourceRef="beforeError" targetRef="errorEnd" />
+    <sequenceFlow id="blockedFlow" sourceRef="split" targetRef="blocked" />
+    <sequenceFlow id="toNormalEnd" sourceRef="blocked" targetRef="normalEnd" />
+  </process>
+</definitions>
