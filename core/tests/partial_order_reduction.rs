@@ -10,6 +10,46 @@ use rust_bpmn_analyzer::{AmpleSetConfig, ModelCheckingResult, Property};
 
 const PATH: &str = "tests/resources/";
 
+#[rstest]
+#[case::default(AmpleSetConfig::default())]
+#[case::invisibility(AmpleSetConfig {
+    check_invisibility: true,
+    ..Default::default()
+})]
+#[case::no_sticky_proviso(AmpleSetConfig {
+    use_sticky_proviso: false,
+    ..Default::default()
+})]
+fn test_por_preserves_future_error_cancellation(#[case] config: AmpleSetConfig) {
+    let collaboration = rust_bpmn_analyzer::read_bpmn_from_string(
+        r#"<definitions><process id="process">
+            <startEvent id="start"></startEvent>
+            <task id="beforeError"/>
+            <endEvent id="errorEnd"><errorEventDefinition/></endEvent>
+            <task id="parallelTask"/>
+            <parallelGateway id="join"></parallelGateway>
+            <endEvent id="normalEnd"></endEvent>
+            <sequenceFlow id="a" sourceRef="start" targetRef="beforeError"/>
+            <sequenceFlow id="b" sourceRef="beforeError" targetRef="errorEnd"/>
+            <sequenceFlow id="c" sourceRef="start" targetRef="parallelTask"/>
+            <sequenceFlow id="d" sourceRef="parallelTask" targetRef="join"/>
+            <sequenceFlow id="e" sourceRef="start" targetRef="join"/>
+            <sequenceFlow id="f" sourceRef="join" targetRef="normalEnd"/>
+        </process></definitions>"#,
+    )
+    .unwrap();
+    let full = rust_bpmn_analyzer::run(&collaboration, all_properties());
+    let por = rust_bpmn_analyzer::run_with_por(&collaboration, all_properties(), config);
+
+    assert_property_results_equal(&full, por.get_result(), "future error cancellation");
+    // Both completion orders must remain reachable, even before the error is enabled.
+    assert_eq!(full.state_space.states, por.get_result().state_space.states);
+    assert_eq!(
+        full.state_space.count_transitions(),
+        por.get_result().state_space.count_transitions()
+    );
+}
+
 /// Helper to get all properties
 fn all_properties() -> Vec<Property> {
     vec![
@@ -79,6 +119,7 @@ fn assert_property_results_equal(
 // Note: livelock.bpmn excluded - livelocks involve infinite cycles that POR handles differently
 // Unit tests - semantics
 #[case::terminate_end("unit/semantics/terminate_end.bpmn", "terminate end event")]
+#[case::error_end("unit/semantics/error_end.bpmn", "error end event")]
 #[case::task_and_gateways("unit/semantics/task_and_gateways.bpmn", "task and gateways")]
 #[case::task("unit/semantics/task.bpmn", "simple task")]
 #[case::start("unit/semantics/start.bpmn", "start event")]

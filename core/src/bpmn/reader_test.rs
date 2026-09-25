@@ -4,7 +4,8 @@ mod tests {
     use crate::bpmn::flow_node::FlowNodeType;
     use crate::bpmn::flow_node::{EventType, FlowNode, TaskType};
     use crate::bpmn::process::Process;
-    use crate::bpmn::reader::read_bpmn_from_file;
+    use crate::bpmn::reader::{read_bpmn_from_file, read_bpmn_from_string};
+    use rstest::rstest;
     use std::collections::HashMap;
 
     const PATH: &str = "tests/resources/unit/";
@@ -186,7 +187,6 @@ mod tests {
                         "signalCEvent".to_string(),
                         "signalTEvent".to_string(),
                         "timerCEvent".to_string(),
-                        "errorEnd".to_string(),
                         "escalationEnd".to_string(),
                         "escalationTEvent".to_string(),
                         "compensationTEvent".to_string(),
@@ -197,6 +197,65 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[rstest]
+    #[case("<errorEventDefinition/>")]
+    #[case("<errorEventDefinition errorRef=\"error\"/>")]
+    #[case("<errorEventDefinition errorRef=\"error\"></errorEventDefinition>")]
+    fn read_error_end_event(#[case] definition: &str) {
+        let xml = format!(
+            r#"<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL">
+                <error id="error" errorCode="failure"/>
+                <process id="process">
+                    <startEvent id="start"></startEvent>
+                    <endEvent id="errorEnd">{definition}</endEvent>
+                    <endEvent id="normalEnd"></endEvent>
+                    <sequenceFlow id="flow" sourceRef="start" targetRef="errorEnd"/>
+                </process>
+            </definitions>"#
+        );
+        let collaboration = read_bpmn_from_string(&xml).unwrap();
+        let process = &collaboration.participants[0];
+        let error_end = find_flow_node_by_id(process, "errorEnd");
+        assert_eq!(error_end.incoming_flows[0].id, "flow");
+        assert_eq!(
+            error_end.flow_node_type,
+            FlowNodeType::EndEvent(EventType::Error)
+        );
+        assert_eq!(
+            find_flow_node_by_id(process, "normalEnd").flow_node_type,
+            FlowNodeType::EndEvent(EventType::None)
+        );
+    }
+
+    #[rstest]
+    #[case("startEvent", "<errorEventDefinition/>")]
+    #[case("intermediateCatchEvent", "<errorEventDefinition/>")]
+    #[case("intermediateThrowEvent", "<errorEventDefinition/>")]
+    #[case("boundaryEvent", "<errorEventDefinition/>")]
+    #[case("boundaryEvent", "<errorEventDefinition></errorEventDefinition>")]
+    fn reject_unsupported_error_catches_and_throws(#[case] event: &str, #[case] definition: &str) {
+        let xml = format!(
+            r#"<definitions><process id="process">
+                <task id="task"/>
+                <{event} id="unsupported" attachedToRef="task">{definition}</{event}>
+                <endEvent id="normalEnd"></endEvent>
+            </process></definitions>"#
+        );
+        let error = read_bpmn_from_string(&xml).unwrap_err();
+        assert_eq!(error.unsupported_elements, vec!["unsupported"]);
+    }
+
+    #[test]
+    fn reject_nested_error_end_event() {
+        let xml = r#"<definitions><process id="process">
+            <subProcess id="subprocess">
+                <endEvent id="nestedError"><errorEventDefinition/></endEvent>
+            </subProcess>
+        </process></definitions>"#;
+        let error = read_bpmn_from_string(xml).unwrap_err();
+        assert_eq!(error.unsupported_elements, vec!["nestedError"]);
     }
 
     #[test]

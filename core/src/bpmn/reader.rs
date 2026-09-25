@@ -45,6 +45,7 @@ pub fn read_bpmn_from_string(
     let mut last_event_start_bytes: Option<BytesStart> = None;
     let mut last_event_type: Option<EventType> = Some(EventType::None);
     let mut current_participant = None;
+    let mut subprocess_depth = 0;
 
     loop {
         match reader.read_event() {
@@ -54,6 +55,7 @@ pub fn read_bpmn_from_string(
                     current_participant = Some(get_attribute_value_or_panic(&e, "id"));
                 }
                 "subProcess" => {
+                    subprocess_depth += 1;
                     if has_true_attribute_value(&e, "triggeredByEvent") {
                         // Event subprocesses not supported.
                         unsupported_elements.push(e);
@@ -77,8 +79,15 @@ pub fn read_bpmn_from_string(
                     &e,
                     FlowNodeType::Task(TaskType::Receive),
                 ),
-                "startEvent" | "intermediateCatchEvent" | "intermediateThrowEvent" | "endEvent" => {
+                "startEvent"
+                | "intermediateCatchEvent"
+                | "intermediateThrowEvent"
+                | "endEvent"
+                | "boundaryEvent" => {
                     last_event_start_bytes = Some(e);
+                }
+                "errorEventDefinition" => {
+                    last_event_type = Some(EventType::Error);
                 }
                 "parallelGateway" => {
                     add_flow_node(&mut collaboration, &e, FlowNodeType::ParallelGateway)
@@ -101,6 +110,9 @@ pub fn read_bpmn_from_string(
                 _ => (),
             },
             Ok(Event::End(e)) => match e.local_name().as_ref() {
+                "subProcess" => {
+                    subprocess_depth -= 1;
+                }
                 "process" => {
                     if unsupported_elements.is_empty() {
                         sfs.iter().for_each(|sf| match &current_participant {
@@ -114,9 +126,22 @@ pub fn read_bpmn_from_string(
                     }
                     sfs = vec![];
                 }
-                "startEvent" | "intermediateCatchEvent" | "intermediateThrowEvent" | "endEvent" => {
+                "startEvent"
+                | "intermediateCatchEvent"
+                | "intermediateThrowEvent"
+                | "endEvent"
+                | "boundaryEvent" => {
                     let last_event_bytes = last_event_start_bytes.unwrap();
                     match last_event_type {
+                        Some(event_type)
+                            if last_event_bytes.local_name().as_ref() == "boundaryEvent"
+                                || (event_type == EventType::Error
+                                    && (last_event_bytes.local_name().as_ref() != "endEvent"
+                                        || subprocess_depth > 0)) =>
+                        {
+                            // Error handlers and propagation through subprocess scopes are unsupported.
+                            unsupported_elements.push(last_event_bytes);
+                        }
                         None => {
                             unsupported_elements.push(last_event_bytes);
                         }
@@ -142,6 +167,9 @@ pub fn read_bpmn_from_string(
                 "terminateEventDefinition" => {
                     last_event_type = Some(EventType::Terminate);
                 }
+                "errorEventDefinition" => {
+                    last_event_type = Some(EventType::Error);
+                }
                 "linkEventDefinition" => {
                     let mut link_name = get_attribute_value(&e, "name");
                     if link_name.is_none() {
@@ -155,7 +183,6 @@ pub fn read_bpmn_from_string(
                 "signalEventDefinition"
                 | "timerEventDefinition"
                 | "escalationEventDefinition"
-                | "errorEventDefinition"
                 | "compensateEventDefinition" => {
                     last_event_type = None; // Set to none since these are unsupported.
                 }
@@ -173,7 +200,7 @@ pub fn read_bpmn_from_string(
                 "eventBasedGateway" => {
                     add_flow_node(&mut collaboration, &e, FlowNodeType::EventBasedGateway)
                 }
-                "callActivity" | "inclusiveGateway" | "complexGateway" => {
+                "callActivity" | "inclusiveGateway" | "complexGateway" | "boundaryEvent" => {
                     unsupported_elements.push(e)
                 }
                 _ => (),

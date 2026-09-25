@@ -64,6 +64,22 @@ fn test_persistent_messages() {
 }
 
 #[test]
+fn test_error_end_event() {
+    let collaboration =
+        rust_bpmn_analyzer::read_bpmn_from_file("tests/resources/unit/semantics/error_end.bpmn")
+            .unwrap();
+    let result = rust_bpmn_analyzer::run(&collaboration, all_properties());
+
+    assert!(!result.state_space.terminated_state_hashes.is_empty());
+    for hash in &result.state_space.terminated_state_hashes {
+        let state = result.state_space.get_state(hash);
+        assert_eq!(state.executed_end_event_counter["errorEnd"], 1);
+        assert_eq!(state.executed_end_event_counter["otherEnd"], 1);
+    }
+    assert_eq!(get_unfulfilled_properties(result), vec![]);
+}
+
+#[test]
 fn test_livelock() {
     let file_path = PATH.to_string() + "livelock.bpmn";
     let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();

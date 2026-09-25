@@ -72,6 +72,9 @@ POR works best when:
 - No message passing between parallel activities
 - Branches don't share resources or synchronize until joining
 
+Models containing error end events currently use full exploration, even with `--por`,
+so that cancellation of parallel work cannot hide property violations.
+
 ### Properties Preserved by POR
 
 | Property | Preserved? | Reason |
@@ -168,6 +171,12 @@ All tasks are handled identically except Send/Receive tasks, which send/receive 
 Markers, data, and artifacts are ignored.
 
 ## Events
+
+Error end events are supported at the top level of a process. An uncaught error removes
+all tokens in that process and records the end event execution, leaving other participants
+and pending messages unchanged. Error references/codes do not affect this behavior.
+Error boundary events, error event subprocesses, and error end events inside subprocesses
+remain unsupported and are reported as unsupported BPMN elements.
 
 <table>
   <thead>
