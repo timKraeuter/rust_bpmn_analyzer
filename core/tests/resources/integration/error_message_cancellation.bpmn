@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="definitions" targetNamespace="http://example.org/error-events">
+  <error id="failure" errorCode="failure" />
+  <collaboration id="collaboration">
+    <participant id="senderPool" processRef="sender" />
+    <participant id="receiverPool" processRef="receiver" />
+    <messageFlow id="message" sourceRef="send" targetRef="receive" />
+  </collaboration>
+  <process id="sender">
+    <startEvent id="senderStart">
+      <outgoing>toSplit</outgoing>
+    </startEvent>
+    <parallelGateway id="split">
+      <incoming>toSplit</incoming>
+      <outgoing>toError</outgoing>
+      <outgoing>toSend</outgoing>
+    </parallelGateway>
+    <endEvent id="errorEnd">
+      <incoming>toError</incoming>
+      <errorEventDefinition errorRef="failure" />
+    </endEvent>
+    <sendTask id="send" />
+    <endEvent id="senderEnd">
+      <incoming>toSenderEnd</incoming>
+    </endEvent>
+    <sequenceFlow id="toSplit" sourceRef="senderStart" targetRef="split" />
+    <sequenceFlow id="toError" sourceRef="split" targetRef="errorEnd" />
+    <sequenceFlow id="toSend" sourceRef="split" targetRef="send" />
+    <sequenceFlow id="toSenderEnd" sourceRef="send" targetRef="senderEnd" />
+  </process>
+  <process id="receiver">
+    <startEvent id="receiverStart">
+      <outgoing>toReceive</outgoing>
+    </startEvent>
+    <receiveTask id="receive" />
+    <endEvent id="receiverEnd">
+      <incoming>toReceiverEnd</incoming>
+    </endEvent>
+    <sequenceFlow id="toReceive" sourceRef="receiverStart" targetRef="receive" />
+    <sequenceFlow id="toReceiverEnd" sourceRef="receive" targetRef="receiverEnd" />
+  </process>
+</definitions>

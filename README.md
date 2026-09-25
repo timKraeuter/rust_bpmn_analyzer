@@ -172,9 +172,16 @@ Markers, data, and artifacts are ignored.
 
 ## Events
 
-Error end events are supported at the top level of a process. An uncaught error removes
-all tokens in that process and records the end event execution, leaving other participants
-and pending messages unchanged. Error references/codes do not affect this behavior.
+Error end events are supported at the top level of a process.
+[BPMN 2.0.2, §10.5.3, Table 10.88](https://www.omg.org/spec/BPMN/2.0.2/PDF#page=276)
+leaves unhandled-error behavior to the engine and identifies process-instance termination
+as a common policy. The analyzer uses that policy: an uncaught error removes all tokens
+in the **throwing instance** and records the end event execution. Other instances of the
+same process, other participants, and messages already sent remain unchanged. Termination
+is instance-local (§13.5.6); error references/codes do not affect this unhandled-error policy.
+The state-space tests cover cancellation of parallel work, non-synchronizing incoming
+flows, concurrent instances, and message delivery before and after cancellation, with and
+without POR.
 Error boundary events, error event subprocesses, and error end events inside subprocesses
 remain unsupported and are reported as unsupported BPMN elements.
 

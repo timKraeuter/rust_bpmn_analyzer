@@ -140,7 +140,8 @@ impl FlowNode {
             .snapshots
             .iter()
             .filter_map(|sp| {
-                if sp.id == snapshot.id {
+                // The process ID is shared by instances; remove only the executing snapshot.
+                if std::ptr::eq(sp, snapshot) {
                     None
                 } else {
                     Some(sp.clone())
@@ -330,7 +331,8 @@ impl FlowNode {
                 None => {}
                 Some(_) => {
                     if matches!(event_type, EventType::Terminate | EventType::Error) {
-                        // An uncaught error terminates its process, just like a terminate event.
+                        // BPMN 2.0.2 Table 10.88 leaves unhandled errors to the engine.
+                        // We choose to terminate the throwing instance, not other instances.
                         return self.execute_terminate_end_event(snapshot, current_state);
                     }
 
