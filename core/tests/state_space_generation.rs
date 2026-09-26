@@ -29,6 +29,20 @@ fn test_stable_state_space2() {
 }
 
 #[test]
+fn test_stable_state_space_with_parallel_branches() {
+    let file_path = PATH.to_string() + "p10.bpmn";
+    let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();
+    let result = rust_bpmn_analyzer::run(&collaboration, all_properties());
+    assert_eq!(2054, result.state_space.states.len());
+    assert_eq!(11270, result.state_space.count_transitions());
+    assert_eq!(0, result.state_space.terminated_state_hashes.len());
+    assert_eq!(
+        vec![Property::OptionToComplete, Property::NoDeadActivities],
+        get_unfulfilled_properties(result)
+    );
+}
+
+#[test]
 fn test_stable_state_space_with_messages() {
     let file_path = PATH.to_string() + "pools-message-flows.bpmn";
     let collaboration = rust_bpmn_analyzer::read_bpmn_from_file(&file_path).unwrap();
