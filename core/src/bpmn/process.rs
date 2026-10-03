@@ -1,11 +1,11 @@
 use crate::bpmn::flow_node::{FlowNode, SequenceFlow};
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 
 #[derive(Debug, PartialEq)]
 pub struct Process {
     pub id: String,
     pub flow_nodes: Vec<FlowNode>,
-    pub sequence_flow_index: HashMap<String, usize>, // Map from sf_id to target flow node index.
+    pub sequence_flow_index: FxHashMap<String, usize>, // Map from sf_id to target flow node index.
 }
 
 impl Process {
