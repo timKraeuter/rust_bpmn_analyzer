@@ -1,12 +1,14 @@
 //! Successor states described by the changes that executing a flow node makes to a state.
 //!
-//! Most successors found during state space exploration were reached before. Applying a
-//! [`StateChange`] to reusable buffers allows calculating the hash of a successor without
-//! cloning the current state, which is then only needed for new states.
+//! Most successors found during state space exploration were reached before. A
+//! [`SuccessorBuilder`] applies a [`StateChange`] to reusable buffers to calculate the hash of a
+//! successor without cloning the current state, which is then only needed for new states. The
+//! buffers hold ranks instead of ids, which are faster to compare.
 
 use crate::bpmn::flow_node::{MessageFlow, SequenceFlow};
 use crate::states::state_space::{ProcessSnapshot, State};
-use rustc_hash::FxHasher;
+use rustc_hash::{FxHashMap, FxHasher};
+use std::collections::BTreeMap;
 use std::hash::{Hash, Hasher};
 
 /// The changes that executing a flow node makes to a state.
@@ -26,6 +28,56 @@ pub(crate) struct StateChange<'a> {
     pub records_end_event: Option<&'a str>,
 }
 
+impl<'a> StateChange<'a> {
+    /// Applies this change made by the given instance to the current state.
+    ///
+    /// # Returns
+    /// The resulting successor.
+    pub fn apply(&self, current_state: &State<'a>, instance: Instance<'_, 'a>) -> State<'a> {
+        let mut snapshots: Vec<ProcessSnapshot<'a>> = current_state
+            .snapshots
+            .iter()
+            .filter(|snapshot| instance.keeps(snapshot))
+            .cloned()
+            .collect();
+        let mut changed_snapshot = ProcessSnapshot {
+            id: instance.process_id(),
+            tokens: BTreeMap::new(),
+        };
+        if let Instance::Existing(snapshot) = instance
+            && !self.consumes_all_tokens
+        {
+            changed_snapshot.tokens = snapshot.tokens.clone();
+        }
+        for sf in self.consumes_tokens {
+            changed_snapshot.delete_token(&sf.id);
+        }
+        for sf in self.produces_tokens {
+            changed_snapshot.add_token(&sf.id);
+        }
+        snapshots.push(changed_snapshot);
+
+        let mut successor = State {
+            snapshots,
+            messages: current_state.messages.clone(),
+            executed_end_event_counter: current_state.executed_end_event_counter.clone(),
+        };
+        if let Some(mf) = self.consumes_message {
+            successor.delete_message(mf);
+        }
+        for mf in self.produces_messages {
+            successor.add_message(&mf.id);
+        }
+        if let Some(end_event) = self.records_end_event {
+            *successor
+                .executed_end_event_counter
+                .entry(end_event)
+                .or_insert(0) += 1;
+        }
+        successor
+    }
+}
+
 /// The process instance executing a flow node.
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum Instance<'s, 'a> {
@@ -37,116 +89,199 @@ pub(crate) enum Instance<'s, 'a> {
     New(&'a str),
 }
 
-/// Reusable buffers holding the tokens, messages, and executed end events of a successor.
-///
-/// The buffers are sorted by key like the maps of a [`State`].
-#[derive(Debug, Default)]
-pub(crate) struct SuccessorBuilder<'a> {
-    tokens: Vec<(&'a str, u16)>,
-    messages: Vec<(&'a str, u16)>,
-    executed_end_event_counter: Vec<(&'a str, u16)>,
+impl<'a> Instance<'_, 'a> {
+    /// Returns whether the successor contains the given snapshot of the current state unchanged.
+    fn keeps(&self, snapshot: &ProcessSnapshot) -> bool {
+        match self {
+            Instance::Existing(executing_snapshot) => snapshot.id != executing_snapshot.id,
+            Instance::New(_) => true,
+        }
+    }
+
+    fn process_id(&self) -> &'a str {
+        match self {
+            Instance::Existing(executing_snapshot) => executing_snapshot.id,
+            Instance::New(process_id) => process_id,
+        }
+    }
 }
 
-impl<'a> SuccessorBuilder<'a> {
-    /// Applies a change made by the given instance to the current state.
+/// Ranks of the ids that are keys of the maps of states, i.e., the ids of sequence flows, message
+/// flows, and end events. Ranks are ordered like the ids.
+#[derive(Debug)]
+pub(crate) struct IdRanks<'a> {
+    /// The ids in ascending order, i.e., the rank of an id is its index.
+    ids: Vec<&'a str>,
+    /// The ranks of the given ids by their address and length, which are faster to hash than ids.
+    ranks: FxHashMap<*const str, usize>,
+}
+
+impl<'a> IdRanks<'a> {
+    pub fn new(ids: impl IntoIterator<Item = &'a str>) -> IdRanks<'a> {
+        let given_ids: Vec<&'a str> = ids.into_iter().collect();
+        let mut ids = given_ids.clone();
+        ids.sort_unstable();
+        ids.dedup();
+        let mut id_ranks = IdRanks {
+            ids,
+            ranks: FxHashMap::default(),
+        };
+        for id in given_ids {
+            let rank = id_ranks.rank_by_content(id);
+            id_ranks.ranks.insert(id, rank);
+        }
+        id_ranks
+    }
+
+    /// Returns the ids in ascending order, i.e., indexed by their rank.
+    pub fn ids(&self) -> &[&'a str] {
+        &self.ids
+    }
+
+    fn rank(&self, id: &str) -> usize {
+        match self.ranks.get(&(id as *const str)) {
+            Some(&rank) => rank,
+            // The id has the content but not the address of a given id.
+            None => self.rank_by_content(id),
+        }
+    }
+
+    fn rank_by_content(&self, id: &str) -> usize {
+        self.ids
+            .binary_search(&id)
+            .unwrap_or_else(|_| panic!("{} should have a rank but did not!", id))
+    }
+}
+
+/// The process instance executing a flow node in the state loaded by a [`SuccessorBuilder`], see
+/// [`Instance`].
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum Executor<'a> {
+    /// Index of the executing snapshot.
+    Snapshot(usize),
+    /// Process id of the instance started by a message start event.
+    NewInstance(&'a str),
+}
+
+/// Applies changes to a state using reusable buffers.
+#[derive(Debug)]
+pub(crate) struct SuccessorBuilder<'r, 'a> {
+    id_ranks: &'r IdRanks<'a>,
+    /// Ranked tokens of each snapshot of the loaded state.
+    snapshot_tokens: Vec<RankedCounter>,
+    /// Ranked messages of the loaded state.
+    messages: RankedCounter,
+    /// Ranked executed end events of the loaded state.
+    executed_end_event_counter: RankedCounter,
+    successor_tokens: RankedCounter,
+    successor_messages: RankedCounter,
+    successor_executed_end_event_counter: RankedCounter,
+}
+
+impl<'r, 'a> SuccessorBuilder<'r, 'a> {
+    pub fn new(id_ranks: &'r IdRanks<'a>) -> SuccessorBuilder<'r, 'a> {
+        SuccessorBuilder {
+            id_ranks,
+            snapshot_tokens: vec![],
+            messages: RankedCounter::default(),
+            executed_end_event_counter: RankedCounter::default(),
+            successor_tokens: RankedCounter::default(),
+            successor_messages: RankedCounter::default(),
+            successor_executed_end_event_counter: RankedCounter::default(),
+        }
+    }
+
+    /// Loads the state to which changes are applied next.
+    pub fn load(&mut self, state: &State<'a>) {
+        self.snapshot_tokens
+            .resize_with(state.snapshots.len(), RankedCounter::default);
+        for (tokens, snapshot) in self.snapshot_tokens.iter_mut().zip(&state.snapshots) {
+            tokens.load(&snapshot.tokens, self.id_ranks);
+        }
+        self.messages.load(&state.messages, self.id_ranks);
+        self.executed_end_event_counter
+            .load(&state.executed_end_event_counter, self.id_ranks);
+    }
+
+    /// Returns the ranks of the sequence flows with tokens in the snapshot with the given index of
+    /// the loaded state.
+    pub fn token_ranks(&self, snapshot_index: usize) -> impl Iterator<Item = usize> + '_ {
+        self.snapshot_tokens[snapshot_index]
+            .0
+            .iter()
+            .map(|&(rank, _)| rank)
+    }
+
+    /// Applies a change made by the given executor to the current state, which must be loaded.
     ///
     /// # Returns
     /// The resulting successor, which is not yet built.
     pub fn apply<'s>(
         &'s mut self,
         current_state: &'s State<'a>,
-        instance: Instance<'s, 'a>,
+        executor: Executor<'a>,
         change: &StateChange<'a>,
     ) -> Successor<'s, 'a> {
-        self.tokens.clear();
-        if let Instance::Existing(snapshot) = instance
-            && !change.consumes_all_tokens
-        {
-            self.tokens
-                .extend(snapshot.tokens.iter().map(|(&sf, &count)| (sf, count)));
-        }
+        let id_ranks = self.id_ranks;
+        let instance = match executor {
+            Executor::Snapshot(index) => {
+                if change.consumes_all_tokens {
+                    self.successor_tokens.0.clear();
+                } else {
+                    self.successor_tokens
+                        .0
+                        .clone_from(&self.snapshot_tokens[index].0);
+                }
+                Instance::Existing(&current_state.snapshots[index])
+            }
+            Executor::NewInstance(process_id) => {
+                self.successor_tokens.0.clear();
+                Instance::New(process_id)
+            }
+        };
         for sf in change.consumes_tokens {
-            decrement(&mut self.tokens, &sf.id);
+            self.successor_tokens.decrement(&sf.id, id_ranks);
         }
         for sf in change.produces_tokens {
-            increment(&mut self.tokens, &sf.id);
+            self.successor_tokens.increment(&sf.id, id_ranks);
         }
 
-        self.messages.clear();
-        self.messages.extend(
-            current_state
-                .messages
-                .iter()
-                .map(|(&mf, &count)| (mf, count)),
-        );
+        self.successor_messages.0.clone_from(&self.messages.0);
         if let Some(mf) = change.consumes_message {
-            decrement(&mut self.messages, mf);
+            self.successor_messages.decrement(mf, id_ranks);
         }
         for mf in change.produces_messages {
-            increment(&mut self.messages, &mf.id);
+            self.successor_messages.increment(&mf.id, id_ranks);
         }
 
-        self.executed_end_event_counter.clear();
-        self.executed_end_event_counter.extend(
-            current_state
-                .executed_end_event_counter
-                .iter()
-                .map(|(&end_event, &count)| (end_event, count)),
-        );
+        self.successor_executed_end_event_counter
+            .0
+            .clone_from(&self.executed_end_event_counter.0);
         if let Some(end_event) = change.records_end_event {
-            increment(&mut self.executed_end_event_counter, end_event);
+            self.successor_executed_end_event_counter
+                .increment(end_event, id_ranks);
         }
 
         Successor {
+            id_ranks,
             current_state,
             instance,
-            tokens: &self.tokens,
-            messages: &self.messages,
-            executed_end_event_counter: &self.executed_end_event_counter,
+            tokens: &self.successor_tokens,
+            messages: &self.successor_messages,
+            executed_end_event_counter: &self.successor_executed_end_event_counter,
         }
-    }
-
-    /// Builds the successors resulting from the given changes made by the given instance.
-    pub fn build_successors(
-        current_state: &State<'a>,
-        instance: Instance<'_, 'a>,
-        changes: &[StateChange<'a>],
-    ) -> Vec<State<'a>> {
-        let mut builder = SuccessorBuilder::default();
-        changes
-            .iter()
-            .map(|change| builder.apply(current_state, instance, change).build())
-            .collect()
-    }
-}
-
-fn increment<'a>(counter: &mut Vec<(&'a str, u16)>, key: &'a str) {
-    match counter.binary_search_by(|&(other_key, _)| other_key.cmp(key)) {
-        Ok(index) => counter[index].1 += 1,
-        Err(index) => counter.insert(index, (key, 1)),
-    }
-}
-
-fn decrement(counter: &mut Vec<(&str, u16)>, key: &str) {
-    match counter.binary_search_by(|&(other_key, _)| other_key.cmp(key)) {
-        Ok(index) => {
-            counter[index].1 -= 1;
-            if counter[index].1 == 0 {
-                counter.remove(index);
-            }
-        }
-        Err(_) => panic!("{} should be decreased but was not present!", key),
     }
 }
 
 /// A successor of the current state, whose changed parts are held by a [`SuccessorBuilder`].
 #[derive(Debug)]
 pub(crate) struct Successor<'s, 'a> {
+    id_ranks: &'s IdRanks<'a>,
     current_state: &'s State<'a>,
     instance: Instance<'s, 'a>,
-    tokens: &'s [(&'a str, u16)],
-    messages: &'s [(&'a str, u16)],
-    executed_end_event_counter: &'s [(&'a str, u16)],
+    tokens: &'s RankedCounter,
+    messages: &'s RankedCounter,
+    executed_end_event_counter: &'s RankedCounter,
 }
 
 impl<'a> Successor<'_, 'a> {
@@ -156,46 +291,36 @@ impl<'a> Successor<'_, 'a> {
     /// The same hash as [`State::calc_hash`] of the built successor.
     pub fn calc_hash(&self) -> u64 {
         // Hashes the same values in the same order as the derived `Hash` of `State`.
-        // A sorted slice of key-value pairs hashes like the equivalent `BTreeMap`.
         let mut hasher = FxHasher::default();
-        let snapshot_count = self.kept_snapshot_count() + 1;
-        // A slice hashes its length before its elements. A slice of `()` hashes only its length.
-        vec![(); snapshot_count].hash(&mut hasher);
+        hash_length_prefix(self.kept_snapshot_count() + 1, &mut hasher);
         for snapshot in &self.current_state.snapshots {
-            if self.keeps(snapshot) {
+            if self.instance.keeps(snapshot) {
                 snapshot.hash(&mut hasher);
             }
         }
-        self.process_id().hash(&mut hasher);
-        self.tokens.hash(&mut hasher);
-        self.messages.hash(&mut hasher);
-        self.executed_end_event_counter.hash(&mut hasher);
+        self.instance.process_id().hash(&mut hasher);
+        self.tokens.hash(self.id_ranks, &mut hasher);
+        self.messages.hash(self.id_ranks, &mut hasher);
+        self.executed_end_event_counter
+            .hash(self.id_ranks, &mut hasher);
         hasher.finish()
     }
 
     pub fn build(&self) -> State<'a> {
         let mut snapshots = Vec::with_capacity(self.kept_snapshot_count() + 1);
         for snapshot in &self.current_state.snapshots {
-            if self.keeps(snapshot) {
+            if self.instance.keeps(snapshot) {
                 snapshots.push(snapshot.clone());
             }
         }
         snapshots.push(ProcessSnapshot {
-            id: self.process_id(),
-            tokens: self.tokens.iter().copied().collect(),
+            id: self.instance.process_id(),
+            tokens: self.tokens.build(self.id_ranks),
         });
         State {
             snapshots,
-            messages: self.messages.iter().copied().collect(),
-            executed_end_event_counter: self.executed_end_event_counter.iter().copied().collect(),
-        }
-    }
-
-    /// Returns whether the successor contains the given snapshot of the current state unchanged.
-    fn keeps(&self, snapshot: &ProcessSnapshot) -> bool {
-        match self.instance {
-            Instance::Existing(executing_snapshot) => snapshot.id != executing_snapshot.id,
-            Instance::New(_) => true,
+            messages: self.messages.build(self.id_ranks),
+            executed_end_event_counter: self.executed_end_event_counter.build(self.id_ranks),
         }
     }
 
@@ -203,14 +328,70 @@ impl<'a> Successor<'_, 'a> {
         self.current_state
             .snapshots
             .iter()
-            .filter(|snapshot| self.keeps(snapshot))
+            .filter(|snapshot| self.instance.keeps(snapshot))
             .count()
     }
+}
 
-    fn process_id(&self) -> &'a str {
-        match self.instance {
-            Instance::Existing(executing_snapshot) => executing_snapshot.id,
-            Instance::New(process_id) => process_id,
+/// Counts by the ranks of ids, sorted by rank like the maps of a [`State`] by id.
+#[derive(Debug, Default)]
+struct RankedCounter(Vec<(usize, u16)>);
+
+impl RankedCounter {
+    fn load(&mut self, counter: &BTreeMap<&str, u16>, id_ranks: &IdRanks) {
+        self.0.clear();
+        self.0.extend(
+            counter
+                .iter()
+                .map(|(id, &count)| (id_ranks.rank(id), count)),
+        );
+    }
+
+    fn increment(&mut self, id: &str, id_ranks: &IdRanks) {
+        let rank = id_ranks.rank(id);
+        match self
+            .0
+            .binary_search_by_key(&rank, |&(other_rank, _)| other_rank)
+        {
+            Ok(index) => self.0[index].1 += 1,
+            Err(index) => self.0.insert(index, (rank, 1)),
         }
     }
+
+    fn decrement(&mut self, id: &str, id_ranks: &IdRanks) {
+        let rank = id_ranks.rank(id);
+        match self
+            .0
+            .binary_search_by_key(&rank, |&(other_rank, _)| other_rank)
+        {
+            Ok(index) => {
+                self.0[index].1 -= 1;
+                if self.0[index].1 == 0 {
+                    self.0.remove(index);
+                }
+            }
+            Err(_) => panic!("{} should be decreased but was not present!", id),
+        }
+    }
+
+    /// Hashes the counter like the equivalent map of a [`State`].
+    fn hash<H: Hasher>(&self, id_ranks: &IdRanks, hasher: &mut H) {
+        hash_length_prefix(self.0.len(), hasher);
+        for &(rank, count) in &self.0 {
+            (id_ranks.ids[rank], count).hash(hasher);
+        }
+    }
+
+    fn build<'a>(&self, id_ranks: &IdRanks<'a>) -> BTreeMap<&'a str, u16> {
+        self.0
+            .iter()
+            .map(|&(rank, count)| (id_ranks.ids[rank], count))
+            .collect()
+    }
+}
+
+/// Hashes the length of a collection like collections hash their length before their elements.
+fn hash_length_prefix<H: Hasher>(len: usize, hasher: &mut H) {
+    // A slice of `()` hashes only its length.
+    vec![(); len].hash(hasher);
 }

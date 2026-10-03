@@ -2,7 +2,7 @@ use crate::bpmn::flow_node::EventType::Link;
 use crate::bpmn::process::Process;
 use crate::model_checking::por::independence::TransitionEffect;
 use crate::states::state_space::{ProcessSnapshot, State};
-use crate::states::successor::{Instance, StateChange, SuccessorBuilder};
+use crate::states::successor::{Instance, StateChange};
 use std::collections::HashSet;
 use std::slice;
 
@@ -66,7 +66,10 @@ impl FlowNode {
             not_executed_activities,
             &mut changes,
         );
-        SuccessorBuilder::build_successors(current_state, Instance::Existing(snapshot), &changes)
+        changes
+            .iter()
+            .map(|change| change.apply(current_state, Instance::Existing(snapshot)))
+            .collect()
     }
 
     /// Collects the changes of all possible executions of this flow node by the given snapshot.
@@ -332,7 +335,10 @@ impl FlowNode {
     ) -> Vec<State<'a>> {
         let mut changes = vec![];
         self.collect_message_start_event_changes(current_state, &mut changes);
-        SuccessorBuilder::build_successors(current_state, Instance::New(&process.id), &changes)
+        changes
+            .iter()
+            .map(|change| change.apply(current_state, Instance::New(&process.id)))
+            .collect()
     }
 
     /// Collects the changes of all possible triggers of this message start event, which each
