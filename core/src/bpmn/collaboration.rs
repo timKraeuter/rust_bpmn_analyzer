@@ -6,8 +6,10 @@ use crate::model_checking::properties::{
     determine_properties,
 };
 use crate::states::state_space::{ProcessSnapshot, State, StateSpace};
+use crate::states::successor::{Executor, IdRanks, StateChange, SuccessorBuilder};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::collections::{BTreeMap, HashSet, VecDeque};
+use std::iter;
 
 #[derive(Debug, PartialEq)]
 pub struct Collaboration {
@@ -51,25 +53,29 @@ impl Collaboration {
 
         let mut unexplored_states = VecDeque::new();
         unexplored_states.push_back((start_state_hash, start_state));
-        let mut potentially_unexplored_states = vec![];
+        let id_ranks = self.create_id_ranks();
+        let mut buffers = ExplorationBuffers::new(self, &id_ranks);
 
         while !unexplored_states.is_empty() {
             match unexplored_states.pop_front() {
                 None => {}
                 Some((current_state_hash, current_state)) => {
                     // Explore the state
-                    self.explore_state(
-                        &current_state,
-                        &mut not_executed_activities,
-                        &mut potentially_unexplored_states,
-                    );
+                    buffers.successor_builder.load(&current_state);
+                    self.explore_state(&current_state, &mut not_executed_activities, &mut buffers);
 
-                    let mut transitions = Vec::with_capacity(potentially_unexplored_states.len());
-                    for (flow_node_id, new_state) in potentially_unexplored_states.drain(..) {
-                        let new_hash = new_state.calc_hash();
+                    let mut transitions = Vec::with_capacity(buffers.executions.len());
+                    for (flow_node_id, executor, change) in buffers.executions.drain(..) {
+                        let successor =
+                            buffers
+                                .successor_builder
+                                .apply(&current_state, executor, &change);
+                        let new_hash = successor.calc_hash();
                         // Check if we know the state already
                         if seen_state_hashes.insert(new_hash) {
-                            // State is new.
+                            // State is new. Only new states are built to not clone known states.
+                            let new_state = successor.build();
+                            debug_assert_eq!(new_hash, new_state.calc_hash());
                             unexplored_states.push_back((new_hash, new_state));
                         }
                         // Remember states to make transitions.
@@ -120,6 +126,29 @@ impl Collaboration {
         }
     }
 
+    /// Ranks all ids that can be keys of the maps of states.
+    fn create_id_ranks(&self) -> IdRanks<'_> {
+        IdRanks::new(self.participants.iter().flat_map(|process| {
+            process.flow_nodes.iter().flat_map(|flow_node| {
+                iter::once(flow_node.id.as_str())
+                    .chain(flow_node.incoming_flows.iter().map(|sf| sf.id.as_str()))
+                    .chain(flow_node.outgoing_flows.iter().map(|sf| sf.id.as_str()))
+                    .chain(
+                        flow_node
+                            .incoming_message_flows
+                            .iter()
+                            .map(|mf| mf.id.as_str()),
+                    )
+                    .chain(
+                        flow_node
+                            .outgoing_message_flows
+                            .iter()
+                            .map(|mf| mf.id.as_str()),
+                    )
+            })
+        }))
+    }
+
     pub fn get_all_tasks(&self) -> HashSet<&str> {
         let mut flow_nodes = HashSet::new();
         self.participants.iter().for_each(|process| {
@@ -163,51 +192,63 @@ impl Collaboration {
         start
     }
 
+    /// Collects the executions of flow nodes in the given state, which must be loaded by the
+    /// successor builder.
     fn explore_state<'a>(
         &'a self,
         state: &State<'a>,
         not_executed_activities: &mut HashSet<&str>,
-        unexplored_states: &mut Vec<(&'a str, State<'a>)>,
+        buffers: &mut ExplorationBuffers<'_, 'a>,
     ) {
         if !state.messages.is_empty() {
-            self.try_trigger_message_start_events(state, unexplored_states);
+            self.try_trigger_message_start_events(state, buffers);
         }
 
-        for snapshot in &state.snapshots {
+        for (snapshot_index, snapshot) in state.snapshots.iter().enumerate() {
             // Find participant for snapshot, could also be hashmap but usually not a long list.
-            let process = self
+            let process_index = self
                 .participants
                 .iter()
-                .find(|process| process.id == snapshot.id);
-            match process {
+                .position(|process| process.id == snapshot.id);
+            match process_index {
                 None => {
                     panic!("No process found for snapshot with id \"{}\"", snapshot.id)
                 }
-                Some(process) => {
-                    for flow_node in
-                        Collaboration::get_flow_node_indexes_with_incoming_tokens(snapshot, process)
-                            .iter()
-                            .filter_map(|&flow_node_idx| process.flow_nodes.get(*flow_node_idx))
+                Some(process_index) => {
+                    let process = &self.participants[process_index];
+                    buffers.collect_flow_node_indexes_with_incoming_tokens(
+                        process_index,
+                        snapshot_index,
+                    );
+                    for flow_node in buffers
+                        .flow_node_indexes
+                        .iter()
+                        .filter_map(|&flow_node_idx| process.flow_nodes.get(flow_node_idx))
                     {
-                        let new_states = flow_node.try_execute(
+                        flow_node.collect_state_changes(
                             snapshot,
                             state,
                             process,
                             not_executed_activities,
+                            &mut buffers.changes,
                         );
 
                         Self::record_executed_activities(
                             not_executed_activities,
                             flow_node,
-                            &new_states,
+                            !buffers.changes.is_empty(),
                         );
 
                         // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
-                        unexplored_states.extend(
-                            new_states
-                                .into_iter()
-                                .map(|state| (flow_node.id.as_str(), state)),
-                        );
+                        buffers
+                            .executions
+                            .extend(buffers.changes.drain(..).map(|change| {
+                                (
+                                    flow_node.id.as_str(),
+                                    Executor::Snapshot(snapshot_index),
+                                    change,
+                                )
+                            }));
                     }
                 }
             }
@@ -231,7 +272,7 @@ impl Collaboration {
     fn try_trigger_message_start_events<'a>(
         &'a self,
         state: &State<'a>,
-        unexplored_states: &mut Vec<(&'a str, State<'a>)>,
+        buffers: &mut ExplorationBuffers<'_, 'a>,
     ) {
         self.participants.iter().for_each(|process| {
             process
@@ -239,14 +280,18 @@ impl Collaboration {
                 .iter()
                 .filter(|flow_node| flow_node.flow_node_type == StartEvent(EventType::Message))
                 .for_each(|message_start_event| {
-                    let new_states =
-                        message_start_event.try_trigger_message_start_event(process, state);
+                    message_start_event
+                        .collect_message_start_event_changes(state, &mut buffers.changes);
                     // Would want to check if the state has been explored here not later to not take up unnecessary memory. But we still want to add the transitions.
-                    unexplored_states.extend(
-                        new_states
-                            .into_iter()
-                            .map(|state| (message_start_event.id.as_str(), state)),
-                    );
+                    buffers
+                        .executions
+                        .extend(buffers.changes.drain(..).map(|change| {
+                            (
+                                message_start_event.id.as_str(),
+                                Executor::NewInstance(process.id.as_str()),
+                                change,
+                            )
+                        }));
                 })
         });
     }
@@ -254,13 +299,68 @@ impl Collaboration {
     pub(crate) fn record_executed_activities(
         not_executed_activities: &mut HashSet<&str>,
         flow_node: &FlowNode,
-        new_states: &[State],
+        executed: bool,
     ) {
-        if (flow_node.flow_node_type == FlowNodeType::Task(TaskType::Default)
-            || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive))
-            && !new_states.is_empty()
+        // Removing hashes the id, which is unnecessary once all activities were executed.
+        if executed
+            && !not_executed_activities.is_empty()
+            && (flow_node.flow_node_type == FlowNodeType::Task(TaskType::Default)
+                || flow_node.flow_node_type == FlowNodeType::Task(TaskType::Receive))
         {
             not_executed_activities.remove(flow_node.id.as_str());
         }
+    }
+}
+
+/// Data reused when exploring states.
+#[derive(Debug)]
+struct ExplorationBuffers<'r, 'a> {
+    /// Flow node index targeted by each sequence flow, by process index and sequence flow rank.
+    target_flow_node_indexes: Vec<Vec<Option<usize>>>,
+    flow_node_indexes: Vec<usize>,
+    changes: Vec<StateChange<'a>>,
+    /// Executions of flow nodes in the explored state (executed flow node id, executor, change).
+    executions: Vec<(&'a str, Executor<'a>, StateChange<'a>)>,
+    successor_builder: SuccessorBuilder<'r, 'a>,
+}
+
+impl<'r, 'a> ExplorationBuffers<'r, 'a> {
+    fn new(collaboration: &'a Collaboration, id_ranks: &'r IdRanks<'a>) -> Self {
+        let target_flow_node_indexes = collaboration
+            .participants
+            .iter()
+            .map(|process| {
+                id_ranks
+                    .ids()
+                    .iter()
+                    .map(|&id| process.sequence_flow_index.get(id).copied())
+                    .collect()
+            })
+            .collect();
+        ExplorationBuffers {
+            target_flow_node_indexes,
+            flow_node_indexes: vec![],
+            changes: vec![],
+            executions: vec![],
+            successor_builder: SuccessorBuilder::new(id_ranks),
+        }
+    }
+
+    /// Collects the indexes of the flow nodes with incoming tokens in the snapshot with the given
+    /// index of the loaded state, like [`Collaboration::get_flow_node_indexes_with_incoming_tokens`].
+    fn collect_flow_node_indexes_with_incoming_tokens(
+        &mut self,
+        process_index: usize,
+        snapshot_index: usize,
+    ) {
+        let target_flow_node_indexes = &self.target_flow_node_indexes[process_index];
+        self.flow_node_indexes.clear();
+        self.flow_node_indexes.extend(
+            self.successor_builder
+                .token_ranks(snapshot_index)
+                .filter_map(|rank| target_flow_node_indexes[rank]),
+        );
+        self.flow_node_indexes.sort();
+        self.flow_node_indexes.dedup(); // Do not try to execute a flow node twice.
     }
 }

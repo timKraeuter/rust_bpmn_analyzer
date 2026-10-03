@@ -311,7 +311,7 @@ fn explore_state_filtered<'a>(
                     Collaboration::record_executed_activities(
                         not_executed_activities,
                         flow_node,
-                        &new_states,
+                        !new_states.is_empty(),
                     );
 
                     unexplored_states.extend(

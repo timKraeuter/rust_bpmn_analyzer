@@ -3,7 +3,7 @@ use crate::bpmn::flow_node::{EventType, FlowNode, FlowNodeType, TaskType};
 use crate::bpmn::process::Process;
 use quick_xml::events::{BytesStart, Event};
 use quick_xml::reader::Reader;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use std::{fmt, fs};
 
 #[derive(Debug)]
@@ -216,7 +216,7 @@ fn add_participant(collaboration: &mut Collaboration, p_bytes: &BytesStart) {
     collaboration.add_participant(Process {
         id,
         flow_nodes: vec![],
-        sequence_flow_index: HashMap::new(),
+        sequence_flow_index: FxHashMap::default(),
     });
 }
 
