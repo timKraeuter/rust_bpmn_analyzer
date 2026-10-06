@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" id="definitions" targetNamespace="http://example.org/error-events">
+  <error id="failure" errorCode="failure" />
+  <collaboration id="collaboration">
+    <participant id="senderPool" processRef="sender" />
+    <participant id="workerPool" processRef="worker" />
+    <messageFlow id="firstMessage" sourceRef="sendFirst" targetRef="workerStart" />
+    <messageFlow id="secondMessage" sourceRef="sendSecond" targetRef="workerStart" />
+  </collaboration>
+  <process id="sender">
+    <startEvent id="senderStart">
+      <outgoing>toFirst</outgoing>
+    </startEvent>
+    <sendTask id="sendFirst" />
+    <sendTask id="sendSecond" />
+    <endEvent id="senderEnd">
+      <incoming>toSenderEnd</incoming>
+    </endEvent>
+    <sequenceFlow id="toFirst" sourceRef="senderStart" targetRef="sendFirst" />
+    <sequenceFlow id="toSecond" sourceRef="sendFirst" targetRef="sendSecond" />
+    <sequenceFlow id="toSenderEnd" sourceRef="sendSecond" targetRef="senderEnd" />
+  </process>
+  <process id="worker">
+    <startEvent id="workerStart">
+      <outgoing>toError</outgoing>
+      <messageEventDefinition />
+    </startEvent>
+    <endEvent id="errorEnd">
+      <incoming>toError</incoming>
+      <errorEventDefinition errorRef="failure" />
+    </endEvent>
+    <sequenceFlow id="toError" sourceRef="workerStart" targetRef="errorEnd" />
+  </process>
+</definitions>

@@ -54,6 +54,18 @@ pub fn explore_state_space_with_por<'a>(
     properties: Vec<Property>,
     por_config: AmpleSetConfig,
 ) -> ModelCheckingResultWithStats<'a> {
+    // An error can cancel parallel work even when it is not enabled yet.
+    // Use full exploration until ample sets account for these future dependencies.
+    let por_config = AmpleSetConfig {
+        enabled: por_config.enabled
+            && !collaboration.participants.iter().any(|process| {
+                process
+                    .flow_nodes
+                    .iter()
+                    .any(|node| node.flow_node_type == FlowNodeType::EndEvent(EventType::Error))
+            }),
+        ..por_config
+    };
     let mut property_results = vec![];
     let mut not_executed_activities = collaboration.get_all_tasks();
     let mut ample_stats = AmpleSetStats::default();

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" id="definitions" targetNamespace="http://example.org/error-events">
+  <bpmn:error id="error" errorCode="failure" />
+  <bpmn:process id="process">
+    <bpmn:startEvent id="start">
+      <bpmn:outgoing>errorFlow</bpmn:outgoing>
+      <bpmn:outgoing>taskFlow</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="errorEnd">
+      <bpmn:incoming>errorFlow</bpmn:incoming>
+      <bpmn:errorEventDefinition errorRef="error" />
+    </bpmn:endEvent>
+    <bpmn:task id="task" />
+    <bpmn:endEvent id="normalEnd">
+      <bpmn:incoming>endFlow</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="errorFlow" sourceRef="start" targetRef="errorEnd" />
+    <bpmn:sequenceFlow id="taskFlow" sourceRef="start" targetRef="task" />
+    <bpmn:sequenceFlow id="endFlow" sourceRef="task" targetRef="normalEnd" />
+  </bpmn:process>
+  <bpmn:process id="otherProcess">
+    <bpmn:startEvent id="otherStart">
+      <bpmn:outgoing>otherFlow</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="otherEnd">
+      <bpmn:incoming>otherFlow</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="otherFlow" sourceRef="otherStart" targetRef="otherEnd" />
+  </bpmn:process>
+</bpmn:definitions>
